@@ -143,8 +143,32 @@ def calculate_rsi(df, days=14):
     return rsi
 
 @st.cache_data
+def get_twse_basic_info(code):
+    """從台灣證交所取得基本資訊"""
+    try:
+        url = f'https://www.twse.com.tw/rwd/zh/fund/T86?date=&stockNo={code}&response=json'
+        headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)'}
+        r = requests.get(url, headers=headers, timeout=10)
+        data = r.json()
+        
+        if data.get('stat') == 'OK' and data.get('data'):
+            # 取最新一季資料
+            latest = data['data'][0]
+            return {
+                '季別': latest[0],
+                'EPS': float(latest[2].replace(',', '')) if latest[2] != '--' else None,
+                '殖利率': float(latest[4].replace(',', '')) if latest[4] != '--' else None,
+                '股息': float(latest[5].replace(',', '')) if latest[5] != '--' else None,
+            }
+        return None
+    except:
+        return None
+
+@st.cache_data
 def get_fundamental_data(code):
-    """取得基本面數據"""
+    """取得基本面數據 - 優先使用yfinance，失敗則用台灣證交所"""
+    
+    # 先嘗試 yfinance
     try:
         ticker = yf.Ticker(f"{code}.TW")
         info = ticker.info
@@ -162,22 +186,44 @@ def get_fundamental_data(code):
             '市值': info.get('marketCap'),
             '產業': info.get('sector'),
             '產業類別': info.get('industry'),
+            '資料來源': 'yfinance'
         }
         
-        # 配息歷史
-        try:
-            dividends = ticker.dividends
-            if len(dividends) > 0:
-                recent_div = dividends.tail(8)  # 近8次配息
-                fundamentals['配息歷史'] = recent_div
-            else:
-                fundamentals['配息歷史'] = None
-        except:
-            fundamentals['配息歷史'] = None
+        # 如果有基本数据就返回
+        if fundamentals.get('EPS') or fundamentals.get('本益比'):
+            return fundamentals
             
-        return fundamentals
     except:
-        return None
+        pass
+    
+    # yfinance 失敗，改用台灣證交所
+    twse_data = get_twse_basic_info(code)
+    if twse_data:
+        # 計算本益比（需要股價）
+        try:
+            ticker = yf.Ticker(f"{code}.TW")
+            price = ticker.history(period='1d')['Close'].iloc[-1]
+            if twse_data.get('EPS') and price:
+                twse_data['本益比'] = round(price / twse_data['EPS'], 2)
+        except:
+            pass
+        
+        return {
+            'EPS': twse_data.get('EPS'),
+            '本益比': twse_data.get('本益比'),
+            '殖利率': twse_data.get('殖利率'),
+            '股息': twse_data.get('股息'),
+            '每股淨值': None,
+            '股價淨值比': None,
+            '52週最高': None,
+            '52週最低': None,
+            '市值': None,
+            '產業': None,
+            '產業類別': None,
+            '資料來源': '台灣證交所'
+        }
+    
+    return None
 
 # ===== 側邊欄 =====
 st.sidebar.title("📈 少爺的股票儀表板")
