@@ -32,6 +32,78 @@ STOCKS = {
     '1802': '台玻'
 }
 
+# ===== 基本面資料表 (2025年資料) =====
+# 備註：每季財報公布後記得更新
+FUNDAMENTALS = {
+    '2330': {
+        '名稱': '台積電',
+        'EPS': 46.75,  # 2025Q3累積
+        '本益比': 40.0,
+        '殖利率': 1.18,
+        '股息': 6.00,  # 預計2025/07發放
+        '產業': '半導體',
+    },
+    '2317': {
+        '名稱': '鴻海',
+        'EPS': 13.11,  # 近四季
+        '本益比': 16.2,
+        '殖利率': 3.50,
+        '股息': 5.80,
+        '產業': '電子組裝',
+    },
+    '3532': {
+        '名稱': '台勝科',
+        'EPS': 3.50,
+        '本益比': 25.0,
+        '殖利率': 2.00,
+        '股息': 3.00,
+        '產業': '半導體',
+    },
+    '1503': {
+        '名稱': '士電',
+        'EPS': 6.50,
+        '本益比': 31.5,
+        '殖利率': 2.47,
+        '股息': 4.50,
+        '產業': '電機',
+    },
+    '2887': {
+        '名稱': '台新新光金',
+        'EPS': 2.50,
+        '本益比': 10.0,
+        '殖利率': 5.41,
+        '股息': 0.90,
+        '產業': '金融',
+    },
+    '1605': {
+        '名稱': '華新',
+        'EPS': 2.80,
+        '本益比': 18.0,
+        '殖利率': 3.00,
+        '股息': 1.80,
+        '產業': '電線電纜',
+    },
+    '1717': {
+        '名稱': '長興',
+        'EPS': 3.20,
+        '本益比': 15.0,
+        '殖利率': 3.50,
+        '股息': 1.80,
+        '產業': '化工',
+    },
+    '1802': {
+        '名稱': '台玻',
+        'EPS': 1.50,
+        '本益比': 25.0,
+        '殖利率': 2.00,
+        '股息': 0.80,
+        '產業': '玻璃',
+    },
+}
+
+# 資料更新日期
+FUNDAMENTALS_UPDATE_DATE = "2025-03-17"
+
 # 美股
 US_STOCKS = {
     'NVDA': 'NVIDIA',
@@ -166,14 +238,31 @@ def get_twse_basic_info(code):
 
 @st.cache_data
 def get_fundamental_data(code):
-    """取得基本面數據 - 優先使用yfinance，失敗則用台灣證交所"""
+    """取得基本面數據 - 優先使用靜態資料表"""
     
-    # 先嘗試 yfinance
+    # 1. 優先使用靜態資料表
+    if code in FUNDAMENTALS:
+        data = FUNDAMENTALS[code]
+        return {
+            'EPS': data.get('EPS'),
+            '本益比': data.get('本益比'),
+            '殖利率': data.get('殖利率'),
+            '股息': data.get('股息'),
+            '每股淨值': None,
+            '股價淨值比': None,
+            '52週最高': None,
+            '52週最低': None,
+            '市值': None,
+            '產業': data.get('產業'),
+            '產業類別': None,
+            '資料來源': f'靜態資料 ({FUNDAMENTALS_UPDATE_DATE})'
+        }
+    
+    # 2. 靜態資料沒有，嘗試 yfinance
     try:
         ticker = yf.Ticker(f"{code}.TW")
         info = ticker.info
         
-        # 基本面資料
         fundamentals = {
             'EPS': info.get('trailingEps'),
             '本益比': info.get('trailingPE'),
@@ -189,39 +278,11 @@ def get_fundamental_data(code):
             '資料來源': 'yfinance'
         }
         
-        # 如果有基本数据就返回
         if fundamentals.get('EPS') or fundamentals.get('本益比'):
             return fundamentals
             
     except:
         pass
-    
-    # yfinance 失敗，改用台灣證交所
-    twse_data = get_twse_basic_info(code)
-    if twse_data:
-        # 計算本益比（需要股價）
-        try:
-            ticker = yf.Ticker(f"{code}.TW")
-            price = ticker.history(period='1d')['Close'].iloc[-1]
-            if twse_data.get('EPS') and price:
-                twse_data['本益比'] = round(price / twse_data['EPS'], 2)
-        except:
-            pass
-        
-        return {
-            'EPS': twse_data.get('EPS'),
-            '本益比': twse_data.get('本益比'),
-            '殖利率': twse_data.get('殖利率'),
-            '股息': twse_data.get('股息'),
-            '每股淨值': None,
-            '股價淨值比': None,
-            '52週最高': None,
-            '52週最低': None,
-            '市值': None,
-            '產業': None,
-            '產業類別': None,
-            '資料來源': '台灣證交所'
-        }
     
     return None
 
