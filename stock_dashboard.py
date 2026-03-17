@@ -11,6 +11,7 @@ import yfinance as yf
 import pandas as pd
 from datetime import datetime, timedelta
 import json
+import requests
 
 # 頁面設定
 st.set_page_config(
@@ -42,10 +43,75 @@ US_STOCKS = {
     'AMZN': 'Amazon'
 }
 
+# ===== 台灣證交所 API =====
+@st.cache_data
+def get_twse_data(code, days=90):
+    """從台灣證交所取得股票數據"""
+    try:
+        from datetime import datetime, timedelta
+        import time
+        
+        all_data = []
+        end_date = datetime.now()
+        
+        # 分多次請求來獲取多天數據
+        for i in range(0, days, 30):
+            date_str = end_date.strftime('%Y%m%d')
+            url = f'https://www.twse.com.tw/rwd/zh/afterTrading/STOCK_DAY?&date={date_str}&stockNo={code}&response=json'
+            
+            headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)'}
+            r = requests.get(url, headers=headers, timeout=10)
+            data = r.json()
+            
+            if data.get('stat') == 'OK' and data.get('data'):
+                for row in data['data']:
+                    try:
+                        # 解析民國年日期
+                        tw_date = row[0]  # 115/03/17
+                        year = int(tw_date.split('/')[0]) + 1911
+                        month = tw_date.split('/')[1]
+                        day = tw_date.split('/')[2]
+                        date = f"{year}-{month}-{day}"
+                        
+                        # 解析價格（移除逗號）
+                        open_price = float(row[3].replace(',', ''))
+                        high = float(row[4].replace(',', ''))
+                        low = float(row[5].replace(',', ''))
+                        close = float(row[6].replace(',', ''))
+                        
+                        all_data.append({
+                            'Date': date,
+                            'Open': open_price,
+                            'High': high,
+                            'Low': low,
+                            'Close': close,
+                            'Volume': int(row[1].replace(',', ''))
+                        })
+                    except:
+                        continue
+            
+            time.sleep(0.5)  # 避免請求太快
+        
+        if all_data:
+            df = pd.DataFrame(all_data)
+            df['Date'] = pd.to_datetime(df['Date'])
+            df = df.sort_values('Date')
+            return df
+        return None
+    except Exception as e:
+        print(f"TWSE Error: {e}")
+        return None
+
 # ===== 函數定義 =====
 @st.cache_data
 def get_stock_data(code, period="1mo"):
-    """取得股票數據"""
+    """取得股票數據 - 優先使用台灣證交所"""
+    # 先嘗試台灣證交所
+    df = get_twse_data(code)
+    if df is not None and not df.empty:
+        return df
+    
+    # 如果失敗，改用 yfinance
     try:
         ticker = yf.Ticker(f"{code}.TW")
         df = ticker.history(period=period)
