@@ -381,7 +381,7 @@ if df is not None and len(df) > 0:
         ])
         
         fig_vol.update_layout(
-            height=200,
+            height=350,
             template="plotly_dark",
             title="成交量",
             yaxis_title="成交量"
