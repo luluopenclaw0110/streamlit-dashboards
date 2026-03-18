@@ -202,6 +202,7 @@ def get_fundamental_data(code):
             '財報季度': data.get('財報季度', 'N/A'),
             '備註': data.get('備註', ''),
             '配息歷史': data.get('配息歷史', []),
+            '季財報': data.get('季財報', []),
             '資料來源': f'證交所 ({FUNDAMENTALS_UPDATE_DATE})'
         }
     
@@ -513,6 +514,28 @@ if df is not None and len(df) > 0:
             
             if not div_df.empty:
                 st.dataframe(div_df, use_container_width=True, hide_index=True)
+        
+        # 季財報
+        quarterly = fundamentals.get('季財報')
+        if quarterly is not None and len(quarterly) > 0:
+            st.markdown("### 📊 季財報 (近4季)")
+            
+            if isinstance(quarterly, list):
+                # JSON 格式
+                q_df = pd.DataFrame(quarterly)
+                # 格式化數字
+                for col in ['營收', '毛利', '營業利益', '淨利']:
+                    if col in q_df.columns:
+                        q_df[col] = q_df[col].apply(lambda x: f"${x/1e9:.1f}B" if x and x > 0 else "N/A")
+                if 'EPS' in q_df.columns:
+                    q_df['EPS'] = q_df['EPS'].apply(lambda x: f"${x}" if x else "N/A")
+                if '稀釋EPS' in q_df.columns:
+                    q_df['稀釋EPS'] = q_df['稀釋EPS'].apply(lambda x: f"${x}" if x else "N/A")
+            else:
+                q_df = quarterly
+            
+            if not q_df.empty:
+                st.dataframe(q_df, use_container_width=True, hide_index=True)
         
         # 市值
         market_cap = fundamentals.get('市值')
