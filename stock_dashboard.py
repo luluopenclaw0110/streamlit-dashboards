@@ -121,19 +121,23 @@ def get_twse_data(code, days=90):
 # ===== 函數定義 =====
 @st.cache_data
 def get_stock_data(code, period="1mo"):
-    """取得股票數據 - 優先使用台灣證交所"""
-    # 先嘗試台灣證交所
-    df = get_twse_data(code)
-    if df is not None and not df.empty:
-        return df
+    """取得股票數據 - 根據時間範圍選擇來源"""
     
-    # 如果失敗，改用 yfinance
+    # 短期資料 (1mo, 3mo) → 用證交所
+    if period in ["1mo", "3mo"]:
+        df = get_twse_data(code)
+        if df is not None and not df.empty:
+            return df
+    
+    # 長期資料 (6mo, 1y, 2y) → 用 yfinance
     try:
         ticker = yf.Ticker(f"{code}.TW")
         df = ticker.history(period=period)
         return df
     except:
-        return None
+        # 如果都失敗，最後再試證交所
+        df = get_twse_data(code)
+        return df
 
 @st.cache_data  
 def get_us_stock_data(code, period="5d"):
