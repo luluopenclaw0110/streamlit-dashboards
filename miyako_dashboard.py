@@ -7,7 +7,7 @@ import os
 
 # 頁面設定
 st.set_page_config(
-    page_title="宮古島旅遊監控儀表板",
+    page_title="盧盧旅遊監控儀表板",
     page_icon="🏝️",
     layout="wide"
 )
@@ -35,7 +35,7 @@ def save_data(data):
 data = load_data()
 
 # 標題
-st.title("🏝️ 宮古島旅遊監控儀表板")
+st.title("✈️ 盧盧旅遊監控儀表板")
 st.markdown("### ✈️ 少爺的宮古島之旅 - 2026年7月底")
 
 # 分頁
