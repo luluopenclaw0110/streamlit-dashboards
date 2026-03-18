@@ -38,6 +38,14 @@ data = load_data()
 st.title("✈️ 盧盧旅遊監控儀表板")
 st.markdown("### ✈️ 少爺旅行團 - 2026年7月底")
 
+# 選擇目的地（放在最上面，連動所有分頁）
+st.header("📍 目的地選擇")
+destination = st.selectbox(
+    "請選擇目的地：",
+    ["🏨 沖繩", "🏝️ 宮古島", "🏝️ 石垣島", "🏙️ 名古屋", "🏙️ 東京", "🏙️ 大阪", "🏙️ 福岡"],
+    label_visibility="collapsed"
+)
+
 # 分頁
 tab1, tab2, tab3, tab4 = st.tabs(["✈️ 機票監控", "🏨 飯店推薦", "📋 行程筆記", "🔗 快速連結"])
 
@@ -46,12 +54,13 @@ with tab1:
     st.header("✈️ 機票價格追蹤")
     st.caption("每週更新一次 - 上次更新：2026-03-18")
     
-    # 機票價格表
-    st.subheader("📊 星宇航空票價 - 7/24 去程 (2大2小 總價)")
-    
-    # 台中飛沖繩
-    st.markdown("**✈️ 台中 (RMQ) → 沖繩 (OKA)**")
-    flight_data_rmq = [
+    if "沖繩" in destination:
+        # 機票價格表
+        st.subheader("📊 星宇航空票價 - 7/24 去程 (2大2小 總價)")
+        
+        # 台中飛沖繩
+        st.markdown("**✈️ 台中 (RMQ) → 沖繩 (OKA)**")
+        flight_data_rmq = [
         {"航班": "JX302", "時間": "13:10-15:45", "艙等": "經濟艙", "票價": "TWD 26,118"},
         {"航班": "JX312", "時間": "16:40-19:10", "艙等": "經濟艙", "票價": "TWD 26,118"},
     ]
