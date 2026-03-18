@@ -432,15 +432,25 @@ if df is not None and len(df) > 0:
         
         with col1:
             eps = fundamentals.get('EPS')
+            # 處理 EPS 格式
             if eps and eps != 'N/A':
-                st.metric("EPS", f"${eps:.2f}")
+                try:
+                    eps_val = float(eps)
+                    st.metric("EPS", f"${eps_val:.2f}")
+                except:
+                    st.metric("EPS", str(eps))
             else:
                 st.metric("EPS", "N/A")
         
         with col2:
             pe = fundamentals.get('本益比')
+            # 處理本益比格式
             if pe and pe != 'N/A':
-                st.metric("本益比 (P/E)", f"{pe:.2f}")
+                try:
+                    pe_val = float(pe)
+                    st.metric("本益比 (P/E)", f"{pe_val:.2f}")
+                except:
+                    st.metric("本益比 (P/E)", str(pe))
             else:
                 st.metric("本益比 (P/E)", "N/A")
         
@@ -450,21 +460,23 @@ if df is not None and len(df) > 0:
                 # 移除 % 符號
                 if isinstance(div_yield, str):
                     div_yield = div_yield.replace('%', '')
-                    try:
-                        div_yield = float(div_yield)
-                    except:
-                        div_yield = 'N/A'
-                if div_yield != 'N/A':
-                    st.metric("殖利率", f"{div_yield:.2f}%")
-                else:
-                    st.metric("殖利率", "N/A")
+                try:
+                    div_yield_val = float(div_yield)
+                    st.metric("殖利率", f"{div_yield_val:.2f}%")
+                except:
+                    st.metric("殖利率", str(div_yield))
             else:
                 st.metric("殖利率", "N/A")
         
         with col4:
             pb = fundamentals.get('每股淨值')
+            # 處理每股淨值格式
             if pb and pb != 'N/A':
-                st.metric("每股淨值", f"${pb:.2f}")
+                try:
+                    pb_val = float(pb)
+                    st.metric("每股淨值", f"${pb_val:.2f}")
+                except:
+                    st.metric("每股淨值", str(pb))
             else:
                 st.metric("每股淨值", "N/A")
         
