@@ -35,14 +35,15 @@ def save_data(data):
 data = load_data()
 
 # 標題
-st.title("✈️ 盧盧旅遊監控儀表板")
+st.title("✈️ 少爺的旅遊監控儀表板")
 st.markdown("### ✈️ 少爺旅行團 - 2026年7月底")
 
 # 選擇目的地（放在最上面，連動所有分頁）
 st.header("📍 目的地選擇")
-destination = st.selectbox(
+destination = st.radio(
     "請選擇目的地：",
     ["🏨 沖繩", "🏝️ 宮古島", "🏝️ 石垣島", "🏙️ 名古屋", "🏙️ 東京", "🏙️ 大阪", "🏙️ 福岡"],
+    horizontal=True,
     label_visibility="collapsed"
 )
 
