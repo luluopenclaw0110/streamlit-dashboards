@@ -47,21 +47,45 @@ with tab1:
     st.caption("每週更新一次 - 上次更新：2026-03-18")
     
     # 機票價格表
-    st.subheader("📊 星宇航空票價 - 7/24 去程 (桃園飛 2大2小 總價)")
+    st.subheader("📊 星宇航空票價 - 7/24 去程 (2大2小 總價)")
     
-    flight_data = [
+    # 台中飛沖繩
+    st.markdown("**✈️ 台中 (RMQ) → 沖繩 (OKA)**")
+    flight_data_rmq = [
+        {"航班": "JX302", "時間": "13:10-15:45", "艙等": "經濟艙", "票價": "TWD 26,118"},
+        {"航班": "JX312", "時間": "16:40-19:10", "艙等": "經濟艙", "票價": "TWD 26,118"},
+    ]
+    df_rmq = pd.DataFrame(flight_data_rmq)
+    st.table(df_rmq)
+    
+    # 桃園飛沖繩
+    st.markdown("**✈️ 桃園 (TPE) → 沖繩 (OKA)**")
+    flight_data_tpe = [
         {"航班": "JX870", "時間": "12:00-14:40", "艙等": "經濟艙", "票價": "TWD 33,500"},
         {"航班": "JX870", "時間": "12:00-14:40", "艙等": "豪華經濟艙", "票價": "TWD 36,386"},
     ]
-    
-    df_flights = pd.DataFrame(flight_data)
-    st.table(df_flights)
+    df_tpe = pd.DataFrame(flight_data_tpe)
+    st.table(df_tpe)
     
     st.divider()
     
-    # 7天票價參考
-    st.subheader("📅 7天票價趨勢 (7/21-7/27) - 桃園飛 2大2小 總價")
-    price_data = [
+    # 7天票價參考 - 台中
+    st.subheader("📅 7天票價趨勢 (7/21-7/27) - 台中飛")
+    price_data_rmq = [
+        {"日期": "7/21 (二)", "票價": "TWD 20,346"},
+        {"日期": "7/22 (三)", "票價": "TWD 20,346"},
+        {"日期": "7/23 (四)", "票價": "TWD 20,346"},
+        {"日期": "7/24 (五)", "票價": "TWD 26,118"},
+        {"日期": "7/25 (六)", "票價": "TWD 26,118"},
+        {"日期": "7/26 (日)", "票價": "TWD 26,118"},
+        {"日期": "7/27 (一)", "票價": "TWD 20,346"},
+    ]
+    df_price_rmq = pd.DataFrame(price_data_rmq)
+    st.table(df_price_rmq)
+    
+    # 7天票價參考 - 桃園
+    st.subheader("📅 7天票價趨勢 (7/21-7/27) - 桃園飛")
+    price_data_tpe = [
         {"日期": "7/21 (二)", "票價": "TWD 22,382"},
         {"日期": "7/22 (三)", "票價": "TWD 36,386"},
         {"日期": "7/23 (四)", "票價": "TWD 33,500"},
