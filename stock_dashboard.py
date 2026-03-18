@@ -523,13 +523,23 @@ if df is not None and len(df) > 0:
             if stock_news:
                 st.markdown("**📰 個股新聞：**")
                 for n in stock_news[:3]:
-                    st.markdown(f"- {n.get('標題', '')}")
+                    link = n.get('連結', '')
+                    title = n.get('標題', '')
+                    if link:
+                        st.markdown(f"- [{title}]({link})")
+                    else:
+                        st.markdown(f"- {title}")
             
             # 產業新聞
             if ind_news:
                 st.markdown("**🌐 產業新聞：**")
                 for n in ind_news[:3]:
-                    st.markdown(f"- {n.get('標題', '')}")
+                    link = n.get('連結', '')
+                    title = n.get('標題', '')
+                    if link:
+                        st.markdown(f"- [{title}]({link})")
+                    else:
+                        st.markdown(f"- {title}")
         
         # 配息歷史 (支援 JSON 格式和 pandas 格式)
         div_history = fundamentals.get('配息歷史')
