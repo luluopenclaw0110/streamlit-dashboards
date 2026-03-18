@@ -201,6 +201,7 @@ def get_fundamental_data(code):
             '產業類別': None,
             '財報季度': data.get('財報季度', 'N/A'),
             '備註': data.get('備註', ''),
+            '配息歷史': data.get('配息歷史', []),
             '資料來源': f'證交所 ({FUNDAMENTALS_UPDATE_DATE})'
         }
     
@@ -494,15 +495,24 @@ if df is not None and len(df) > 0:
         if sector or industry:
             st.markdown(f"**產業：** {sector} / {industry}")
         
-        # 配息歷史
+        # 配息歷史 (支援 JSON 格式和 pandas 格式)
         div_history = fundamentals.get('配息歷史')
         if div_history is not None and len(div_history) > 0:
             st.markdown("### 💰 配息歷史 (近8次)")
-            div_df = pd.DataFrame({
-                '日期': [d.strftime('%Y-%m') for d in div_history.index],
-                '股息': div_history.values
-            })
-            st.dataframe(div_df, use_container_width=True, hide_index=True)
+            
+            # 判斷資料格式
+            if isinstance(div_history, list):
+                # JSON 格式: [{'日期': '2024-03', '股息': 3.5}, ...]
+                div_df = pd.DataFrame(div_history)
+            else:
+                # pandas Series 格式
+                div_df = pd.DataFrame({
+                    '日期': [d.strftime('%Y-%m') for d in div_history.index],
+                    '股息': div_history.values
+                })
+            
+            if not div_df.empty:
+                st.dataframe(div_df, use_container_width=True, hide_index=True)
         
         # 市值
         market_cap = fundamentals.get('市值')
