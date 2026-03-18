@@ -32,78 +32,21 @@ STOCKS = {
     '1802': '台玻'
 }
 
-# ===== 基本面資料表 (2025年資料) =====
-# 備註：每季財報公布後記得更新
-# 資料來源：Yahoo股市、Win投資
-FUNDAMENTALS = {
-    '2330': {
-        '名稱': '台積電',
-        'EPS': 46.75,  # 2025Q3累積
-        '本益比': 40.0,
-        '殖利率': 1.18,  # 1.18%
-        '股息': 6.00,  # 2025年
-        '產業': '半導體',
-    },
-    '2317': {
-        '名稱': '鴻海',
-        'EPS': 13.11,  # 近四季
-        '本益比': 16.2,
-        '殖利率': 3.50,  # 3.50%
-        '股息': 5.80,  # 2025年
-        '產業': '電子組裝',
-    },
-    '3532': {
-        '名稱': '台勝科',
-        'EPS': 3.50,
-        '本益比': 25.0,
-        '殖利率': 2.33,  # 2.33%
-        '股息': 1.80,  # 2025年
-        '產業': '半導體',
-    },
-    '1503': {
-        '名稱': '士電',
-        'EPS': 6.50,
-        '本益比': 31.5,
-        '殖利率': 2.47,  # 2.47%
-        '股息': 4.50,  # 2025年
-        '產業': '電機',
-    },
-    '2887': {
-        '名稱': '台新新光金',
-        'EPS': 2.50,
-        '本益比': 10.0,
-        '殖利率': 5.41,  # 5.41%
-        '股息': 0.90,  # 2025年
-        '產業': '金融',
-    },
-    '1605': {
-        '名稱': '華新',
-        'EPS': 2.80,
-        '本益比': 18.0,
-        '殖利率': 2.39,  # 2.39%
-        '股息': 0.50,  # 2025年
-        '產業': '電線電纜',
-    },
-    '1717': {
-        '名稱': '長興',
-        'EPS': 3.20,
-        '本益比': 15.0,
-        '殖利率': 3.50,  # 估算
-        '股息': 1.80,  # 估算
-        '產業': '化工',
-    },
-    '1802': {
-        '名稱': '台玻',
-        'EPS': -0.33,  # 2025Q3累積（虧損）
-        '本益比': None,  # 虧損無本益比
-        '殖利率': 0.00,  # 0%
-        '股息': 0.00,  # 2025年未配息
-        '產業': '玻璃',
-    },
-}
+# ===== 從 JSON 讀取基本面資料 =====
+import os
 
-# 資料更新日期
-FUNDAMENTALS_UPDATE_DATE = "2026-03-17"
+def load_fundamentals():
+    """從 JSON 檔案載入基本面資料"""
+    json_path = os.path.join(os.path.dirname(__file__), 'data', 'stock_fundamentals.json')
+    try:
+        with open(json_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        return data['stocks'], data.get('update_date', '未知')
+    except Exception as e:
+        st.error(f"無法載入基本面資料: {e}")
+        return {}, "載入失敗"
+
+FUNDAMENTALS, FUNDAMENTALS_UPDATE_DATE = load_fundamentals()
 
 # 美股
 US_STOCKS = {
@@ -239,9 +182,9 @@ def get_twse_basic_info(code):
 
 @st.cache_data
 def get_fundamental_data(code):
-    """取得基本面數據 - 優先使用靜態資料表"""
+    """取得基本面數據 - 從 JSON 檔案讀取"""
     
-    # 1. 優先使用靜態資料表
+    # 從 JSON 檔案取得資料 (由 load_fundamentals 載入)
     if code in FUNDAMENTALS:
         data = FUNDAMENTALS[code]
         return {
@@ -249,17 +192,19 @@ def get_fundamental_data(code):
             '本益比': data.get('本益比'),
             '殖利率': data.get('殖利率'),
             '股息': data.get('股息'),
-            '每股淨值': None,
-            '股價淨值比': None,
+            '每股淨值': data.get('每股淨值'),
+            '股價淨值比': data.get('股價淨值比'),
             '52週最高': None,
             '52週最低': None,
             '市值': None,
             '產業': data.get('產業'),
             '產業類別': None,
-            '資料來源': f'靜態資料 ({FUNDAMENTALS_UPDATE_DATE})'
+            '財報季度': data.get('財報季度', 'N/A'),
+            '備註': data.get('備註', ''),
+            '資料來源': f'證交所 ({FUNDAMENTALS_UPDATE_DATE})'
         }
     
-    # 2. 靜態資料沒有，嘗試 yfinance
+    # 如果 JSON 沒有，嘗試 yfinance
     try:
         ticker = yf.Ticker(f"{code}.TW")
         info = ticker.info
@@ -472,53 +417,61 @@ if df is not None and len(df) > 0:
     
     # ===== 基本面數據 =====
     st.markdown("---")
-    st.markdown("### 📋 基本面數據")
+    st.markdown("### 📋 基本面數據 (資料來源：證交所)")
     
     fundamentals = get_fundamental_data(selected_stock[0])
     
     if fundamentals:
-        col1, col2, col3, col4 = st.columns(4)
+        # 取得財報季度
+        fiscal_q = fundamentals.get('財報季度', 'N/A')
+        
+        col0, col1, col2, col3, col4 = st.columns(5)
+        
+        with col0:
+            st.metric("財報季度", fiscal_q)
         
         with col1:
             eps = fundamentals.get('EPS')
-            if eps:
-                st.metric("EPS (每股盈餘)", f"${eps:.2f}")
+            if eps and eps != 'N/A':
+                st.metric("EPS", f"${eps:.2f}")
+            else:
+                st.metric("EPS", "N/A")
         
         with col2:
             pe = fundamentals.get('本益比')
-            if pe:
+            if pe and pe != 'N/A':
                 st.metric("本益比 (P/E)", f"{pe:.2f}")
+            else:
+                st.metric("本益比 (P/E)", "N/A")
         
         with col3:
             div_yield = fundamentals.get('殖利率')
-            if div_yield is not None and div_yield > 0:
-                st.metric("殖利率", f"{div_yield:.2f}%")
+            if div_yield and div_yield != 'N/A':
+                # 移除 % 符號
+                if isinstance(div_yield, str):
+                    div_yield = div_yield.replace('%', '')
+                    try:
+                        div_yield = float(div_yield)
+                    except:
+                        div_yield = 'N/A'
+                if div_yield != 'N/A':
+                    st.metric("殖利率", f"{div_yield:.2f}%")
+                else:
+                    st.metric("殖利率", "N/A")
             else:
                 st.metric("殖利率", "N/A")
         
         with col4:
-            div = fundamentals.get('股息')
-            if div:
-                st.metric("現金股息", f"${div:.2f}")
+            pb = fundamentals.get('每股淨值')
+            if pb and pb != 'N/A':
+                st.metric("每股淨值", f"${pb:.2f}")
+            else:
+                st.metric("每股淨值", "N/A")
         
-        col5, col6, col7, col8 = st.columns(4)
-        
-        with col5:
-            pb = fundamentals.get('股價淨值比')
-            if pb:
-                st.metric("股價淨值比 (P/B)", f"{pb:.2f}")
-        
-        with col6:
-            book = fundamentals.get('每股淨值')
-            if book:
-                st.metric("每股淨值", f"${book:.2f}")
-        
-        with col7:
-            high52 = fundamentals.get('52週最高')
-            if high52:
-                st.metric("52週最高", f"${high52:.2f}")
-        
-        with col8:
+        # 顯示更新日期
+        update_note = fundamentals.get('備註', '')
+        if update_note:
+            st.caption(f"📅 {update_note}")
             low52 = fundamentals.get('52週最低')
             if low52:
                 st.metric("52週最低", f"${low52:.2f}")
