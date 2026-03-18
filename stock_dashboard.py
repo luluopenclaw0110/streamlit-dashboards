@@ -48,7 +48,18 @@ def load_fundamentals():
         st.error(f"無法載入基本面資料: {e}")
         return {}, "載入失敗"
 
+def load_industry_news():
+    """從 JSON 檔案載入產業動態"""
+    json_path = os.path.join(os.path.dirname(__file__), 'data', 'stock_industry_news.json')
+    try:
+        with open(json_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        return data['stocks'], data.get('update_date', '未知')
+    except Exception as e:
+        return {}, "載入失敗"
+
 FUNDAMENTALS, FUNDAMENTALS_UPDATE_DATE = load_fundamentals()
+INDUSTRY_NEWS, INDUSTRY_NEWS_UPDATE_DATE = load_industry_news()
 
 # 美股
 US_STOCKS = {
@@ -493,6 +504,31 @@ if df is not None and len(df) > 0:
         industry = fundamentals.get('產業類別')
         if sector or industry:
             st.markdown(f"**產業：** {sector} / {industry}")
+        
+        # ===== 產業動態 =====
+        code = selected_stock[0]
+        if code in INDUSTRY_NEWS:
+            news_data = INDUSTRY_NEWS[code]
+            industry_analysis = news_data.get('產業分析', '')
+            stock_news = news_data.get('個股新聞', [])
+            ind_news = news_data.get('產業新聞', [])
+            
+            if industry_analysis:
+                st.markdown("---")
+                st.markdown("### 📰 產業動態")
+                st.info(f"💡 {industry_analysis}")
+            
+            # 個股新聞
+            if stock_news:
+                st.markdown("**📰 個股新聞：**")
+                for n in stock_news[:3]:
+                    st.markdown(f"- {n.get('標題', '')}")
+            
+            # 產業新聞
+            if ind_news:
+                st.markdown("**🌐 產業新聞：**")
+                for n in ind_news[:3]:
+                    st.markdown(f"- {n.get('標題', '')}")
         
         # 配息歷史 (支援 JSON 格式和 pandas 格式)
         div_history = fundamentals.get('配息歷史')
