@@ -188,9 +188,13 @@ with tab3:
     st.header("📋 行程筆記")
     
     # 選擇目的地
-    destination = st.radio("請問您想去哪個島？", ["🏨 沖繩本島", "🏝️ 宮古島", "🏝️ 石垣島"], horizontal=True)
+    destination = st.radio(
+        "📍 目的地選擇",
+        ["🏨 沖繩", "🏝️ 宮古島", "🏝️ 石垣島", "🏙️ 名古屋", "🏙️ 東京", "🏙️ 大阪", "🏙️ 福岡"],
+        horizontal=True
+    )
     
-    if "沖繩本島" in destination:
+    if "沖繩" in destination:
         st.subheader("🏨 沖繩本島 - 五天四夜行程")
         
         okinawa_itinerary = """
