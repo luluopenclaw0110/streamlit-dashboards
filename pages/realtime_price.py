@@ -6,6 +6,8 @@ import requests
 from bs4 import BeautifulSoup
 import time
 import streamlit as st
+from datetime import datetime
+import pytz
 
 STOCKS = {
     '2330': '台積電',
@@ -18,7 +20,37 @@ STOCKS = {
     '1802': '台玻'
 }
 
-@st.cache_data(ttl=60)  # 快取 60 秒
+def is_trading_hours():
+    """判斷是否在台灣股市交易時間內"""
+    tw_tz = pytz.timezone('Asia/Taipei')
+    now = datetime.now(tw_tz)
+    
+    # 取得星期幾 (0=周一, 6=周日)
+    weekday = now.weekday()
+    
+    # 假日(六日)不交易
+    if weekday >= 5:
+        return False
+    
+    # 交易時間 9:00 - 14:00 (含盤後定價)
+    hour = now.hour
+    minute = now.minute
+    
+    if hour < 9:
+        return False
+    if hour >= 14:
+        return False
+    
+    return True
+
+def get_cache_ttl():
+    """根據是否在交易時間回傳不同的快取時間"""
+    if is_trading_hours():
+        return 60  # 交易時間內 60 秒更新
+    else:
+        return 3600  # 非交易時間 1 小時更新
+
+@st.cache_data(ttl=get_cache_ttl())
 def get_realtime_price(code):
     """從 Yahoo 股市抓取即時股價"""
     try:
@@ -142,3 +174,14 @@ else:
 # 手動更新按鈕
 if st.button('🔄 重新整理'):
     st.rerun()
+
+# 顯示交易時間狀態
+st.divider()
+tw_tz = pytz.timezone('Asia/Taipei')
+now = datetime.now(tw_tz)
+is_trading = is_trading_hours()
+
+if is_trading:
+    st.success(f"🟢 股市交易中 ({now.strftime('%H:%M:%S')}) | 自動更新頻率：60秒")
+else:
+    st.info(f"⚪ 股市已收盤 ({now.strftime('%H:%M:%S')}) | 自動更新頻率：1小時")
