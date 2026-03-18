@@ -95,8 +95,8 @@ with tab1:
         {"日期": "7/27 (一)", "票價": "TWD 22,382"},
     ]
     
-    df_price = pd.DataFrame(price_data)
-    st.table(df_price)
+    df_price_tpe = pd.DataFrame(price_data_tpe)
+    st.table(df_price_tpe)
     
     st.info("💡 建議：7/21-7/23 或 7/27 出發票價較便宜")
     
