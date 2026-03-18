@@ -110,7 +110,7 @@ with tab1:
     
     st.info("💡 建議：7/21-7/23 或 7/27 出發票價較便宜")
     
-    elif "宮古島" in destination:
+    if "宮古島" in destination:
         st.info("🏝️ 宮古島機票敬請期待")
     elif "石垣島" in destination:
         st.info("🏝️ 石垣島機票敬請期待")
@@ -122,8 +122,6 @@ with tab1:
         st.info("🏙️ 大阪機票敬請期待")
     elif "福岡" in destination:
         st.info("🏙️ 福岡機票敬請期待")
-    else:
-        st.info("請選擇目的地")
     
     st.divider()
     
