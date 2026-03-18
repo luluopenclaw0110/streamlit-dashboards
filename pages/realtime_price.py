@@ -72,13 +72,19 @@ def get_realtime_price(code):
         change = 0
         change_pct = 0
         if change_elem:
-            change_text = change_elem[0].get_text().strip()
-            # 判斷漲跌
-            if '+' in change_text:
-                change_pct = float(change_text.replace('+', '').replace('%', ''))
-            elif '-' in change_text:
-                change_pct = float(change_text.replace('-', '').replace('%', ''))
-                change_pct = -change_pct
+            # change_elem[0] = 漲跌金額 (如 "35.00")
+            # change_elem[1] = 漲跌百分比 (如 "(1.87%)")
+            # 找百分比那個
+            for elem in change_elem:
+                text = elem.get_text().strip()
+                if '(' in text and ')' in text and '%' in text:
+                    # 解析 "(1.87%)" 或 "(-1.5%)"
+                    pct_text = text.replace('(', '').replace(')', '').replace('%', '')
+                    try:
+                        change_pct = float(pct_text)
+                    except:
+                        change_pct = 0
+                    break
         
         return {
             'price': price,
