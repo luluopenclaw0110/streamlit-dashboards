@@ -62,26 +62,26 @@ with tab1:
         # 台中飛沖繩
         st.markdown("**✈️ 台中 (RMQ) → 沖繩 (OKA)**")
         flight_data_rmq = [
-        {"航班": "JX302", "時間": "13:10-15:45", "艙等": "經濟艙", "票價": "TWD 26,118"},
-        {"航班": "JX312", "時間": "16:40-19:10", "艙等": "經濟艙", "票價": "TWD 26,118"},
-    ]
-    df_rmq = pd.DataFrame(flight_data_rmq)
-    st.table(df_rmq)
-    
-    # 桃園飛沖繩
-    st.markdown("**✈️ 桃園 (TPE) → 沖繩 (OKA)**")
-    flight_data_tpe = [
-        {"航班": "JX870", "時間": "12:00-14:40", "艙等": "經濟艙", "票價": "TWD 33,500"},
-        {"航班": "JX870", "時間": "12:00-14:40", "艙等": "豪華經濟艙", "票價": "TWD 36,386"},
-    ]
-    df_tpe = pd.DataFrame(flight_data_tpe)
-    st.table(df_tpe)
-    
-    st.divider()
-    
-    # 7天票價參考 - 台中
-    st.subheader("📅 7天票價趨勢 (7/21-7/27) - 台中飛")
-    price_data_rmq = [
+            {"航班": "JX302", "時間": "13:10-15:45", "艙等": "經濟艙", "票價": "TWD 26,118"},
+            {"航班": "JX312", "時間": "16:40-19:10", "艙等": "經濟艙", "票價": "TWD 26,118"},
+        ]
+        df_rmq = pd.DataFrame(flight_data_rmq)
+        st.table(df_rmq)
+        
+        # 桃園飛沖繩
+        st.markdown("**✈️ 桃園 (TPE) → 沖繩 (OKA)**")
+        flight_data_tpe = [
+            {"航班": "JX870", "時間": "12:00-14:40", "艙等": "經濟艙", "票價": "TWD 33,500"},
+            {"航班": "JX870", "時間": "12:00-14:40", "艙等": "豪華經濟艙", "票價": "TWD 36,386"},
+        ]
+        df_tpe = pd.DataFrame(flight_data_tpe)
+        st.table(df_tpe)
+        
+        st.divider()
+        
+        # 7天票價參考 - 台中
+        st.subheader("📅 7天票價趨勢 (7/21-7/27) - 台中飛")
+        price_data_rmq = [
         {"日期": "7/21 (二)", "票價": "TWD 20,346"},
         {"日期": "7/22 (三)", "票價": "TWD 20,346"},
         {"日期": "7/23 (四)", "票價": "TWD 20,346"},
@@ -109,6 +109,21 @@ with tab1:
     st.table(df_price_tpe)
     
     st.info("💡 建議：7/21-7/23 或 7/27 出發票價較便宜")
+    
+    elif "宮古島" in destination:
+        st.info("🏝️ 宮古島機票敬請期待")
+    elif "石垣島" in destination:
+        st.info("🏝️ 石垣島機票敬請期待")
+    elif "名古屋" in destination:
+        st.info("🏙️ 名古屋機票敬請期待")
+    elif "東京" in destination:
+        st.info("🏙️ 東京機票敬請期待")
+    elif "大阪" in destination:
+        st.info("🏙️ 大阪機票敬請期待")
+    elif "福岡" in destination:
+        st.info("🏙️ 福岡機票敬請期待")
+    else:
+        st.info("請選擇目的地")
     
     st.divider()
     
