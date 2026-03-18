@@ -82,35 +82,35 @@ with tab1:
         # 7天票價參考 - 台中
         st.subheader("📅 7天票價趨勢 (7/21-7/27) - 台中飛")
         price_data_rmq = [
-        {"日期": "7/21 (二)", "票價": "TWD 20,346"},
-        {"日期": "7/22 (三)", "票價": "TWD 20,346"},
-        {"日期": "7/23 (四)", "票價": "TWD 20,346"},
-        {"日期": "7/24 (五)", "票價": "TWD 26,118"},
-        {"日期": "7/25 (六)", "票價": "TWD 26,118"},
-        {"日期": "7/26 (日)", "票價": "TWD 26,118"},
-        {"日期": "7/27 (一)", "票價": "TWD 20,346"},
-    ]
-    df_price_rmq = pd.DataFrame(price_data_rmq)
-    st.table(df_price_rmq)
-    
-    # 7天票價參考 - 桃園
-    st.subheader("📅 7天票價趨勢 (7/21-7/27) - 桃園飛")
-    price_data_tpe = [
-        {"日期": "7/21 (二)", "票價": "TWD 22,382"},
-        {"日期": "7/22 (三)", "票價": "TWD 36,386"},
-        {"日期": "7/23 (四)", "票價": "TWD 33,500"},
-        {"日期": "7/24 (五)", "票價": "TWD 33,500"},
-        {"日期": "7/25 (六)", "票價": "TWD 36,386"},
-        {"日期": "7/26 (日)", "票價": "TWD 36,048"},
-        {"日期": "7/27 (一)", "票價": "TWD 22,382"},
-    ]
-    
-    df_price_tpe = pd.DataFrame(price_data_tpe)
-    st.table(df_price_tpe)
-    
-    st.info("💡 建議：7/21-7/23 或 7/27 出發票價較便宜")
-    
-    if "宮古島" in destination:
+            {"日期": "7/21 (二)", "票價": "TWD 20,346"},
+            {"日期": "7/22 (三)", "票價": "TWD 20,346"},
+            {"日期": "7/23 (四)", "票價": "TWD 20,346"},
+            {"日期": "7/24 (五)", "票價": "TWD 26,118"},
+            {"日期": "7/25 (六)", "票價": "TWD 26,118"},
+            {"日期": "7/26 (日)", "票價": "TWD 26,118"},
+            {"日期": "7/27 (一)", "票價": "TWD 20,346"},
+        ]
+        df_price_rmq = pd.DataFrame(price_data_rmq)
+        st.table(df_price_rmq)
+        
+        # 7天票價參考 - 桃園
+        st.subheader("📅 7天票價趨勢 (7/21-7/27) - 桃園飛")
+        price_data_tpe = [
+            {"日期": "7/21 (二)", "票價": "TWD 22,382"},
+            {"日期": "7/22 (三)", "票價": "TWD 36,386"},
+            {"日期": "7/23 (四)", "票價": "TWD 33,500"},
+            {"日期": "7/24 (五)", "票價": "TWD 33,500"},
+            {"日期": "7/25 (六)", "票價": "TWD 36,386"},
+            {"日期": "7/26 (日)", "票價": "TWD 36,048"},
+            {"日期": "7/27 (一)", "票價": "TWD 22,382"},
+        ]
+        
+        df_price_tpe = pd.DataFrame(price_data_tpe)
+        st.table(df_price_tpe)
+        
+        st.info("💡 建議：7/21-7/23 或 7/27 出發票價較便宜")
+        
+    elif "宮古島" in destination:
         st.info("🏝️ 宮古島機票敬請期待")
     elif "石垣島" in destination:
         st.info("🏝️ 石垣島機票敬請期待")
@@ -125,7 +125,7 @@ with tab1:
     
     st.divider()
     
-    # 其他航線
+    # 其他航線（所有目的地都可見）
     st.subheader("📊 其他航線參考")
     
     other_flights = [
@@ -161,61 +161,57 @@ with tab1:
 with tab2:
     st.header("🏨 飯店推薦")
     
-    # 沖繩本島
-    st.subheader("🏨 沖繩本島 - BEB5 瀨良垣")
-    col1, col2 = st.columns([3, 1])
-    with col1:
-        st.markdown("""
-        **星野集團 BEB5 沖繩瀨良垣**
-        - ⭐ 評分：8.5+
-        - 📍 位置：恩納村瀨良垣
-        - 🏷️ 特色：公寓式飯店，每間房有廚房、洗衣機
-        - 👨‍👩‍👧‍👦 適合：親子、家庭
-        - 💰 參考價：TWD 6,000-12,000/晚（暑假）
-        """)
-    with col2:
-        st.link_button("🔗 Booking.com", "https://www.booking.com/hotel/jp/xing-ye-rizoto-beb5chong-nawa-lai-liang-yuan.html")
-    
-    st.divider()
-    
-    # 宮古島
-    st.subheader("🏝️ 宮古島飯店")
-    
-    miyako_hotels = [
-        {"排名": 1, "飯店": "繁花珊瑚度假村", "評分": "⭐ 8.0+", "房型": "4人 Villa", "價格": "TWD 8,700-15,000", "特色": "閣樓、按摩浴缸、兒童戲水區"},
-        {"排名": 2, "飯店": "宮古島東涌", "評分": "⭐ 8.8", "房型": "海景房", "價格": "TWD 12,000+", "特色": "直通海灘、5間餐廳"},
-        {"排名": 3, "飯店": "希爾頓宮古島", "評分": "⭐ 8.8", "房型": "標準房", "價格": "TWD 6,300+", "特色": "兒童俱樂部、無邊際泳池"},
-        {"排名": 4, "飯店": "Hotel & Villa Seahorse", "評分": "⭐ 8.0+", "房型": "2房公寓", "價格": "TWD 3,100-6,000", "特色": "廚房、洗衣機、近海灘"},
-    ]
-    
-    df_miyako = pd.DataFrame(miyako_hotels)
-    st.table(df_miyako)
-    
-    st.divider()
-    
-    # 石垣島
-    st.subheader("🏝️ 石垣島飯店")
-    
-    ishigaki_hotels = [
-        {"排名": 1, "飯店": "石垣島Vessel飯店", "評分": "⭐ 8.5+", "房型": "家庭房", "價格": "TWD 5,000-8,000", "特色": "近石垣港、18歲以下不佔床免費"},
-        {"排名": 2, "飯店": "石垣島陽光海灘飯店", "評分": "⭐ 8.0+", "房型": "海景房", "價格": "TWD 6,000-10,000", "特色": "直通海灘、泳池"},
-        {"排名": 3, "飯店": "ANA Intercontinental 石垣島", "評分": "⭐ 9.0", "房型": "套房", "價格": "TWD 15,000+", "特色": "頂級度假村"},
-        {"排名": 4, "飯店": "Fiore Club 石垣島", "評分": "⭐ 8.0+", "房型": "別墅", "價格": "TWD 7,000-12,000", "特色": "海灘 club"},
-    ]
-    
-    df_ishigaki = pd.DataFrame(ishigaki_hotels)
-    st.table(df_ishigaki)
+    if "沖繩" in destination:
+        # 沖繩本島
+        st.subheader("🏨 沖繩本島 - BEB5 瀨良垣")
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.markdown("""
+            **星野集團 BEB5 沖繩瀨良垣**
+            - ⭐ 評分：8.5+
+            - 📍 位置：恩納村瀨良垣
+            - 🏷️ 特色：公寓式飯店，每間房有廚房、洗衣機
+            - 👨‍👩‍👧‍👦 適合：親子、家庭
+            - 💰 參考價：TWD 6,000-12,000/晚（暑假）
+            """)
+        with col2:
+            st.link_button("🔗 Booking.com", "https://www.booking.com/hotel/jp/xing-ye-rizoto-beb5chong-nawa-lai-liang-yuan.html")
+    elif "宮古島" in destination:
+        st.subheader("🏝️ 宮古島飯店")
+        
+        miyako_hotels = [
+            {"排名": 1, "飯店": "繁花珊瑚度假村", "評分": "⭐ 8.0+", "房型": "4人 Villa", "價格": "TWD 8,700-15,000", "特色": "閣樓、按摩浴缸、兒童戲水區"},
+            {"排名": 2, "飯店": "宮古島東涌", "評分": "⭐ 8.8", "房型": "海景房", "價格": "TWD 12,000+", "特色": "直通海灘、5間餐廳"},
+            {"排名": 3, "飯店": "希爾頓宮古島", "評分": "⭐ 8.8", "房型": "標準房", "價格": "TWD 6,300+", "特色": "兒童俱樂部、無邊際泳池"},
+            {"排名": 4, "飯店": "Hotel & Villa Seahorse", "評分": "⭐ 8.0+", "房型": "2房公寓", "價格": "TWD 3,100-6,000", "特色": "廚房、洗衣機、近海灘"},
+        ]
+        
+        df_miyako = pd.DataFrame(miyako_hotels)
+        st.table(df_miyako)
+    elif "石垣島" in destination:
+        st.subheader("🏝️ 石垣島飯店")
+        
+        ishigaki_hotels = [
+            {"排名": 1, "飯店": "石垣島Vessel飯店", "評分": "⭐ 8.5+", "房型": "家庭房", "價格": "TWD 5,000-8,000", "特色": "近石垣港、18歲以下不佔床免費"},
+            {"排名": 2, "飯店": "石垣島陽光海灘飯店", "評分": "⭐ 8.0+", "房型": "海景房", "價格": "TWD 6,000-10,000", "特色": "直通海灘、泳池"},
+            {"排名": 3, "飯店": "ANA Intercontinental 石垣島", "評分": "⭐ 9.0", "房型": "套房", "價格": "TWD 15,000+", "特色": "頂級度假村"},
+            {"排名": 4, "飯店": "Fiore Club 石垣島", "評分": "⭐ 8.0+", "房型": "別墅", "價格": "TWD 7,000-12,000", "特色": "海灘 club"},
+        ]
+        
+        df_ishigaki = pd.DataFrame(ishigaki_hotels)
+        st.table(df_ishigaki)
+    elif "名古屋" in destination:
+        st.info("🏙️ 名古屋飯店敬請期待")
+    elif "東京" in destination:
+        st.info("🏙️ 東京飯店敬請期待")
+    elif "大阪" in destination:
+        st.info("🏙️ 大阪飯店敬請期待")
+    elif "福岡" in destination:
+        st.info("🏙️ 福岡飯店敬請期待")
 
 # ====== 行程筆記 ======
 with tab3:
     st.header("📋 行程筆記")
-    
-    # 選擇目的地
-    destination = st.radio(
-        "📍 目的地選擇",
-        ["🏨 沖繩", "🏝️ 宮古島", "🏝️ 石垣島", "🏙️ 名古屋", "🏙️ 東京", "🏙️ 大阪", "🏙️ 福岡"],
-        horizontal=True
-    )
     
     if "沖繩" in destination:
         st.subheader("🏨 沖繩本島 - 五天四夜行程")
@@ -358,6 +354,15 @@ with tab3:
             {"景點": "觀光center", "特色": "伴手禮中心", "適合": "購物"},
         ]
         st.table(pd.DataFrame(ishigaki_spots))
+        
+    elif "名古屋" in destination:
+        st.info("🏙️ 名古屋行程敬請期待")
+    elif "東京" in destination:
+        st.info("🏙️ 東京行程敬請期待")
+    elif "大阪" in destination:
+        st.info("🏙️ 大阪行程敬請期待")
+    elif "福岡" in destination:
+        st.info("🏙️ 福岡行程敬請期待")
 
 # ====== 快速連結 ======
 with tab4:
