@@ -20,7 +20,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# 少爺的10檔股票
+# 少爺的股票清單
 STOCKS = {
     '2330': '台積電',
     '2317': '鴻海', 
@@ -31,7 +31,9 @@ STOCKS = {
     '1717': '長興',
     '1802': '台玻',
     '2399': '映泰',
-    '1514': '亞力'
+    '1514': '亞力',
+    'TX': '台指期',
+    'MTX': '小台指',
 }
 
 # ===== 從 JSON 讀取基本面資料 =====
@@ -69,7 +71,8 @@ US_STOCKS = {
     'MSFT': 'Microsoft',
     'GOOGL': 'Google',
     'META': 'Meta',
-    'AMZN': 'Amazon'
+    'AMZN': 'Amazon',
+    'TSM': '台積電 ADR',
 }
 
 # ===== 台灣證交所 API =====
