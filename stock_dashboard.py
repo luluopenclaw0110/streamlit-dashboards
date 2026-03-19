@@ -24,6 +24,21 @@ st.set_page_config(
     layout="wide"
 )
 
+# 自訂字體大小
+st.markdown("""
+<style>
+    .dataframe {
+        font-size: 16px !important;
+    }
+    .stDataFrame {
+        font-size: 16px;
+    }
+    div[data-testid="stDataFrame"] {
+        font-size: 16px;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 # 少爺的股票清單
 STOCKS = {
     '2330': '台積電',
@@ -321,6 +336,16 @@ if page == "📊 專業分析":
             if quarterly and len(quarterly) > 0:
                 st.markdown("### 📊 季財報 (近4季)")
                 q_df = pd.DataFrame(quarterly)
+                
+                # 格式化數字（單位縮減）
+                for col in ['營收', '毛利', '營業利益', '淨利']:
+                    if col in q_df.columns:
+                        q_df[col] = q_df[col].apply(lambda x: f"${x/1e9:.1f}B" if x and x > 0 else "N/A")
+                if 'EPS' in q_df.columns:
+                    q_df['EPS'] = q_df['EPS'].apply(lambda x: f"${x}" if x else "N/A")
+                if '稀釋EPS' in q_df.columns:
+                    q_df['稀釋EPS'] = q_df['稀釋EPS'].apply(lambda x: f"${x}" if x else "N/A")
+                
                 st.dataframe(q_df, hide_index=True, use_container_width=True)
         else:
             st.info("尚無基本面資料")
