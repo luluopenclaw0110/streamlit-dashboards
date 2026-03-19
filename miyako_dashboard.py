@@ -92,7 +92,7 @@ selected_dest = st.sidebar.radio("請問您想去哪個城市？", list(destinat
 
 # 超級比一比 - 在側邊欄顯示
 with st.sidebar.expander("📊 超級比一比"):
-    st.markdown("### ✈️+🏨 機票+飯店 比價")
+    st.markdown("### ✈️+🏨 機票+飯店 比價 (7/24)")
     
     if data["flights"]:
         df = pd.DataFrame(data["flights"])
@@ -102,21 +102,30 @@ with st.sidebar.expander("📊 超級比一比"):
         
         comparison_data = []
         for dest_option, dest_code in dest_map.items():
-            dest_flights = df_724[df_724["destination"].str.contains(dest_code, na=False)]
-            if not dest_flights.empty:
-                min_price = dest_flights['price'].min()
-                cheapest = dest_flights.loc[dest_flights['price'].idxmin()]
-                cheapest_departure = cheapest['departure']
-            else:
-                min_price = None
-                cheapest_departure = "-"
+            # 找台北/桃園出發的票價
+            taipei_flights = df_724[
+                (df_724["destination"].str.contains(dest_code, na=False)) & 
+                (df_724["departure"].str.contains("台北|桃園", na=False, regex=True))
+            ]
+            taipei_price = taipei_flights['price'].min() if not taipei_flights.empty else None
             
+            # 找台中出發的票價
+            taichung_flights = df_724[
+                (df_724["destination"].str.contains(dest_code, na=False)) & 
+                (df_724["departure"].str.contains("台中", na=False))
+            ]
+            taichung_price = taichung_flights['price'].min() if not taichung_flights.empty else None
+            
+            # 飯店價格
             hotel_price = data.get("hotel_prices", {}).get(dest_code, None)
             
+            # 目的地名稱（去掉 emoji）
+            dest_name = dest_option.replace("🏨", "").replace("🏝️", "").replace("🏯", "").replace("🗼", "").replace("🏰", "").replace("🍜", "").strip()
+            
             comparison_data.append({
-                "目的地": dest_option,
-                "機票(7/24)": f"TWD {min_price:,}" if min_price else "-",
-                "出發": cheapest_departure,
+                "目的地": dest_name,
+                "台北機票": f"TWD {taipei_price:,}" if taipei_price else "-",
+                "台中機票": f"TWD {taichung_price:,}" if taichung_price else "-",
                 "飯店/晚": f"TWD {hotel_price:,}" if hotel_price else "-"
             })
         
