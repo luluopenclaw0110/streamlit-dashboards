@@ -3,6 +3,69 @@
     {
       "date": "2026-03-19",
       "departure": "台中",
+      "destination": "東京",
+      "airline": "星宇航空 JX314",
+      "flight_date": "2026-07-21",
+      "price": 32992,
+      "note": "2大2小 週二"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台中",
+      "destination": "東京",
+      "airline": "星宇航空 JX314",
+      "flight_date": "2026-07-22",
+      "price": 32992,
+      "note": "2大2小 週三"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台中",
+      "destination": "東京",
+      "airline": "星宇航空 JX314",
+      "flight_date": "2026-07-23",
+      "price": 38256,
+      "note": "2大2小 週四"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台中",
+      "destination": "東京",
+      "airline": "星宇航空 JX314",
+      "flight_date": "2026-07-24",
+      "price": 38256,
+      "note": "2大2小 週五 09:30-14:00"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台中",
+      "destination": "東京",
+      "airline": "星宇航空 JX314",
+      "flight_date": "2026-07-25",
+      "price": 43856,
+      "note": "2大2小 週六"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台中",
+      "destination": "東京",
+      "airline": "星宇航空 JX314",
+      "flight_date": "2026-07-26",
+      "price": 38256,
+      "note": "2大2小 週日"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台中",
+      "destination": "東京",
+      "airline": "星宇航空 JX314",
+      "flight_date": "2026-07-27",
+      "price": 32992,
+      "note": "2大2小 週一"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台中",
       "destination": "宮古島",
       "airline": "星宇航空 JX308",
       "flight_date": "2026-07-22",
@@ -386,71 +449,8 @@
       "flight_date": "2026-07-27",
       "price": 6939,
       "note": "1人 週一"
-    },
-    {
-      "date": "2026-03-19",
-      "departure": "台中",
-      "destination": "東京",
-      "airline": "星宇航空 JX314",
-      "flight_date": "2026-07-21",
-      "price": 9218,
-      "note": "1人 週二"
-    },
-    {
-      "date": "2026-03-19",
-      "departure": "台中",
-      "destination": "東京",
-      "airline": "星宇航空 JX314",
-      "flight_date": "2026-07-22",
-      "price": 9218,
-      "note": "1人 週三"
-    },
-    {
-      "date": "2026-03-19",
-      "departure": "台中",
-      "destination": "東京",
-      "airline": "星宇航空 JX314",
-      "flight_date": "2026-07-23",
-      "price": 10722,
-      "note": "1人 週四"
-    },
-    {
-      "date": "2026-03-19",
-      "departure": "台中",
-      "destination": "東京",
-      "airline": "星宇航空 JX314",
-      "flight_date": "2026-07-24",
-      "price": 10722,
-      "note": "1人 週五"
-    },
-    {
-      "date": "2026-03-19",
-      "departure": "台中",
-      "destination": "東京",
-      "airline": "星宇航空 JX314",
-      "flight_date": "2026-07-25",
-      "price": 12322,
-      "note": "1人 週六"
-    },
-    {
-      "date": "2026-03-19",
-      "departure": "台中",
-      "destination": "東京",
-      "airline": "星宇航空 JX314",
-      "flight_date": "2026-07-26",
-      "price": 10722,
-      "note": "1人 週日"
-    },
-    {
-      "date": "2026-03-19",
-      "departure": "台中",
-      "destination": "東京",
-      "airline": "星宇航空 JX314",
-      "flight_date": "2026-07-27",
-      "price": 9218,
-      "note": "1人 週一"
     }
   ],
   "hotels": [],
-  "notes": "=== 台中→宮古島 2大2小票價 ===\n- 7/22 週三：TWD 16,864\n- 7/24 週五：TWD 19,752\n- 7/26 週日：TWD 16,864\n- 7/27 週一：TWD 16,864"
+  "notes": "=== 台中→東京 2大2小票價 ===\n- 7/21-7/22 週二三：TWD 32,992\n- 7/23-7/24 週四五：TWD 38,256\n- 7/25 週六：TWD 43,856\n- 7/26 週日：TWD 38,256\n- 7/27 週一：TWD 32,992"
 }
