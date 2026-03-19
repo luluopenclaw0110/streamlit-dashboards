@@ -88,11 +88,15 @@ dest_map = {
 
 # 側邊欄選擇地點
 st.sidebar.title("🗾 少爺的旅遊監控")
-selected_dest = st.sidebar.radio("請問您想去哪個城市？", list(destinations.keys()))
 
-# 超級比一比 - 在側邊欄顯示
-with st.sidebar.expander("📊 超級比一比"):
-    st.markdown("### ✈️ 去程 (7/18) + 回程 (7/25) 比價")
+# 加入超級比一比選項
+all_options = ["📊 超級比一比"] + list(destinations.keys())
+selected_dest = st.sidebar.radio("請問您想去哪個城市？", all_options)
+
+# ====== 超級比一比 ======
+if selected_dest == "📊 超級比一比":
+    st.title("📊 超級比一比")
+    st.markdown("### ✈️ 去程 (7/19) + 回程 (7/25) 比價")
     
     if data["flights"]:
         df = pd.DataFrame(data["flights"])
@@ -144,7 +148,10 @@ with st.sidebar.expander("📊 超級比一比"):
         st.info("💡 去程7/19，回程7/25，機票2大2小 / 飯店每晚")
     else:
         st.warning("尚無機票資料")
+    
+    st.stop()
 
+# 以下是選擇特定目的地時
 dest_info = destinations[selected_dest]
 dest_name = dest_map.get(selected_dest, selected_dest)  # 取得資料中使用的名稱
 
