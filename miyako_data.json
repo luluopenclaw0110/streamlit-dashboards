@@ -3,6 +3,69 @@
     {
       "date": "2026-03-19",
       "departure": "台北",
+      "destination": "福岡",
+      "airline": "星宇航空 JX840",
+      "flight_date": "2026-07-21",
+      "price": 33842,
+      "note": "2大2小 週二"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台北",
+      "destination": "福岡",
+      "airline": "星宇航空 JX840",
+      "flight_date": "2026-07-22",
+      "price": 33842,
+      "note": "2大2小 週三"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台北",
+      "destination": "福岡",
+      "airline": "星宇航空 JX840",
+      "flight_date": "2026-07-23",
+      "price": 35878,
+      "note": "2大2小 週四"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台北",
+      "destination": "福岡",
+      "airline": "星宇航空 JX840",
+      "flight_date": "2026-07-24",
+      "price": 38594,
+      "note": "2大2小 週五 09:35-13:05"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台北",
+      "destination": "福岡",
+      "airline": "星宇航空 JX840",
+      "flight_date": "2026-07-25",
+      "price": 38594,
+      "note": "2大2小 週六"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台北",
+      "destination": "福岡",
+      "airline": "星宇航空 JX840",
+      "flight_date": "2026-07-26",
+      "price": 33842,
+      "note": "2大2小 週日"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台北",
+      "destination": "福岡",
+      "airline": "星宇航空 JX840",
+      "flight_date": "2026-07-27",
+      "price": 33842,
+      "note": "2大2小 週一"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台北",
       "destination": "名古屋",
       "airline": "星宇航空 JX838",
       "flight_date": "2026-07-21",
@@ -479,5 +542,5 @@
     }
   ],
   "hotels": [],
-  "notes": "=== 台北→名古屋 2大2小票價 ===\n- 7/21-7/22 週二三：TWD 25,016\n- 7/23-7/24 週四五：TWD 27,136\n- 7/25 週六：TWD 46,912（最貴）\n- 7/26 週日：TWD 32,484\n- 7/27 週一：TWD 25,016"
+  "notes": "=== 台北→福岡 2大2小票價 ===\n- 7/21-7/22 週二三：TWD 33,842\n- 7/23 週四：TWD 35,878\n- 7/24-7/25 週五六：TWD 38,594\n- 7/26-7/27 週日一：TWD 33,842"
 }
