@@ -166,10 +166,33 @@ with tab1:
         matching_flights = df[df["destination"].str.contains(dest_name, na=False)]
         
         if not matching_flights.empty:
-            df_filtered = matching_flights
-            df_filtered["date"] = pd.to_datetime(df_filtered["date"])
-            fig = px.line(df_filtered, x="date", y="price", color="departure", title=f"✈️ {dest_name} 機票價格趨勢", markers=True)
-            st.plotly_chart(fig, use_container_width=True)
+            # 按日期排序
+            matching_flights = matching_flights.sort_values("flight_date")
+            
+            st.subheader("📋 機票記錄")
+            
+            # 用表格顯示
+            for idx, flight in matching_flights.iterrows():
+                col1, col2, col3, col4 = st.columns([2, 2, 2, 1])
+                with col1:
+                    st.write(f"📅 {flight['flight_date']}")
+                with col2:
+                    st.write(f"✈️ {flight['airline']}")
+                with col3:
+                    st.write(f"🛫 {flight['departure']}")
+                with col4:
+                    st.write(f"💰 TWD {flight['price']:,}")
+                st.divider()
+                
+            # 顯示統計
+            st.markdown("---")
+            col1, col2 = st.columns(2)
+            with col1:
+                min_price = matching_flights['price'].min()
+                st.metric("最低價", f"TWD {min_price:,}")
+            with col2:
+                max_price = matching_flights['price'].max()
+                st.metric("最高價", f"TWD {max_price:,}")
         else:
             st.info(f"還沒有 {dest_name} 的機票記錄，請按「➕ 加入記錄」新增！")
 
