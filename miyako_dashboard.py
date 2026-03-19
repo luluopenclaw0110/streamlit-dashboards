@@ -7,7 +7,7 @@ import os
 
 # 頁面設定
 st.set_page_config(
-    page_title="日本旅遊監控儀表板",
+    page_title="少爺的旅遊監控儀表板",
     page_icon="🗾",
     layout="wide"
 )
@@ -76,7 +76,7 @@ destinations = {
 }
 
 # 側邊欄選擇地點
-st.sidebar.title("🗾 日本旅遊監控")
+st.sidebar.title("🗾 少爺的旅遊監控")
 selected_dest = st.sidebar.radio("請問您想去哪個城市？", list(destinations.keys()))
 dest_info = destinations[selected_dest]
 
@@ -85,6 +85,16 @@ st.title(f"{dest_info['emoji']} {selected_dest.replace(dest_info['emoji'], '').s
 
 # 分頁
 tab1, tab2, tab3, tab4 = st.tabs(["✈️ 機票", "🏨 飯店", "📋 行程", "🔗 連結"])
+
+# 自訂 CSS 讓分頁標題更大
+st.markdown("""
+<style>
+    .stTabs [data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p {
+        font-size: 18px;
+        font-weight: bold;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 # ====== 機票 ======
 with tab1:
