@@ -231,7 +231,7 @@ with tab3:
         ]
         st.table(pd.DataFrame(miyako_spots))
         
-    else:  # 石垣島
+    elif "石垣島" in destination:
         st.subheader("🏝️ 石垣島 - 五天四夜行程")
         
         ishigaki_itinerary = """
