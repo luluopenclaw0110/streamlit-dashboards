@@ -206,6 +206,24 @@
       "price": 38296,
       "time": "15:10-17:05",
       "note": "回程 7/25"
+    },
+    {
+      "departure": "台北",
+      "destination": "福岡",
+      "airline": "星宇航空 JX840",
+      "flight_date": "2026-07-19",
+      "price": 33842,
+      "time": "09:35-13:05",
+      "note": "去程 7/19"
+    },
+    {
+      "departure": "福岡",
+      "destination": "台北",
+      "airline": "星宇航空 JX841",
+      "flight_date": "2026-07-25",
+      "price": 53690,
+      "time": "14:15-15:45",
+      "note": "回程 7/25"
     }
   ],
   "hotel_prices": {}
