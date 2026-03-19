@@ -2,6 +2,69 @@
   "flights": [
     {
       "date": "2026-03-19",
+      "departure": "桃園",
+      "destination": "那霸",
+      "airline": "星宇航空 JX870",
+      "flight_date": "2026-07-21",
+      "price": 22382,
+      "note": "2大2小 週二"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "桃園",
+      "destination": "那霸",
+      "airline": "星宇航空 JX870",
+      "flight_date": "2026-07-22",
+      "price": 36386,
+      "note": "2大2小 週三"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "桃園",
+      "destination": "那霸",
+      "airline": "星宇航空 JX870",
+      "flight_date": "2026-07-23",
+      "price": 33500,
+      "note": "2大2小 週四"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "桃園",
+      "destination": "那霸",
+      "airline": "星宇航空 JX870",
+      "flight_date": "2026-07-24",
+      "price": 33500,
+      "note": "2大2小 週五 12:00-14:40"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "桃園",
+      "destination": "那霸",
+      "airline": "星宇航空 JX870",
+      "flight_date": "2026-07-25",
+      "price": 36386,
+      "note": "2大2小 週六"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "桃園",
+      "destination": "那霸",
+      "airline": "星宇航空 JX870",
+      "flight_date": "2026-07-26",
+      "price": 36048,
+      "note": "2大2小 週日"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "桃園",
+      "destination": "那霸",
+      "airline": "星宇航空 JX870",
+      "flight_date": "2026-07-27",
+      "price": 22382,
+      "note": "2大2小 週一"
+    },
+    {
+      "date": "2026-03-19",
       "departure": "台中",
       "destination": "東京",
       "airline": "星宇航空 JX314",
@@ -170,69 +233,6 @@
       "flight_date": "2026-07-27",
       "price": 20346,
       "note": "2大2小 週一"
-    },
-    {
-      "date": "2026-03-19",
-      "departure": "台北",
-      "destination": "那霸",
-      "airline": "星宇航空 JX870",
-      "flight_date": "2026-07-21",
-      "price": 6187,
-      "note": "1人 週二"
-    },
-    {
-      "date": "2026-03-19",
-      "departure": "台北",
-      "destination": "那霸",
-      "airline": "星宇航空 JX870",
-      "flight_date": "2026-07-22",
-      "price": 10188,
-      "note": "1人 週三"
-    },
-    {
-      "date": "2026-03-19",
-      "departure": "台北",
-      "destination": "那霸",
-      "airline": "星宇航空 JX870",
-      "flight_date": "2026-07-23",
-      "price": 9363,
-      "note": "1人 週四"
-    },
-    {
-      "date": "2026-03-19",
-      "departure": "台北",
-      "destination": "那霸",
-      "airline": "星宇航空 JX870",
-      "flight_date": "2026-07-24",
-      "price": 9363,
-      "note": "1人 週五"
-    },
-    {
-      "date": "2026-03-19",
-      "departure": "台北",
-      "destination": "那霸",
-      "airline": "星宇航空 JX870",
-      "flight_date": "2026-07-25",
-      "price": 10188,
-      "note": "1人 週六"
-    },
-    {
-      "date": "2026-03-19",
-      "departure": "台北",
-      "destination": "那霸",
-      "airline": "星宇航空 JX870",
-      "flight_date": "2026-07-26",
-      "price": 9363,
-      "note": "1人 週日"
-    },
-    {
-      "date": "2026-03-19",
-      "departure": "台北",
-      "destination": "那霸",
-      "airline": "星宇航空 JX870",
-      "flight_date": "2026-07-27",
-      "price": 6187,
-      "note": "1人 週一"
     },
     {
       "date": "2026-03-19",
@@ -452,5 +452,5 @@
     }
   ],
   "hotels": [],
-  "notes": "=== 台中→東京 2大2小票價 ===\n- 7/21-7/22 週二三：TWD 32,992\n- 7/23-7/24 週四五：TWD 38,256\n- 7/25 週六：TWD 43,856\n- 7/26 週日：TWD 38,256\n- 7/27 週一：TWD 32,992"
+  "notes": "=== 桃園→沖繩 2大2小票價 ===\n- 7/21 週二：TWD 22,382\n- 7/22 週三：TWD 36,386\n- 7/23 週四：TWD 33,500\n- 7/24 週五：TWD 33,500\n- 7/25 週六：TWD 36,386\n- 7/26 週日：TWD 36,048\n- 7/27 週一：TWD 22,382"
 }
