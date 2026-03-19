@@ -90,7 +90,9 @@ selected_dest = st.sidebar.radio("請問您想去哪個城市？", all_options)
 # ====== 超級比一比 ======
 if selected_dest == "📊 超級比一比":
     st.title("📊 超級比一比")
-    st.markdown("### ✈️ 去程 (7/19) + 回程 (7/25) 比價")
+    
+    # 分頁：盧家 vs 方家
+    tab_lu, tab_fang = st.tabs(["👨‍👩‍👧‍👦 盧家（2大2小）", "👨‍👩‍👦 方家（2大1小）"])
     
     if data["flights"]:
         df = pd.DataFrame(data["flights"])
@@ -100,53 +102,63 @@ if selected_dest == "📊 超級比一比":
         # 回程：7/25，出發地是目的地（那霸、宮古島等）
         df_return = df[(df["flight_date"] == "2026-07-25") | ((df["flight_date"] == "2026-07-24") & (df["destination"].str.contains("台中", na=False)))]
         
-        comparison_data = []
-        for dest_option, dest_code in dest_map.items():
-            # 去程 - 台北/桃園出發
-            taipei_flights = df_outbound[
-                (df_outbound["destination"].str.contains(dest_code, na=False)) & 
-                (df_outbound["departure"].str.contains("台北|桃園", na=False, regex=True))
-            ]
-            taipei_price = taipei_flights['price'].min() if not taipei_flights.empty else None
-            
-            # 去程 - 台中出發
-            taichung_flights = df_outbound[
-                (df_outbound["destination"].str.contains(dest_code, na=False)) & 
-                (df_outbound["departure"].str.contains("台中", na=False))
-            ]
-            taichung_price = taichung_flights['price'].min() if not taichung_flights.empty else None
-            
-            # 回程 - 台北
-            return_taipei = df_return[(df_return["departure"].str.contains(dest_code, na=False)) & (df_return["destination"].str.contains("台北|桃園", na=False, regex=True))]
-            rt_tp = return_taipei['price'].min() if not return_taipei.empty else None
-            
-            # 回程 - 台中  
-            return_taichung = df_return[(df_return["departure"].str.contains(dest_code, na=False)) & (df_return["destination"].str.contains("台中", na=False))]
-            rt_tc = return_taichung['price'].min() if not return_taichung.empty else None
-            
-            # 飯店價格
-            hotel_data = data.get("hotel_prices", {}).get(dest_code, {})
-            
-            # 目的地名稱（去掉 emoji）
-            dest_name = dest_option.replace("🏨", "").replace("🏝️", "").replace("🏯", "").replace("🗼", "").replace("🏰", "").replace("🍜", "").strip()
-            
-            comparison_data.append({
-                "目的地": dest_name,
-                "去程-台北": f"TWD {taipei_price:,}" if taipei_price else "-",
-                "去程-台中": f"TWD {taichung_price:,}" if taichung_price else "-",
-                "回程-台北": f"TWD {rt_tp:,}" if rt_tp else "-",
-                "回程-台中": f"TWD {rt_tc:,}" if rt_tc else "-",
-                "飯店1": hotel_data.get("飯店1", "-"),
-                "飯店2": hotel_data.get("飯店2", "-"),
-                "飯店3": hotel_data.get("飯店3", "-")
-            })
+        def build_comparison():
+            comparison_data = []
+            for dest_option, dest_code in dest_map.items():
+                # 去程 - 台北/桃園出發
+                taipei_flights = df_outbound[
+                    (df_outbound["destination"].str.contains(dest_code, na=False)) & 
+                    (df_outbound["departure"].str.contains("台北|桃園", na=False, regex=True))
+                ]
+                taipei_price = taipei_flights['price'].min() if not taipei_flights.empty else None
+                
+                # 去程 - 台中出發
+                taichung_flights = df_outbound[
+                    (df_outbound["destination"].str.contains(dest_code, na=False)) & 
+                    (df_outbound["departure"].str.contains("台中", na=False))
+                ]
+                taichung_price = taichung_flights['price'].min() if not taichung_flights.empty else None
+                
+                # 回程 - 台北
+                return_taipei = df_return[(df_return["departure"].str.contains(dest_code, na=False)) & (df_return["destination"].str.contains("台北|桃園", na=False, regex=True))]
+                rt_tp = return_taipei['price'].min() if not return_taipei.empty else None
+                
+                # 回程 - 台中  
+                return_taichung = df_return[(df_return["departure"].str.contains(dest_code, na=False)) & (df_return["destination"].str.contains("台中", na=False))]
+                rt_tc = return_taichung['price'].min() if not return_taichung.empty else None
+                
+                # 飯店價格
+                hotel_data = data.get("hotel_prices", {}).get(dest_code, {})
+                
+                # 目的地名稱（去掉 emoji）
+                dest_name = dest_option.replace("🏨", "").replace("🏝️", "").replace("🏯", "").replace("🗼", "").replace("🏰", "").replace("🍜", "").strip()
+                
+                comparison_data.append({
+                    "目的地": dest_name,
+                    "去程-台北": f"TWD {taipei_price:,}" if taipei_price else "-",
+                    "去程-台中": f"TWD {taichung_price:,}" if taichung_price else "-",
+                    "回程-台北": f"TWD {rt_tp:,}" if rt_tp else "-",
+                    "回程-台中": f"TWD {rt_tc:,}" if rt_tc else "-",
+                    "飯店1": hotel_data.get("飯店1", "-"),
+                    "飯店2": hotel_data.get("飯店2", "-"),
+                    "飯店3": hotel_data.get("飯店3", "-")
+                })
+            return pd.DataFrame(comparison_data)
         
-        comp_df = pd.DataFrame(comparison_data)
-        # 自動調整欄寬
-        styler = comp_df.style.set_properties(**{'white-space': 'normal', 'text-align': 'left'})
-        st.dataframe(styler, hide_index=True, use_container_width=True)
+        with tab_lu:
+            st.markdown("### ✈️ 去程 (7/19) + 回程 (7/25) 比價")
+            comp_df = build_comparison()
+            styler = comp_df.style.set_properties(**{'white-space': 'normal', 'text-align': 'left'})
+            st.dataframe(styler, hide_index=True, use_container_width=True)
+            st.info("💡 去程7/19，回程7/25，機票2大2小 / 飯店")
         
-        st.info("💡 去程7/19，回程7/25，機票2大2小 / 飯店每晚")
+        with tab_fang:
+            st.markdown("### ✈️ 去程 (7/19) + 回程 (7/25) 比價")
+            comp_df = build_comparison()
+            # TODO: 方家票價（2大1小）需另外計算
+            styler = comp_df.style.set_properties(**{'white-space': 'normal', 'text-align': 'left'})
+            st.dataframe(styler, hide_index=True, use_container_width=True)
+            st.info("💡 去程7/19，回程7/25，機票2大1小 / 飯店")
     else:
         st.warning("尚無機票資料")
     
