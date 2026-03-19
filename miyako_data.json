@@ -170,6 +170,42 @@
       "price": 19970,
       "time": "14:00-14:10",
       "note": "回程 7/25"
+    },
+    {
+      "departure": "台北",
+      "destination": "大阪",
+      "airline": "星宇航空 JX820",
+      "flight_date": "2026-07-19",
+      "price": 26202,
+      "time": "08:30-12:15",
+      "note": "去程 7/19"
+    },
+    {
+      "departure": "台北",
+      "destination": "大阪",
+      "airline": "星宇航空 JX822",
+      "flight_date": "2026-07-19",
+      "price": 34690,
+      "time": "10:15-14:00",
+      "note": "去程 7/19"
+    },
+    {
+      "departure": "大阪",
+      "destination": "台北",
+      "airline": "星宇航空 JX821",
+      "flight_date": "2026-07-25",
+      "price": 35750,
+      "time": "13:25-15:20",
+      "note": "回程 7/25"
+    },
+    {
+      "departure": "大阪",
+      "destination": "台北",
+      "airline": "星宇航空 JX823",
+      "flight_date": "2026-07-25",
+      "price": 38296,
+      "time": "15:10-17:05",
+      "note": "回程 7/25"
     }
   ],
   "hotel_prices": {}
