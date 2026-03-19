@@ -273,13 +273,13 @@ with tab1:
                     with col2:
                         if taichung_flights:
                             for f in taichung_flights:
-                                st.caption(f"🛫 台中: {f['airline']} → TWD {f['price']:,}")
+                                st.caption(f"🛫 台中: {f.get('time', '-')} {f['airline']} TWD {f['price']:,}")
                         else:
                             st.caption("🛫 台中: -")
                     with col3:
                         if taipei_flights:
                             for f in taipei_flights:
-                                st.caption(f"🛫 桃園: {f['airline']} → TWD {f['price']:,}")
+                                st.caption(f"🛫 桃園: {f.get('time', '-')} {f['airline']} TWD {f['price']:,}")
                         else:
                             st.caption("🛫 桃園: -")
                     st.divider()
@@ -309,13 +309,13 @@ with tab1:
                     with col2:
                         if ret_taipei:
                             for f in ret_taipei:
-                                st.caption(f"→ 台北: {f['airline']} TWD {f['price']:,}")
+                                st.caption(f"→ 台北: {f.get('time', '-')} {f['airline']} TWD {f['price']:,}")
                         else:
                             st.caption("→ 台北: -")
                     with col3:
                         if ret_taichung:
                             for f in ret_taichung:
-                                st.caption(f"→ 台中: {f['airline']} TWD {f['price']:,}")
+                                st.caption(f"→ 台中: {f.get('time', '-')} {f['airline']} TWD {f['price']:,}")
                         else:
                             st.caption("→ 台中: -")
                     st.divider()
