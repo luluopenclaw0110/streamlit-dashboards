@@ -3,6 +3,78 @@
     {
       "date": "2026-03-19",
       "departure": "台北",
+      "destination": "大阪",
+      "airline": "星宇航空 JX820",
+      "flight_date": "2026-07-21",
+      "price": 7278,
+      "note": "週二"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台北",
+      "destination": "大阪",
+      "airline": "星宇航空 JX820",
+      "flight_date": "2026-07-22",
+      "price": 7278,
+      "note": "週三"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台北",
+      "destination": "大阪",
+      "airline": "星宇航空 JX820",
+      "flight_date": "2026-07-23",
+      "price": 7278,
+      "note": "週四"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台北",
+      "destination": "大阪",
+      "airline": "星宇航空 JX820",
+      "flight_date": "2026-07-24",
+      "price": 7278,
+      "note": "週五 08:30-12:15"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台北",
+      "destination": "大阪",
+      "airline": "星宇航空 JX822",
+      "flight_date": "2026-07-24",
+      "price": 7278,
+      "note": "週五 10:15-14:00"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台北",
+      "destination": "大阪",
+      "airline": "星宇航空 JX820",
+      "flight_date": "2026-07-25",
+      "price": 7715,
+      "note": "週六"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台北",
+      "destination": "大阪",
+      "airline": "星宇航空 JX820",
+      "flight_date": "2026-07-26",
+      "price": 7278,
+      "note": "週日"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台北",
+      "destination": "大阪",
+      "airline": "星宇航空 JX820",
+      "flight_date": "2026-07-27",
+      "price": 7278,
+      "note": "週一"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台北",
       "destination": "東京",
       "airline": "星宇航空 JX800",
       "flight_date": "2026-07-21",
@@ -272,5 +344,5 @@
     }
   ],
   "hotels": [],
-  "notes": "=== 台北→東京 7/24 ===\n- JX800: TWD 7,424 (08:30-12:55)\n- JX802: TWD 7,909 (10:40-15:05)\n- JX804: TWD 7,424 (15:00-19:25)"
+  "notes": "=== 台北→大阪 票價 ===\n- 7/21-7/24 週二五六：TWD 7,278\n- 7/25 週六：TWD 7,715\n- 7/26-7/27 週日一：TWD 7,278"
 }
