@@ -371,7 +371,32 @@ with tab1:
                             st.caption("→ 台中: -")
                     st.divider()
             else:
-                st.info("尚無回程資料")
+                st.caption("尚無資料")
+            
+            # 方家回程
+            if "flights_fang" in data:
+                df_fang = pd.DataFrame(data["flights_fang"])
+                return_fang = df_fang[
+                    (~(df_fang['departure'].str.contains('台北|桃園|台中', na=False, regex=True))) &
+                    (df_fang['flight_date'].isin(['2026-07-25', '2026-07-24'])) &
+                    (df_fang['departure'].str.contains(dest_name, na=False))
+                ]
+                st.markdown("**👨‍👩‍👦 方家（2大1小）**")
+                if not return_fang.empty:
+                    for flight_date in sorted(return_fang['flight_date'].unique()):
+                        day_flights = return_fang[return_fang['flight_date'] == flight_date]
+                        to_taipei = [f for idx, f in day_flights.iterrows() if '台北' in f['destination'] or '桃園' in f['destination']]
+                        to_taichung = [f for idx, f in day_flights.iterrows() if '台中' in f['destination']]
+                        col1, col2, col3 = st.columns([2, 3, 3])
+                        with col1: st.write(f"📅 {flight_date}")
+                        with col2:
+                            for f in to_taipei: st.caption(f"→ 台北: {f.get('time','-')} {f['airline']} TWD {f['price']:,}")
+                            if not to_taipei: st.caption("→ 台北: -")
+                        with col3:
+                            for f in to_taichung: st.caption(f"→ 台中: {f.get('time','-')} {f['airline']} TWD {f['price']:,}")
+                            if not to_taichung: st.caption("→ 台中: -")
+                else:
+                    st.caption("尚無資料")
         else:
             st.info(f"還沒有 {dest_name} 的機票記錄，請按「➕ 加入記錄」新增！")
 
