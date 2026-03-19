@@ -102,9 +102,9 @@ if selected_dest == "📊 超級比一比":
         df = pd.DataFrame(data["flights"])
         
         # 去程：7/19，出發地是台北/桃園/台中
-        df_outbound = df[df["flight_date"] == "2026-07-19"]
+        df_outbound = df[(df["flight_date"] == "2026-07-19") | ((df["flight_date"] == "2026-07-18") & (df["destination"].str.contains("宮古島", na=False)))]
         # 回程：7/25，出發地是目的地（那霸、宮古島等）
-        df_return = df[df["flight_date"] == "2026-07-25"]
+        df_return = df[(df["flight_date"] == "2026-07-25") | ((df["flight_date"] == "2026-07-24") & (df["destination"].str.contains("台中", na=False)))]
         
         comparison_data = []
         for dest_option, dest_code in dest_map.items():
@@ -241,11 +241,11 @@ with tab1:
             # 分離去程和回程，只顯示7/19去程和7/25回程
             outbound_flights = matching_flights[
                 (matching_flights['departure'].str.contains('台北|桃園|台中', na=False, regex=True)) &
-                (matching_flights['flight_date'] == '2026-07-19')
+                (matching_flights['flight_date'].isin(['2026-07-19', '2026-07-18'])) &
             ]
             return_flights = matching_flights[
                 (~(matching_flights['departure'].str.contains('台北|桃園|台中', na=False, regex=True))) &
-                (matching_flights['flight_date'] == '2026-07-25')
+                (matching_flights['flight_date'].isin(['2026-07-25', '2026-07-24'])) &
             ]
             
             # ====== 去程 ======
