@@ -274,6 +274,42 @@
       "price": 26531,
       "time": "16:45-17:25",
       "note": "方家回程 7/25"
+    },
+    {
+      "departure": "台中",
+      "destination": "宮古島",
+      "airline": "星宇航空 JX308",
+      "flight_date": "2026-07-19",
+      "price": 13042,
+      "time": "07:20-09:40",
+      "note": "方家去程 7/19"
+    },
+    {
+      "departure": "宮古島",
+      "destination": "台中",
+      "airline": "星宇航空 JX309",
+      "flight_date": "2026-07-24",
+      "price": 11208,
+      "time": "10:40-11:00",
+      "note": "方家回程 7/24"
+    },
+    {
+      "departure": "台北",
+      "destination": "宮古島",
+      "airline": "星宇航空 JX890",
+      "flight_date": "2026-07-18",
+      "price": 15311,
+      "time": "10:40-13:00",
+      "note": "方家去程 7/18"
+    },
+    {
+      "departure": "宮古島",
+      "destination": "台北",
+      "airline": "星宇航空 JX891",
+      "flight_date": "2026-07-25",
+      "price": 15475,
+      "time": "14:00-14:10",
+      "note": "方家回程 7/25"
     }
   ]
 }
