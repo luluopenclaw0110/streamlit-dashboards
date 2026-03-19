@@ -297,6 +297,7 @@ if page == "📊 專業分析":
         if selected_stock[0] in FUNDAMENTALS:
             fundamentals = FUNDAMENTALS[selected_stock[0]]
             
+            # 基本資料
             col1, col2 = st.columns(2)
             
             with col1:
@@ -308,11 +309,19 @@ if page == "📊 專業分析":
                 st.write(f"📅 財報季度：{fundamentals.get('財報季度', 'N/A')}")
                 st.write(f"💵 EPS：{fundamentals.get('EPS', 'N/A')}")
             
-            with col2:
-                st.markdown("**配息歷史**")
-                if '配息歷史' in fundamentals and len(fundamentals['配息歷史']) > 0:
-                    df_div = pd.DataFrame(fundamentals['配息歷史'])
-                    st.dataframe(df_div, hide_index=True, use_container_width=True)
+            # 配息歷史 (近8次)
+            div_history = fundamentals.get('配息歷史')
+            if div_history and len(div_history) > 0:
+                st.markdown("### 💰 配息歷史 (近8次)")
+                div_df = pd.DataFrame(div_history)
+                st.dataframe(div_df, hide_index=True, use_container_width=True)
+            
+            # 季財報 (近4季)
+            quarterly = fundamentals.get('季財報')
+            if quarterly and len(quarterly) > 0:
+                st.markdown("### 📊 季財報 (近4季)")
+                q_df = pd.DataFrame(quarterly)
+                st.dataframe(q_df, hide_index=True, use_container_width=True)
         else:
             st.info("尚無基本面資料")
         
