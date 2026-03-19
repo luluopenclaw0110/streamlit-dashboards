@@ -88,115 +88,63 @@ dest_map = {
 
 # 側邊欄選擇地點
 st.sidebar.title("🗾 少爺的旅遊監控")
+selected_dest = st.sidebar.radio("請問您想去哪個城市？", list(destinations.keys()))
 
-# 加入比價選項
-all_options = ["📊 超級比一比"] + list(destinations.keys())
-selected_dest = st.sidebar.radio("請問您想去哪個城市？", all_options)
-
-# 如果選擇比價功能
-if selected_dest == "📊 超級比一比":
-    st.title("📊 超級比一比 - 旅遊景點比價")
-    st.markdown("### ✈️+🏨 機票 + 飯店 總費用比較")
+# 超級比一比 - 在側邊欄顯示
+with st.sidebar.expander("📊 超級比一比"):
+    st.markdown("### ✈️+🏨 機票+飯店 比價")
     
-    # 計算每個目的地的最低機票價格
     if data["flights"]:
         df = pd.DataFrame(data["flights"])
         
-        # 計算每個目的地的最低票價
         comparison_data = []
-        
         for dest_option, dest_code in dest_map.items():
-            # 找最便宜的機票
             dest_flights = df[df["destination"].str.contains(dest_code, na=False)]
             if not dest_flights.empty:
                 min_price = dest_flights['price'].min()
-                # 找最便宜的出發地
                 cheapest = dest_flights.loc[dest_flights['price'].idxmin()]
                 cheapest_departure = cheapest['departure']
             else:
                 min_price = None
                 cheapest_departure = "-"
             
-            # 飯店價格（如果有）
             hotel_price = data.get("hotel_prices", {}).get(dest_code, None)
             
             comparison_data.append({
                 "目的地": dest_option,
-                "最低機票": min_price,
-                "最便宜出發": cheapest_departure,
-                "參考飯店/晚": hotel_price
+                "機票": f"TWD {min_price:,}" if min_price else "-",
+                "出發": cheapest_departure,
+                "飯店": f"TWD {hotel_price:,}" if hotel_price else "-"
             })
         
         comp_df = pd.DataFrame(comparison_data)
+        st.dataframe(comp_df, hide_index=True, use_container_width=True)
         
-        # 顯示表格
-        st.dataframe(
-            comp_df,
-            use_container_width=True,
-            hide_index=True
-        )
-        
-        # 圖表比較
-        if not comp_df.empty:
-            st.subheader("📈 機票價格比較")
-            chart_data = comp_df[comp_df["最低機票"].notna()].copy()
-            if not chart_data.empty:
-                chart_data = chart_data.sort_values("最低機票")
-                fig = px.bar(
-                    chart_data, 
-                    x="目的地", 
-                    y="最低機票",
-                    color="最低機票",
-                    title="各目的地最低機票價格 (2大2小)",
-                    labels={"最低機票": "票價 (TWD)"},
-                    color_continuous_scale="Blues"
-                )
-                st.plotly_chart(fig, use_container_width=True)
-        
-        st.info("💡 備註：機票價格為2大2小，飯店為自訂參考價格")
-        
+        st.info("💡 機票:2大2小 / 飯店:每晚")
     else:
-        st.warning("目前沒有機票資料，請先記錄機票價格！")
-    
-    st.markdown("---")
-    st.markdown("### 📝 記錄飯店價格")
-    with st.form("add_hotel_price"):
-        col1, col2 = st.columns(2)
-        with col1:
-            hotel_dest = st.selectbox("目的地", list(dest_map.keys()))
-        with col2:
-            hotel_price = st.number_input("每晚價格 (TWD)", min_value=0, step=500, value=5000)
-        
-        if st.form_submit_button("💾 儲存"):
-            if "hotel_prices" not in data:
-                data["hotel_prices"] = {}
-            dest_code = dest_map[hotel_dest]
-            data["hotel_prices"][dest_code] = hotel_price
-            save_data(data)
-            st.success("✅ 飯店價格已儲存！")
-    
-else:
-    dest_info = destinations[selected_dest]
-    dest_name = dest_map.get(selected_dest, selected_dest)  # 取得資料中使用的名稱
+        st.warning("尚無機票資料")
 
-    # 標題
-    st.title(f"{dest_info['emoji']} {selected_dest.replace(dest_info['emoji'], '').strip()} 旅遊監控")
+dest_info = destinations[selected_dest]
+dest_name = dest_map.get(selected_dest, selected_dest)  # 取得資料中使用的名稱
 
-    # 分頁
-    tab1, tab2, tab3, tab4 = st.tabs(["✈️ 機票", "🏨 飯店", "📋 行程", "🔗 連結"])
+# 標題
+st.title(f"{dest_info['emoji']} {selected_dest.replace(dest_info['emoji'], '').strip()} 旅遊監控")
 
-    # 自訂 CSS 讓分頁標題更大
-    st.markdown("""
-    <style>
-        .stTabs [data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p {
-            font-size: 18px;
-            font-weight: bold;
-        }
-    </style>
-    """, unsafe_allow_html=True)
+# 分頁
+tab1, tab2, tab3, tab4 = st.tabs(["✈️ 機票", "🏨 飯店", "📋 行程", "🔗 連結"])
 
-    # ====== 機票 ======
-    with tab1:
+# 自訂 CSS 讓分頁標題更大
+st.markdown("""
+<style>
+    .stTabs [data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p {
+        font-size: 18px;
+        font-weight: bold;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# ====== 機票 ======
+with tab1:
     st.header("✈️ 機票價格")
     
     st.markdown(f"""
