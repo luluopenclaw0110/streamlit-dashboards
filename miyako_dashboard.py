@@ -267,6 +267,9 @@ with tab1:
             # ====== 去程 ======
             st.markdown("### ✈️ 去程")
             
+            # 盧家（2大2小）
+            st.markdown("**👨‍👩‍👧‍👦 盧家（2大2小）**")
+            
             if not outbound_flights.empty:
                 out_dates = outbound_flights['flight_date'].unique()
                 for flight_date in out_dates:
@@ -301,6 +304,36 @@ with tab1:
                     st.divider()
             else:
                 st.info("尚無去程資料")
+            
+            # 方家（2大1小）
+            if "flights_fang" in data:
+                df_fang = pd.DataFrame(data["flights_fang"])
+                outbound_fang = df_fang[
+                    (df_fang['departure'].str.contains('台北|桃園|台中', na=False, regex=True)) &
+                    (df_fang['flight_date'].isin(['2026-07-19', '2026-07-18'])) &
+                    (df_fang['destination'].str.contains(dest_name, na=False))
+                ]
+                if not outbound_fang.empty:
+                    st.markdown("**👨‍👩‍👦 方家（2大1小）**")
+                    for flight_date in outbound_fang['flight_date'].unique():
+                        day_flights = outbound_fang[outbound_fang['flight_date'] == flight_date]
+                        taichung = day_flights[day_flights['departure'].str.contains('台中', na=False)]
+                        taipei = day_flights[day_flights['departure'].str.contains('台北|桃園', na=False, regex=True)]
+                        col1, col2, col3 = st.columns([2, 3, 3])
+                        with col1:
+                            st.write(f"**📅 {flight_date}**")
+                        with col2:
+                            if not taichung.empty:
+                                for f in taichung.itertuples():
+                                    st.caption(f"🛫 台中: {f.time} {f.airline} TWD {f.price:,}")
+                            else:
+                                st.caption("🛫 台中: -")
+                        with col3:
+                            if not taipei.empty:
+                                for f in taipei.itertuples():
+                                    st.caption(f"🛫 桃園: {f.time} {f.airline} TWD {f.price:,}")
+                            else:
+                                st.caption("🛫 桃園: -")
             
             # ====== 回程 ======
             st.markdown("### ✈️ 回程")
