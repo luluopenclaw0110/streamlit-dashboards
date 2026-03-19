@@ -91,8 +91,7 @@ selected_dest = st.sidebar.radio("請問您想去哪個城市？", all_options)
 if selected_dest == "📊 超級比一比":
     st.title("📊 超級比一比")
     
-    # 分頁：盧家 vs 方家
-    tab_lu, tab_fang = st.tabs(["👨‍👩‍👧‍👦 盧家（2大2小）", "👨‍👩‍👦 方家（2大1小）"])
+    # 盧家 vs 方家並排
     
     if data["flights"]:
         df = pd.DataFrame(data["flights"])
@@ -145,20 +144,19 @@ if selected_dest == "📊 超級比一比":
                 })
             return pd.DataFrame(comparison_data)
         
-        with tab_lu:
-            st.markdown("### ✈️ 去程 (7/19) + 回程 (7/25) 比價")
-            comp_df = build_comparison()
-            styler = comp_df.style.set_properties(**{'white-space': 'normal', 'text-align': 'left'})
-            st.dataframe(styler, hide_index=True, use_container_width=True)
-            st.info("💡 去程7/19，回程7/25，機票2大2小 / 飯店")
+        st.markdown("### 👨‍👩‍👧‍👦 盧家（2大2小）")
+        comp_df = build_comparison()
+        styler = comp_df.style.set_properties(**{'white-space': 'normal', 'text-align': 'left'})
+        st.dataframe(styler, hide_index=True, use_container_width=True)
+        st.info("💡 去程7/19，回程7/25，機票2大2小 / 飯店")
         
-        with tab_fang:
-            st.markdown("### ✈️ 去程 (7/19) + 回程 (7/25) 比價")
-            comp_df = build_comparison()
-            # TODO: 方家票價（2大1小）需另外計算
-            styler = comp_df.style.set_properties(**{'white-space': 'normal', 'text-align': 'left'})
-            st.dataframe(styler, hide_index=True, use_container_width=True)
-            st.info("💡 去程7/19，回程7/25，機票2大1小 / 飯店")
+        st.markdown("---")
+        st.markdown("### 👨‍👩‍👦 方家（2大1小）")
+        comp_df = build_comparison()
+        # TODO: 方家票價（2大1小）需另外計算
+        styler = comp_df.style.set_properties(**{'white-space': 'normal', 'text-align': 'left'})
+        st.dataframe(styler, hide_index=True, use_container_width=True)
+        st.info("💡 去程7/19，回程7/25，機票2大1小 / 飯店")
     else:
         st.warning("尚無機票資料")
     
