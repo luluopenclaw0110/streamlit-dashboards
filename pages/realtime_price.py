@@ -142,18 +142,18 @@ if prices:
     # 轉換為 DataFrame
     df = pd.DataFrame(prices)
     
-    # 計算漲跌顏色
+    # 計算漲跌顏色 (台灣股市：紅色=漲，綠色=跌)
     def color_change(val):
         if val > 0:
-            return '🟢'
+            return '🔴'  # 漲 = 紅色
         elif val < 0:
-            return '🔴'
+            return '🟢'  # 跌 = 綠色
         else:
             return '⚪'
     
     # 顯示
     for _, row in df.iterrows():
-        emoji = '🟢' if row['漲跌幅'] > 0 else '🔴' if row['漲跌幅'] < 0 else '⚪'
+        emoji = '🔴' if row['漲跌幅'] > 0 else '🟢' if row['漲跌幅'] < 0 else '⚪'
         
         col1, col2, col3 = st.columns([1, 2, 2])
         with col1:
