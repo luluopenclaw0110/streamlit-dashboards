@@ -241,11 +241,11 @@ with tab1:
             # 分離去程和回程，只顯示7/19去程和7/25回程
             outbound_flights = matching_flights[
                 (matching_flights['departure'].str.contains('台北|桃園|台中', na=False, regex=True)) &
-                (matching_flights['flight_date'].isin(['2026-07-19', '2026-07-18'])) &
+                (matching_flights['flight_date'].isin(['2026-07-19', '2026-07-18']))]
             ]
             return_flights = matching_flights[
                 (~(matching_flights['departure'].str.contains('台北|桃園|台中', na=False, regex=True))) &
-                (matching_flights['flight_date'].isin(['2026-07-25', '2026-07-24'])) &
+                (matching_flights['flight_date'].isin(['2026-07-25', '2026-07-24']))]
             ]
             
             # ====== 去程 ======
