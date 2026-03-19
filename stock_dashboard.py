@@ -211,6 +211,9 @@ if page == "📊 專業分析":
     # 取得數據
     df = get_stock_data(selected_stock[0], period)
     
+    # 取得數據
+    df = get_stock_data(selected_stock[0], period)
+    
     if df is not None and len(df) > 0:
         # 顯示基本資訊
         current_price = df['Close'].iloc[-1]
@@ -218,15 +221,36 @@ if page == "📊 專業分析":
         change = current_price - prev_price
         change_pct = (change / prev_price) * 100
         
-        col1, col2, col3, col4 = st.columns(4)
+        # 取得當日漲跌幅
+        realtime_data = get_realtime_price(selected_stock[0])
+        
+        col1, col2 = st.columns(2)
+        
         with col1:
-            st.metric("目前價格", f"${current_price:,.2f}", f"{change:+.2f}")
+            st.markdown("**📊 選擇時間範圍漲跌**")
+            col_a, col_b = st.columns(2)
+            with col_a:
+                st.metric("目前價格", f"${current_price:,.2f}", f"{change:+.2f}")
+            with col_b:
+                st.metric("漲跌幅", f"{change_pct:+.2f}%")
+            col_c, col_d = st.columns(2)
+            with col_c:
+                st.metric("期間最高", f"${df['High'].max():,.2f}")
+            with col_d:
+                st.metric("期間最低", f"${df['Low'].min():,.2f}")
+        
         with col2:
-            st.metric("漲跌幅", f"{change_pct:+.2f}%")
-        with col3:
-            st.metric("最高", f"${df['High'].max():,.2f}")
-        with col4:
-            st.metric("最低", f"${df['Low'].min():,.2f}")
+            st.markdown("**📈 今日漲跌**")
+            if realtime_data:
+                col_e, col_f = st.columns(2)
+                with col_e:
+                    st.metric("現價", f"${realtime_data['price']:,.2f}", f"{realtime_data['change_pct']:+.2f}%")
+                with col_f:
+                    # 計算漲跌金額
+                    change_amt = realtime_data['price'] * realtime_data['change_pct'] / 100
+                    st.metric("漲跌金額", f"{change_amt:+,.2f}")
+            else:
+                st.info("無法取得即時資料")
         
         # K線圖
         st.markdown("### 📊 K線圖")
