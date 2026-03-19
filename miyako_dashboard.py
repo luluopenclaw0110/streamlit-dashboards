@@ -75,10 +75,22 @@ destinations = {
     }
 }
 
+# 建立地點映射（包含 emoji 的名稱對應到資料中的名稱）
+dest_map = {
+    "🏨 沖繩本島": "那霸",
+    "🏝️ 宮古島": "宮古島",
+    "🏝️ 石垣島": "石垣島",
+    "🏯 名古屋": "名古屋",
+    "🗼 東京": "東京",
+    "🏰 大阪": "大阪",
+    "🍜 福岡": "福岡"
+}
+
 # 側邊欄選擇地點
 st.sidebar.title("🗾 少爺的旅遊監控")
 selected_dest = st.sidebar.radio("請問您想去哪個城市？", list(destinations.keys()))
 dest_info = destinations[selected_dest]
+dest_name = dest_map.get(selected_dest, selected_dest)  # 取得資料中使用的名稱
 
 # 標題
 st.title(f"{dest_info['emoji']} {selected_dest.replace(dest_info['emoji'], '').strip()} 旅遊監控")
@@ -137,7 +149,7 @@ with tab1:
             data["flights"].append({
                 "date": datetime.now().strftime("%Y-%m-%d"),
                 "departure": departure,
-                "destination": selected_dest,
+                "destination": dest_name,  # 使用過濾後的名稱
                 "airline": airline,
                 "flight_date": str(date(2026, 7, 24)),
                 "price": price,
@@ -148,10 +160,18 @@ with tab1:
     
     # 顯示記錄
     if data["flights"]:
+        # 過濾顯示目前選擇的目的地機票
         df = pd.DataFrame(data["flights"])
-        df["date"] = pd.to_datetime(df["date"])
-        fig = px.line(df, x="date", y="price", color="departure", title="票價趨勢", markers=True)
-        st.plotly_chart(fig, use_container_width=True)
+        # 檢查是否有符合的記錄
+        matching_flights = df[df["destination"].str.contains(dest_name, na=False)]
+        
+        if not matching_flights.empty:
+            df_filtered = matching_flights
+            df_filtered["date"] = pd.to_datetime(df_filtered["date"])
+            fig = px.line(df_filtered, x="date", y="price", color="departure", title=f"✈️ {dest_name} 機票價格趨勢", markers=True)
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info(f"還沒有 {dest_name} 的機票記錄，請按「➕ 加入記錄」新增！")
 
 # ====== 飯店 ======
 with tab2:
