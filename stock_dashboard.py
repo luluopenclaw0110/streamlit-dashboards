@@ -623,7 +623,7 @@ if prices_data:
     
     # 顯示表格
     def color_change(val):
-        color = 'green' if val > 0 else 'red' if val < 0 else 'gray'
+        color = 'red' if val > 0 else 'green' if val < 0 else 'gray'
         return f'color: {color}'
     
     st.dataframe(
