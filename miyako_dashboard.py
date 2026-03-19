@@ -230,7 +230,7 @@ with tab1:
         # 過濾顯示目前選擇的目的地機票
         df = pd.DataFrame(data["flights"])
         # 檢查是否有符合的記錄
-        matching_flights = df[df["destination"].str.contains(dest_name, na=False)]
+        matching_flights = df[(df["destination"].str.contains(dest_name, na=False)) | (df["departure"].str.contains(dest_name, na=False))]
         
         if not matching_flights.empty:
             # 按日期排序
