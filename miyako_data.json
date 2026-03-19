@@ -2,6 +2,69 @@
   "flights": [
     {
       "date": "2026-03-19",
+      "departure": "台北",
+      "destination": "東京",
+      "airline": "星宇航空 JX800",
+      "flight_date": "2026-07-21",
+      "price": 6939,
+      "note": "週二"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台北",
+      "destination": "東京",
+      "airline": "星宇航空 JX800",
+      "flight_date": "2026-07-22",
+      "price": 6939,
+      "note": "週三"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台北",
+      "destination": "東京",
+      "airline": "星宇航空 JX800",
+      "flight_date": "2026-07-23",
+      "price": 6939,
+      "note": "週四"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台北",
+      "destination": "東京",
+      "airline": "星宇航空 JX800",
+      "flight_date": "2026-07-24",
+      "price": 7424,
+      "note": "週五"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台北",
+      "destination": "東京",
+      "airline": "星宇航空 JX800",
+      "flight_date": "2026-07-25",
+      "price": 7424,
+      "note": "週六"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台北",
+      "destination": "東京",
+      "airline": "星宇航空 JX800",
+      "flight_date": "2026-07-26",
+      "price": 6939,
+      "note": "週日"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台北",
+      "destination": "東京",
+      "airline": "星宇航空 JX800",
+      "flight_date": "2026-07-27",
+      "price": 6939,
+      "note": "週一"
+    },
+    {
+      "date": "2026-03-19",
       "departure": "台中",
       "destination": "東京",
       "airline": "星宇航空 JX314",
@@ -191,5 +254,5 @@
     }
   ],
   "hotels": [],
-  "notes": "=== 台中→東京 票價 ===\n- 7/21 週二：TWD 9,218\n- 7/22 週三：TWD 9,218\n- 7/23 週四：TWD 10,722\n- 7/24 週五：TWD 10,722\n- 7/25 週六：TWD 12,322\n- 7/26 週日：TWD 10,722\n- 7/27 週一：TWD 9,218"
+  "notes": "=== 台北→東京 票價 ===\n- 7/21-7/23 週二三四：TWD 6,939\n- 7/24-7/25 週五六：TWD 7,424\n- 7/26-7/27 週日一：TWD 6,939"
 }
