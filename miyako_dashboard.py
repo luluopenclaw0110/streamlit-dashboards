@@ -122,11 +122,13 @@ if selected_dest == "📊 超級比一比":
             ]
             taichung_price = taichung_flights['price'].min() if not taichung_flights.empty else None
             
-            # 回程 - 從目的地返回
-            return_flights = df_return[
-                (df_return["departure"].str.contains(dest_code, na=False))
-            ]
-            return_price = return_flights['price'].min() if not return_flights.empty else None
+            # 回程 - 台北
+            return_taipei = df_return[(df_return["departure"].str.contains(dest_code, na=False)) & (df_return["destination"].str.contains("台北|桃園", na=False, regex=True))]
+            rt_tp = return_taipei['price'].min() if not return_taipei.empty else None
+            
+            # 回程 - 台中  
+            return_taichung = df_return[(df_return["departure"].str.contains(dest_code, na=False)) & (df_return["destination"].str.contains("台中", na=False))]
+            rt_tc = return_taichung['price'].min() if not return_taichung.empty else None
             
             # 飯店價格
             hotel_price = data.get("hotel_prices", {}).get(dest_code, None)
@@ -138,7 +140,8 @@ if selected_dest == "📊 超級比一比":
                 "目的地": dest_name,
                 "去程-台北": f"TWD {taipei_price:,}" if taipei_price else "-",
                 "去程-台中": f"TWD {taichung_price:,}" if taichung_price else "-",
-                "回程": f"TWD {return_price:,}" if return_price else "-",
+                "回程-台北": f"TWD {rt_tp:,}" if rt_tp else "-",
+                "回程-台中": f"TWD {rt_tc:,}" if rt_tc else "-",
                 "飯店/晚": f"TWD {hotel_price:,}" if hotel_price else "-"
             })
         
