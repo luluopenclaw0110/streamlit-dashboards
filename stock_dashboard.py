@@ -310,9 +310,9 @@ if page == "📊 專業分析":
             
             with col2:
                 st.markdown("**配息歷史**")
-                if '配息歷史' in fundamentals:
-                    for div in fundamentals['配息歷史'][:4]:
-                        st.write(f"📅 {div.get('日期', 'N/A')} | 股息: {div.get('股息', 'N/A')}")
+                if '配息歷史' in fundamentals and len(fundamentals['配息歷史']) > 0:
+                    df_div = pd.DataFrame(fundamentals['配息歷史'])
+                    st.dataframe(df_div, hide_index=True, use_container_width=True)
         else:
             st.info("尚無基本面資料")
         
@@ -376,14 +376,15 @@ if page == "📊 專業分析":
         if len(df_us_prices) > 0:
             df_us_prices = df_us_prices.sort_values('漲跌幅', ascending=False)
             
-            def color_change(val):
-                return 'red' if val > 0 else 'green' if val < 0 else 'gray'
+            # 格式化漲跌幅
+            df_us_prices['漲跌'] = df_us_prices['漲跌幅'].apply(lambda x: f"+{x:.2f}%" if x >= 0 else f"{x:.2f}%")
+            df_us_prices['現價'] = df_us_prices['現價'].apply(lambda x: f"${x:.2f}")
             
             st.dataframe(
-            df_us_prices.style.format({'現價': '${:.2f}', '漲跌幅': '{:+.2f}%'})
-                              .applymap(color_change, subset=['漲跌幅']),
-            use_container_width=True
-        )
+                df_us_prices[['代號', '名稱', '現價', '漲跌']],
+                hide_index=True,
+                use_container_width=True
+            )
     else:
         st.info("無法取得美股資料")
 
