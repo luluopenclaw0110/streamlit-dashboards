@@ -300,16 +300,19 @@ if page == "📊 專業分析":
             col1, col2 = st.columns(2)
             
             with col1:
-                st.markdown("**季財報摘要**")
-                if 'quarterly_reports' in fundamentals:
-                    for report in fundamentals['quarterly_reports'][:4]:
-                        st.write(f"📅 {report.get('season', 'N/A')} | EPS: {report.get('eps', 'N/A')} | 營收: {report.get('revenue', 'N/A')}")
+                st.markdown("**基本資料**")
+                st.write(f"📈 股價：{fundamentals.get('股價', 'N/A')}")
+                st.write(f"📊 本益比：{fundamentals.get('本益比', 'N/A')}")
+                st.write(f"💰 殖利率：{fundamentals.get('殖利率', 'N/A')}")
+                st.write(f"📉 每股淨值：{fundamentals.get('每股淨值', 'N/A')}")
+                st.write(f"📅 財報季度：{fundamentals.get('財報季度', 'N/A')}")
+                st.write(f"💵 EPS：{fundamentals.get('EPS', 'N/A')}")
             
             with col2:
                 st.markdown("**配息歷史**")
-                if 'dividends' in fundamentals:
-                    for div in fundamentals['dividends'][:4]:
-                        st.write(f"📅 {div.get('year', 'N/A')} | 現金股息: {div.get('cash', 'N/A')}")
+                if '配息歷史' in fundamentals:
+                    for div in fundamentals['配息歷史'][:4]:
+                        st.write(f"📅 {div.get('日期', 'N/A')} | 股息: {div.get('股息', 'N/A')}")
         else:
             st.info("尚無基本面資料")
         
@@ -321,11 +324,25 @@ if page == "📊 專業分析":
             
             news_data = INDUSTRY_NEWS[selected_stock[0]]
             
-            if 'news' in news_data:
-                for news in news_data['news'][:5]:
-                    st.markdown(f"- [{news.get('title', '無標題')}]({news.get('url', '#')})")
-            if 'impact' in news_data:
-                st.warning(f"⚠️ {news_data['impact']}")
+            # 產業分析
+            if '產業分析' in news_data:
+                st.info(f"📊 {news_data['產業分析']}")
+            
+            # 個股新聞
+            if '個股新聞' in news_data:
+                st.markdown("**個股新聞：**")
+                for news in news_data['個股新聞'][:5]:
+                    title = news.get('標題', '無標題')
+                    url = news.get('連結', news.get('url', '#'))
+                    st.markdown(f"- [{title}]({url})")
+            
+            # 產業新聞
+            if '產業新聞' in news_data:
+                st.markdown("**產業新聞：**")
+                for news in news_data['產業新聞'][:5]:
+                    title = news.get('標題', '無標題')
+                    url = news.get('連結', news.get('url', '#'))
+                    st.markdown(f"- [{title}]({url})")
         else:
             st.info("尚無產業動態")
     
@@ -350,14 +367,19 @@ if page == "📊 專業分析":
         except:
             pass
     
-    if us_prices:
+    if us_prices and len(us_prices) > 0:
         df_us_prices = pd.DataFrame(us_prices)
-        df_us_prices = df_us_prices.sort_values('漲跌幅', ascending=False)
         
-        def color_change(val):
-            return 'red' if val > 0 else 'green' if val < 0 else 'gray'
+        # 移除可能的NaN值
+        df_us_prices = df_us_prices.dropna(subset=['現價', '漲跌幅'])
         
-        st.dataframe(
+        if len(df_us_prices) > 0:
+            df_us_prices = df_us_prices.sort_values('漲跌幅', ascending=False)
+            
+            def color_change(val):
+                return 'red' if val > 0 else 'green' if val < 0 else 'gray'
+            
+            st.dataframe(
             df_us_prices.style.format({'現價': '${:.2f}', '漲跌幅': '{:+.2f}%'})
                               .applymap(color_change, subset=['漲跌幅']),
             use_container_width=True
