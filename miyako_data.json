@@ -2,6 +2,33 @@
   "flights": [
     {
       "date": "2026-03-19",
+      "departure": "台北",
+      "destination": "宮古島",
+      "airline": "星宇航空 JX308",
+      "flight_date": "2026-07-22",
+      "price": 16864,
+      "note": "2大2小 週三"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台北",
+      "destination": "宮古島",
+      "airline": "星宇航空 JX308",
+      "flight_date": "2026-07-25",
+      "price": 19752,
+      "note": "2大2小 週六"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台北",
+      "destination": "宮古島",
+      "airline": "星宇航空 JX308",
+      "flight_date": "2026-07-27",
+      "price": 14320,
+      "note": "2大2小 週一"
+    },
+    {
+      "date": "2026-03-19",
       "departure": "桃園",
       "destination": "那霸",
       "airline": "星宇航空 JX870",
@@ -452,5 +479,5 @@
     }
   ],
   "hotels": [],
-  "notes": "=== 桃園→沖繩 2大2小票價 ===\n- 7/21 週二：TWD 22,382\n- 7/22 週三：TWD 36,386\n- 7/23 週四：TWD 33,500\n- 7/24 週五：TWD 33,500\n- 7/25 週六：TWD 36,386\n- 7/26 週日：TWD 36,048\n- 7/27 週一：TWD 22,382"
+  "notes": "=== 台北→宮古島 2大2小票價 ===\n- 7/22 週三：TWD 16,864\n- 7/25 週六：TWD 19,752\n- 7/27 週一：TWD 14,320"
 }
