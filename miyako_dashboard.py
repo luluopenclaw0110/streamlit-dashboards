@@ -103,6 +103,15 @@ if selected_dest == "📊 超級比一比":
         
         def build_comparison(family):
             comparison_data = []
+            # 選擇不同的航班資料
+            if family == "方家" and "flights_fang" in data:
+                df_flights = pd.DataFrame(data["flights_fang"])
+            else:
+                df_flights = df
+            
+            df_outbound = df_flights[(df_flights["flight_date"] == "2026-07-19") | ((df_flights["flight_date"] == "2026-07-18") & (df_flights["destination"].str.contains("宮古島", na=False)))]
+            df_return = df_flights[(df_flights["flight_date"] == "2026-07-25") | ((df_flights["flight_date"] == "2026-07-24") & (df_flights["destination"].str.contains("台中", na=False)))]
+            
             for dest_option, dest_code in dest_map.items():
                 # 去程 - 台北/桃園出發
                 taipei_flights = df_outbound[

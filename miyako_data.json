@@ -237,5 +237,43 @@
         "飯店2": "TWD 33,515 BEB5/4晚"
       }
     }
-  }
+  },
+  "flights_fang": [
+    {
+      "departure": "台北",
+      "destination": "那霸",
+      "airline": "星宇航空 JX870",
+      "flight_date": "2026-07-19",
+      "price": 20313,
+      "time": "12:00-14:40",
+      "note": "方家去程 7/19"
+    },
+    {
+      "departure": "那霸",
+      "destination": "台北",
+      "airline": "星宇航空 JX871",
+      "flight_date": "2026-07-25",
+      "price": 28131,
+      "time": "15:50-16:25",
+      "note": "方家回程 7/25"
+    },
+    {
+      "departure": "台中",
+      "destination": "那霸",
+      "airline": "星宇航空 JX312",
+      "flight_date": "2026-07-19",
+      "price": 15778,
+      "time": "16:40-19:10",
+      "note": "方家去程 7/19"
+    },
+    {
+      "departure": "那霸",
+      "destination": "台中",
+      "airline": "星宇航空 JX303",
+      "flight_date": "2026-07-25",
+      "price": 26531,
+      "time": "16:45-17:25",
+      "note": "方家回程 7/25"
+    }
+  ]
 }
