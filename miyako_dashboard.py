@@ -148,7 +148,7 @@ if selected_dest == "📊 超級比一比":
         comp_df = pd.DataFrame(comparison_data)
         st.dataframe(comp_df, hide_index=True, use_container_width=True)
         
-        st.info("💡 去程7/19，回程7/25（宮古島為7/18去程、7/24回程），機票2大2小 / 飯店每晚")
+        st.info("💡 去程7/19，回程7/25，機票2大2小 / 飯店每晚")
     else:
         st.warning("尚無機票資料")
     
@@ -241,11 +241,11 @@ with tab1:
             # 分離去程和回程，只顯示7/19去程和7/25回程
             outbound_flights = matching_flights[
                 (matching_flights['departure'].str.contains('台北|桃園|台中', na=False, regex=True)) &
-                (matching_flights['flight_date'].isin(['2026-07-19', '2026-07-18']))]
+                (matching_flights['flight_date'].isin(['2026-07-19', '2026-07-18']))
             ]
             return_flights = matching_flights[
                 (~(matching_flights['departure'].str.contains('台北|桃園|台中', na=False, regex=True))) &
-                (matching_flights['flight_date'].isin(['2026-07-25', '2026-07-24']))]
+                (matching_flights['flight_date'].isin(['2026-07-25', '2026-07-24']))
             ]
             
             # ====== 去程 ======
