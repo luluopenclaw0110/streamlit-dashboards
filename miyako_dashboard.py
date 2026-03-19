@@ -171,17 +171,46 @@ with tab1:
             
             st.subheader("📋 機票記錄")
             
-            # 用表格顯示
-            for idx, flight in matching_flights.iterrows():
+            # 按日期分組顯示
+            dates = matching_flights['flight_date'].unique()
+            
+            for flight_date in dates:
+                day_flights = matching_flights[matching_flights['flight_date'] == flight_date]
+                
+                # 找到台中和桃園的價格
+                taichung_price = None
+                taipei_price = None
+                
+                for idx, flight in day_flights.iterrows():
+                    if '台中' in flight['departure'] or 'RMQ' in flight['airline']:
+                        taichung_price = flight['price']
+                        taichung_airline = flight['airline']
+                    elif '桃園' in flight['departure'] or 'TPE' in flight['airline'] or '台北' in flight['departure']:
+                        taipei_price = flight['price']
+                        taipei_airline = flight['airline']
+                
+                # 顯示一天
                 col1, col2, col3, col4 = st.columns([2, 2, 2, 1])
                 with col1:
-                    st.write(f"📅 {flight['flight_date']}")
+                    st.write(f"**📅 {flight_date}**")
                 with col2:
-                    st.write(f"✈️ {flight['airline']}")
+                    if taichung_price:
+                        st.write(f"🛫 台中: **TWD {taichung_price:,}**")
+                    else:
+                        st.write(f"🛫 台中: -")
                 with col3:
-                    st.write(f"🛫 {flight['departure']}")
+                    if taipei_price:
+                        st.write(f"🛫 桃園: **TWD {taipei_price:,}**")
+                    else:
+                        st.write(f"🛫 桃園: -")
                 with col4:
-                    st.write(f"💰 TWD {flight['price']:,}")
+                    diff = None
+                    if taichung_price and taipei_price:
+                        diff = taichung_price - taipei_price
+                        if diff < 0:
+                            st.success(f"台中便宜 {abs(diff):,}")
+                        else:
+                            st.warning(f"桃園便宜 {diff:,}")
                 st.divider()
                 
             # 顯示統計
@@ -191,8 +220,8 @@ with tab1:
                 min_price = matching_flights['price'].min()
                 st.metric("最低價", f"TWD {min_price:,}")
             with col2:
-                max_price = matching_flights['price'].max()
-                st.metric("最高價", f"TWD {max_price:,}")
+                avg_price = matching_flights['price'].mean()
+                st.metric("平均價", f"TWD {int(avg_price):,}")
         else:
             st.info(f"還沒有 {dest_name} 的機票記錄，請按「➕ 加入記錄」新增！")
 
