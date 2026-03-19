@@ -14,6 +14,12 @@
     {"date": "2026-03-19", "departure": "那霸", "destination": "台北", "airline": "星宇航空 JX871", "flight_date": "2026-07-26", "price": 33094, "note": "回程 2大2小 週日"},
     {"date": "2026-03-19", "departure": "那霸", "destination": "台北", "airline": "星宇航空 JX871", "flight_date": "2026-07-27", "price": 33094, "note": "回程 2大2小 週一"},
     {"date": "2026-03-19", "departure": "那霸", "destination": "台北", "airline": "星宇航空 JX871", "flight_date": "2026-07-28", "price": 25710, "note": "回程 2大2小 週二"},
+    {"date": "2026-03-19", "departure": "台北", "destination": "宮古島", "airline": "星宇航空 JX308", "flight_date": "2026-07-18", "price": 19752, "note": "去程 2大2小 週六"},
+    {"date": "2026-03-19", "departure": "台北", "destination": "宮古島", "airline": "星宇航空 JX308", "flight_date": "2026-07-20", "price": 14320, "note": "去程 2大2小 週一"},
+    {"date": "2026-03-19", "departure": "台北", "destination": "宮古島", "airline": "星宇航空 JX308", "flight_date": "2026-07-22", "price": 16864, "note": "去程 2大2小 週三"},
+    {"date": "2026-03-19", "departure": "宮古島", "destination": "台北", "airline": "星宇航空 JX891", "flight_date": "2026-07-22", "price": 14538, "note": "回程 2大2小 週三"},
+    {"date": "2026-03-19", "departure": "宮古島", "destination": "台北", "airline": "星宇航空 JX891", "flight_date": "2026-07-25", "price": 19970, "note": "回程 2大2小 週六"},
+    {"date": "2026-03-19", "departure": "宮古島", "destination": "台北", "airline": "星宇航空 JX891", "flight_date": "2026-07-27", "price": 17084, "note": "回程 2大2小 週一"},
     {"date": "2026-03-19", "departure": "台中", "destination": "那霸", "airline": "星宇航空 JX302", "flight_date": "2026-07-19", "price": 20346, "note": "去程 2大2小 週日"},
     {"date": "2026-03-19", "departure": "台中", "destination": "那霸", "airline": "星宇航空 JX302", "flight_date": "2026-07-20", "price": 20346, "note": "去程 2大2小 週一"},
     {"date": "2026-03-19", "departure": "台中", "destination": "那霸", "airline": "星宇航空 JX302", "flight_date": "2026-07-21", "price": 20346, "note": "去程 2大2小 週二"},
@@ -46,9 +52,6 @@
     {"date": "2026-03-19", "departure": "台北", "destination": "福岡", "airline": "星宇航空 JX840", "flight_date": "2026-07-23", "price": 35878, "note": "去程 2大2小 週四"},
     {"date": "2026-03-19", "departure": "台北", "destination": "福岡", "airline": "星宇航空 JX840", "flight_date": "2026-07-24", "price": 38594, "note": "去程 2大2小 週五"},
     {"date": "2026-03-19", "departure": "台北", "destination": "福岡", "airline": "星宇航空 JX840", "flight_date": "2026-07-25", "price": 38594, "note": "去程 2大2小 週六"},
-    {"date": "2026-03-19", "departure": "台北", "destination": "宮古島", "airline": "星宇航空 JX308", "flight_date": "2026-07-20", "price": 16864, "note": "去程 2大2小 週一"},
-    {"date": "2026-03-19", "departure": "台北", "destination": "宮古島", "airline": "星宇航空 JX308", "flight_date": "2026-07-22", "price": 16864, "note": "去程 2大2小 週三"},
-    {"date": "2026-03-19", "departure": "台北", "destination": "宮古島", "airline": "星宇航空 JX308", "flight_date": "2026-07-25", "price": 19752, "note": "去程 2大2小 週六"},
     {"date": "2026-03-19", "departure": "台中", "destination": "東京", "airline": "星宇航空 JX314", "flight_date": "2026-07-19", "price": 32992, "note": "去程 2大2小 週日"},
     {"date": "2026-03-19", "departure": "台中", "destination": "東京", "airline": "星宇航空 JX314", "flight_date": "2026-07-20", "price": 32992, "note": "去程 2大2小 週一"},
     {"date": "2026-03-19", "departure": "台中", "destination": "東京", "airline": "星宇航空 JX314", "flight_date": "2026-07-21", "price": 32992, "note": "去程 2大2小 週二"},
@@ -62,5 +65,5 @@
     {"date": "2026-03-19", "departure": "台中", "destination": "宮古島", "airline": "星宇航空 JX308", "flight_date": "2026-07-25", "price": 19752, "note": "去程 2大2小 週六"}
   ],
   "hotels": [],
-  "notes": "日期範圍：7/19-7/25，去程+回程"
+  "notes": "日期範圍：7/16-7/28，去程+回程，宮古島更新"
 }
