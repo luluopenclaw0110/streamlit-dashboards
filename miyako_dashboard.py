@@ -178,39 +178,41 @@ with tab1:
                 day_flights = matching_flights[matching_flights['flight_date'] == flight_date]
                 
                 # 找到台中和桃園的價格
-                taichung_price = None
-                taipei_price = None
+                taichung_flights = []
+                taipei_flights = []
                 
                 for idx, flight in day_flights.iterrows():
                     if '台中' in flight['departure'] or 'RMQ' in flight['airline']:
-                        taichung_price = flight['price']
-                        taichung_airline = flight['airline']
+                        taichung_flights.append(flight)
                     elif '桃園' in flight['departure'] or 'TPE' in flight['airline'] or '台北' in flight['departure']:
-                        taipei_price = flight['price']
-                        taipei_airline = flight['airline']
+                        taipei_flights.append(flight)
                 
-                # 顯示一天
-                col1, col2, col3, col4 = st.columns([2, 2, 2, 1])
-                with col1:
-                    st.write(f"**📅 {flight_date}**")
-                with col2:
-                    if taichung_price:
-                        st.write(f"🛫 台中: **TWD {taichung_price:,}**")
+                # 顯示日期標題
+                st.markdown(f"### 📅 {flight_date}")
+                
+                # 顯示台中的航班
+                if taichung_flights:
+                    st.write("**🛫 台中出發**")
+                    for flight in taichung_flights:
+                        st.write(f"- {flight['airline']}: TWD {flight['price']:,}")
+                
+                # 顯示桃園的航班
+                if taipei_flights:
+                    st.write("**🛫 桃園/台北出發**")
+                    for flight in taipei_flights:
+                        st.write(f"- {flight['airline']}: TWD {flight['price']:,}")
+                
+                # 顯示差價
+                taichung_min = min([f['price'] for f in taichung_flights]) if taichung_flights else None
+                taipei_min = min([f['price'] for f in taipei_flights]) if taipei_flights else None
+                
+                if taichung_min and taipei_min:
+                    diff = taichung_min - taipei_min
+                    if diff < 0:
+                        st.success(f"💡 台中便宜 TWD {abs(diff):,}")
                     else:
-                        st.write(f"🛫 台中: -")
-                with col3:
-                    if taipei_price:
-                        st.write(f"🛫 桃園: **TWD {taipei_price:,}**")
-                    else:
-                        st.write(f"🛫 桃園: -")
-                with col4:
-                    diff = None
-                    if taichung_price and taipei_price:
-                        diff = taichung_price - taipei_price
-                        if diff < 0:
-                            st.success(f"台中便宜 {abs(diff):,}")
-                        else:
-                            st.warning(f"桃園便宜 {diff:,}")
+                        st.warning(f"💡 桃園便宜 TWD {diff:,}")
+                
                 st.divider()
                 
             # 顯示統計
