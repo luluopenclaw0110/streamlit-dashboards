@@ -148,7 +148,7 @@ if selected_dest == "📊 超級比一比":
         comp_df = pd.DataFrame(comparison_data)
         st.dataframe(comp_df, hide_index=True, use_container_width=True)
         
-        st.info("💡 去程7/19，回程7/25，機票2大2小 / 飯店每晚")
+        st.info("💡 去程7/19，回程7/25（宮古島為7/24），機票2大2小 / 飯店每晚")
     else:
         st.warning("尚無機票資料")
     
