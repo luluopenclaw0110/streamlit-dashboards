@@ -218,74 +218,72 @@ with tab1:
             
             st.subheader("📋 機票記錄")
             
-            # 按日期分組顯示
-            dates = matching_flights['flight_date'].unique()
+            # 分離去程和回程
+            # 去程：出發地是台北/桃園/台中，目的地的機票
+            # 回程：出發地是目的地的機票，回程到台北/桃園/台中
             
-            for flight_date in dates:
-                day_flights = matching_flights[matching_flights['flight_date'] == flight_date]
-                
-                # 找到台中和桃園的價格
-                taichung_flights = []
-                taipei_flights = []
-                
-                for idx, flight in day_flights.iterrows():
-                    if '台中' in flight['departure'] or 'RMQ' in flight['airline']:
-                        taichung_flights.append(flight)
-                    elif '桃園' in flight['departure'] or 'TPE' in flight['airline'] or '台北' in flight['departure']:
-                        taipei_flights.append(flight)
-                
-                # 顯示一天
-                col1, col2, col3, col4 = st.columns([2, 2, 2, 1])
-                with col1:
-                    st.write(f"**📅 {flight_date}**")
-                with col2:
-                    if taichung_flights:
-                        # 如果有多班，顯示範圍
-                        if len(taichung_flights) > 1:
-                            prices = [f['price'] for f in taichung_flights]
-                            min_p = min(prices)
-                            st.write(f"🛫 台中: **TWD {min_p:,}**")
-                            for f in taichung_flights:
-                                st.caption(f"  {f['airline']}: TWD {f['price']:,}")
-                        else:
-                            st.write(f"🛫 台中: **TWD {taichung_flights[0]['price']:,}**")
-                            st.caption(f"  {taichung_flights[0]['airline']}")
-                    else:
-                        st.write(f"🛫 台中: -")
-                with col3:
-                    if taipei_flights:
-                        if len(taipei_flights) > 1:
-                            prices = [f['price'] for f in taipei_flights]
-                            min_p = min(prices)
-                            st.write(f"🛫 桃園: **TWD {min_p:,}**")
-                            for f in taipei_flights:
-                                st.caption(f"  {f['airline']}: TWD {f['price']:,}")
-                        else:
-                            st.write(f"🛫 桃園: **TWD {taipei_flights[0]['price']:,}**")
-                            st.caption(f"  {taipei_flights[0]['airline']}")
-                    else:
-                        st.write(f"🛫 桃園: -")
-                with col4:
-                    taichung_min = min([f['price'] for f in taichung_flights]) if taichung_flights else None
-                    taipei_min = min([f['price'] for f in taipei_flights]) if taipei_flights else None
+            outbound_flights = matching_flights[
+                (matching_flights['departure'].str.contains('台北|桃園|台中', na=False, regex=True))
+            ]
+            return_flights = matching_flights[
+                ~(matching_flights['departure'].str.contains('台北|桃園|台中', na=False, regex=True))
+            ]
+            
+            # ====== 去程 ======
+            st.markdown("### ✈️ 去程")
+            
+            if not outbound_flights.empty:
+                out_dates = outbound_flights['flight_date'].unique()
+                for flight_date in out_dates:
+                    day_flights = outbound_flights[outbound_flights['flight_date'] == flight_date]
                     
-                    if taichung_min and taipei_min:
-                        diff = taichung_min - taipei_min
-                        if diff < 0:
-                            st.success(f"台中\n便宜\n{abs(diff):,}")
+                    # 找到台中和桃園的價格
+                    taichung_flights = []
+                    taipei_flights = []
+                    
+                    for idx, flight in day_flights.iterrows():
+                        if '台中' in flight['departure']:
+                            taichung_flights.append(flight)
+                        elif '桃園' in flight['departure'] or '台北' in flight['departure']:
+                            taipei_flights.append(flight)
+                    
+                    # 顯示
+                    col1, col2, col3 = st.columns([2, 3, 3])
+                    with col1:
+                        st.write(f"**📅 {flight_date}**")
+                    with col2:
+                        if taichung_flights:
+                            for f in taichung_flights:
+                                st.caption(f"🛫 台中: {f['airline']} → TWD {f['price']:,}")
                         else:
-                            st.warning(f"桃園\n便宜\n{diff:,}")
-                st.divider()
-                
-            # 顯示統計
-            st.markdown("---")
-            col1, col2 = st.columns(2)
-            with col1:
-                min_price = matching_flights['price'].min()
-                st.metric("最低價", f"TWD {min_price:,}")
-            with col2:
-                avg_price = matching_flights['price'].mean()
-                st.metric("平均價", f"TWD {int(avg_price):,}")
+                            st.caption("🛫 台中: -")
+                    with col3:
+                        if taipei_flights:
+                            for f in taipei_flights:
+                                st.caption(f"🛫 桃園: {f['airline']} → TWD {f['price']:,}")
+                        else:
+                            st.caption("🛫 桃園: -")
+                    st.divider()
+            else:
+                st.info("尚無去程資料")
+            
+            # ====== 回程 ======
+            st.markdown("### ✈️ 回程")
+            
+            if not return_flights.empty:
+                ret_dates = return_flights['flight_date'].unique()
+                for flight_date in ret_dates:
+                    day_flights = return_flights[return_flights['flight_date'] == flight_date]
+                    
+                    col1, col2 = st.columns([2, 3])
+                    with col1:
+                        st.write(f"**📅 {flight_date}**")
+                    with col2:
+                        for idx, flight in day_flights.iterrows():
+                            st.caption(f"🛫 返回: {flight['airline']} → TWD {flight['price']:,}")
+                    st.divider()
+            else:
+                st.info("尚無回程資料")
         else:
             st.info(f"還沒有 {dest_name} 的機票記錄，請按「➕ 加入記錄」新增！")
 
