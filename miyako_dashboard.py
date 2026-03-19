@@ -152,11 +152,12 @@ if selected_dest == "📊 超級比一比":
     st.stop()
 
 # 以下是選擇特定目的地時
-dest_info = destinations[selected_dest]
-dest_name = dest_map.get(selected_dest, selected_dest)  # 取得資料中使用的名稱
+if selected_dest != "📊 超級比一比":
+    dest_info = destinations[selected_dest]
+    dest_name = dest_map.get(selected_dest, selected_dest)
 
-# 標題
-st.title(f"{dest_info['emoji']} {selected_dest.replace(dest_info['emoji'], '').strip()} 旅遊監控")
+    # 標題
+    st.title(f"{dest_info['emoji']} {selected_dest.replace(dest_info['emoji'], '').strip()} 旅遊監控")
 
 # 分頁
 tab1, tab2, tab3, tab4 = st.tabs(["✈️ 機票", "🏨 飯店", "📋 行程", "🔗 連結"])
