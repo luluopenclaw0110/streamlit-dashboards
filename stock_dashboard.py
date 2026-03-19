@@ -28,12 +28,21 @@ st.set_page_config(
 st.markdown("""
 <style>
     .dataframe {
-        font-size: 16px !important;
+        font-size: 18px !important;
     }
     .stDataFrame {
-        font-size: 16px;
+        font-size: 18px;
     }
     div[data-testid="stDataFrame"] {
+        font-size: 18px;
+    }
+    .stMarkdown {
+        font-size: 16px;
+    }
+    div.stWrite {
+        font-size: 16px;
+    }
+    p {
         font-size: 16px;
     }
 </style>
