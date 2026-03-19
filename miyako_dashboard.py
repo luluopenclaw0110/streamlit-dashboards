@@ -238,15 +238,14 @@ with tab1:
             
             st.subheader("📋 機票記錄")
             
-            # 分離去程和回程
-            # 去程：出發地是台北/桃園/台中，目的地的機票
-            # 回程：出發地是目的地的機票，回程到台北/桃園/台中
-            
+            # 分離去程和回程，只顯示7/19去程和7/25回程
             outbound_flights = matching_flights[
-                (matching_flights['departure'].str.contains('台北|桃園|台中', na=False, regex=True))
+                (matching_flights['departure'].str.contains('台北|桃園|台中', na=False, regex=True)) &
+                (matching_flights['flight_date'] == '2026-07-19')
             ]
             return_flights = matching_flights[
-                ~(matching_flights['departure'].str.contains('台北|桃園|台中', na=False, regex=True))
+                (~(matching_flights['departure'].str.contains('台北|桃園|台中', na=False, regex=True))) &
+                (matching_flights['flight_date'] == '2026-07-25')
             ]
             
             # ====== 去程 ======
@@ -295,12 +294,30 @@ with tab1:
                 for flight_date in ret_dates:
                     day_flights = return_flights[return_flights['flight_date'] == flight_date]
                     
-                    col1, col2 = st.columns([2, 3])
+                    # 分離返回台北和台中
+                    ret_taipei = []
+                    ret_taichung = []
+                    for idx, flight in day_flights.iterrows():
+                        if '台北' in flight['destination'] or '桃園' in flight['destination']:
+                            ret_taipei.append(flight)
+                        elif '台中' in flight['destination']:
+                            ret_taichung.append(flight)
+                    
+                    col1, col2, col3 = st.columns([2, 3, 3])
                     with col1:
                         st.write(f"**📅 {flight_date}**")
                     with col2:
-                        for idx, flight in day_flights.iterrows():
-                            st.caption(f"🛫 返回: {flight['airline']} → TWD {flight['price']:,}")
+                        if ret_taipei:
+                            for f in ret_taipei:
+                                st.caption(f"→ 台北: {f['airline']} TWD {f['price']:,}")
+                        else:
+                            st.caption("→ 台北: -")
+                    with col3:
+                        if ret_taichung:
+                            for f in ret_taichung:
+                                st.caption(f"→ 台中: {f['airline']} TWD {f['price']:,}")
+                        else:
+                            st.caption("→ 台中: -")
                     st.divider()
             else:
                 st.info("尚無回程資料")
