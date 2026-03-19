@@ -313,7 +313,9 @@ if df is not None and len(df) > 0:
         high=df['High'],
         low=df['Low'],
         close=df['Close'],
-        name='K線'
+        name='K線',
+        increasing_line_color='red',    # 漲=紅色
+        decreasing_line_color='green'   # 跌=綠色
     )
     
     # 建立圖表
@@ -361,7 +363,7 @@ if df is not None and len(df) > 0:
         fig_rsi.add_hline(y=50, line_dash="dot", line_color="gray")
         
         fig_rsi.update_layout(
-            height=250,
+            height=350,
             template="plotly_dark",
             title="RSI (14)",
             yaxis_title="RSI",
