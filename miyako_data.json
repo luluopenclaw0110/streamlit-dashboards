@@ -1,6 +1,69 @@
 {
   "flights": [
     {
+      "date": "2026-03-19",
+      "departure": "桃園",
+      "destination": "那霸",
+      "airline": "星宇航空 JX870",
+      "flight_date": "2026-07-21",
+      "price": 22382,
+      "note": "週二"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "桃園",
+      "destination": "那霸",
+      "airline": "星宇航空 JX870",
+      "flight_date": "2026-07-22",
+      "price": 36386,
+      "note": "週三"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "桃園",
+      "destination": "那霸",
+      "airline": "星宇航空 JX870",
+      "flight_date": "2026-07-23",
+      "price": 33500,
+      "note": "週四"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "桃園",
+      "destination": "那霸",
+      "airline": "星宇航空 JX870",
+      "flight_date": "2026-07-24",
+      "price": 33500,
+      "note": "週五"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "桃園",
+      "destination": "那霸",
+      "airline": "星宇航空 JX870",
+      "flight_date": "2026-07-25",
+      "price": 36386,
+      "note": "週六"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "桃園",
+      "destination": "那霸",
+      "airline": "星宇航空 JX870",
+      "flight_date": "2026-07-26",
+      "price": 36048,
+      "note": "週日"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "桃園",
+      "destination": "那霸",
+      "airline": "星宇航空 JX870",
+      "flight_date": "2026-07-27",
+      "price": 22382,
+      "note": "週一"
+    },
+    {
       "date": "2026-03-17",
       "departure": "台中",
       "destination": "那霸",
@@ -38,5 +101,5 @@
     }
   ],
   "hotels": [],
-  "notes": "=== 機票記錄 ===\n- 3/17 更新：台中→那霸 星宇 TWD 12,000\n- 3/17 更新：台北→那霸 星宇 TWD 10,000\n- 3/18 更新：台中→宮古島 星宇 TWD 14,000\n- 3/18 更新：台北→石垣島 虎航 TWD 8,000"
+  "notes": "=== 機票記錄 ===\n- 3/17 更新：台中→那霸 星宇 TWD 12,000\n- 3/17 更新：台北→那霸 星宇 TWD 10,000\n- 3/18 更新：台中→宮古島 星宇 TWD 14,000\n- 3/18 更新：台北→石垣島 虎航 TWD 8,000\n- 3/19 更新：桃園→那霸 星宇 JX870 票價（7/21-7/27）"
 }
