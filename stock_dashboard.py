@@ -1,26 +1,30 @@
 #!/usr/bin/env python3
 """
-少爺的股票儀表板 - 合併版
-包含專業分析和即時股價
+少爺專用 - 專業財經儀表板
+使用方式: streamlit run stock_dashboard.py
 """
+
 import streamlit as st
+import plotly.graph_objects as go
+import plotly.express as px
 import yfinance as yf
 import pandas as pd
-import plotly.graph_objects as go
-from datetime import datetime
+from datetime import datetime, timedelta
+import json
 import requests
-from bs4 import BeautifulSoup
+import os
 import time
 import pytz
+from bs4 import BeautifulSoup
 
-# 設定頁面
+# 頁面設定
 st.set_page_config(
     page_title="少爺的股票儀表板",
     page_icon="📈",
     layout="wide"
 )
 
-# ===== 股票列表 =====
+# 少爺的股票清單
 STOCKS = {
     '2330': '台積電',
     '2317': '鴻海', 
@@ -34,6 +38,30 @@ STOCKS = {
     '1514': '亞力',
 }
 
+# ===== 從 JSON 讀取基本面資料 =====
+def load_fundamentals():
+    """從 JSON 檔案載入基本面資料"""
+    json_path = os.path.join(os.path.dirname(__file__), 'data', 'stock_fundamentals.json')
+    try:
+        with open(json_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        return data['stocks'], data.get('update_date', '未知')
+    except Exception as e:
+        return {}, "載入失敗"
+
+def load_industry_news():
+    """從 JSON 檔案載入產業動態"""
+    json_path = os.path.join(os.path.dirname(__file__), 'data', 'stock_industry_news.json')
+    try:
+        with open(json_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        return data['stocks'], data.get('update_date', '未知')
+    except Exception as e:
+        return {}, "載入失敗"
+
+FUNDAMENTALS, FUNDAMENTALS_UPDATE_DATE = load_fundamentals()
+INDUSTRY_NEWS, INDUSTRY_NEWS_UPDATE_DATE = load_industry_news()
+
 # 美股
 US_STOCKS = {
     'NVDA': 'NVIDIA',
@@ -43,14 +71,14 @@ US_STOCKS = {
     'GOOGL': 'Google',
     'META': 'Meta',
     'AMZN': 'Amazon',
-    'TSM': '台積電 ADR'
+    'TSM': '台積電 ADR',
 }
 
 # ===== 側邊欄 =====
 st.sidebar.title("📈 少爺的股票儀表板")
 st.sidebar.markdown("---")
 
-# ===== 分頁選擇 =====
+# 分頁選擇
 page = st.sidebar.radio(
     "選擇頁面",
     ["📊 專業分析", "⚡ 即時股價"]
@@ -90,7 +118,7 @@ st.sidebar.markdown("- [TradingView](https://www.tradingview.com/)")
 def get_stock_data(code, period):
     """使用 yfinance 取得股票數據"""
     try:
-        if code in ['2330', '2317', '3532', '1503', '2887', '1605', '1717', '1802', '2399', '1514']:
+        if code in STOCKS:
             ticker = yf.Ticker(f"{code}.TW")
         else:
             ticker = yf.Ticker(code)
@@ -260,6 +288,46 @@ if page == "📊 專業分析":
             )
             
             st.plotly_chart(fig_vol, use_container_width=True)
+        
+        # 基本面資料
+        st.markdown("---")
+        st.markdown("### 📈 基本面資料")
+        st.caption(f"最後更新：{FUNDAMENTALS_UPDATE_DATE}")
+        
+        if selected_stock[0] in FUNDAMENTALS:
+            fundamentals = FUNDAMENTALS[selected_stock[0]]
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.markdown("**季財報摘要**")
+                if 'quarterly_reports' in fundamentals:
+                    for report in fundamentals['quarterly_reports'][:4]:
+                        st.write(f"📅 {report.get('season', 'N/A')} | EPS: {report.get('eps', 'N/A')} | 營收: {report.get('revenue', 'N/A')}")
+            
+            with col2:
+                st.markdown("**配息歷史**")
+                if 'dividends' in fundamentals:
+                    for div in fundamentals['dividends'][:4]:
+                        st.write(f"📅 {div.get('year', 'N/A')} | 現金股息: {div.get('cash', 'N/A')}")
+        else:
+            st.info("尚無基本面資料")
+        
+        # 產業動態
+        if selected_stock[0] in INDUSTRY_NEWS:
+            st.markdown("---")
+            st.markdown("### 📰 產業動態")
+            st.caption(f"最後更新：{INDUSTRY_NEWS_UPDATE_DATE}")
+            
+            news_data = INDUSTRY_NEWS[selected_stock[0]]
+            
+            if 'news' in news_data:
+                for news in news_data['news'][:5]:
+                    st.markdown(f"- [{news.get('title', '無標題')}]({news.get('url', '#')})")
+            if 'impact' in news_data:
+                st.warning(f"⚠️ {news_data['impact']}")
+        else:
+            st.info("尚無產業動態")
     
     # ===== 美股報價 =====
     st.markdown("---")
@@ -267,17 +335,20 @@ if page == "📊 專業分析":
     
     us_prices = []
     for code, name in US_STOCKS.items():
-        df_us = get_stock_data(code, "5d")
-        if df_us is not None and len(df_us) > 1:
-            current = df_us['Close'].iloc[-1]
-            prev = df_us['Close'].iloc[-2]
-            change = ((current - prev) / prev) * 100
-            us_prices.append({
-                '代號': code,
-                '名稱': name,
-                '現價': current,
-                '漲跌幅': change
-            })
+        try:
+            df_us = get_stock_data(code, "5d")
+            if df_us is not None and len(df_us) > 1:
+                current = df_us['Close'].iloc[-1]
+                prev = df_us['Close'].iloc[-2]
+                change = ((current - prev) / prev) * 100
+                us_prices.append({
+                    '代號': code,
+                    '名稱': name,
+                    '現價': round(current, 2),
+                    '漲跌幅': round(change, 2)
+                })
+        except:
+            pass
     
     if us_prices:
         df_us_prices = pd.DataFrame(us_prices)
@@ -291,6 +362,8 @@ if page == "📊 專業分析":
                               .applymap(color_change, subset=['漲跌幅']),
             use_container_width=True
         )
+    else:
+        st.info("無法取得美股資料")
 
 # ===== 即時股價頁面 =====
 else:
@@ -339,8 +412,7 @@ else:
             return 'red' if val > 0 else 'green' if val < 0 else 'gray'
         
         st.dataframe(
-            df[['代號', '名稱', '現價', '漲跌']].style.format({'現價': '${:,.2f}', '漲跌': '{}'})
-                              .applymap(color_change, subset=['漲跌']),
+            df[['代號', '名稱', '現價', '漲跌']],
             hide_index=True,
             use_container_width=True
         )
