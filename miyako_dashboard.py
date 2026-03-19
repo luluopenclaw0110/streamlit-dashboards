@@ -213,7 +213,7 @@ with tab1:
     st.link_button("🔍 Google Flights 搜尋", "https://www.google.com/travel/flights")
     st.link_button("🔍 Skyscanner 比價", "https://www.skyscanner.com.tw/")
     
-    st.divider()
+    
     
     # 手動記錄
     st.subheader("📝 手動記錄票價")
@@ -301,7 +301,7 @@ with tab1:
                                 st.caption(f"🛫 桃園: {f.get('time', '-')} {f['airline']} TWD {f['price']:,}")
                         else:
                             st.caption("🛫 桃園: -")
-                    st.divider()
+                    
             else:
                 st.info("尚無去程資料")
             
@@ -369,7 +369,7 @@ with tab1:
                                 st.caption(f"→ 台中: {f.get('time', '-')} {f['airline']} TWD {f['price']:,}")
                         else:
                             st.caption("→ 台中: -")
-                    st.divider()
+                    
             else:
                 st.caption("尚無資料")
             
@@ -670,7 +670,7 @@ with tab4:
         st.link_button("Agoda", "https://www.agoda.com/")
         st.link_button("Klook 訂房", "https://www.klook.com/zh-TW/hotels/")
     
-    st.divider()
+    
     
     col3, col4 = st.columns(2)
     
