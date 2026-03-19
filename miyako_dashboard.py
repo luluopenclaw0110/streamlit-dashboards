@@ -136,7 +136,7 @@ if selected_dest == "📊 超級比一比":
                 "去程-台中": f"TWD {taichung_price:,}" if taichung_price else "-",
                 "回程-台北": f"TWD {rt_tp:,}" if rt_tp else "-",
                 "回程-台中": f"TWD {rt_tc:,}" if rt_tc else "-",
-                "飯店/晚": f"TWD {hotel_price:,}" if hotel_price else "-"
+                "飯店1": "-", "飯店2": "-", "飯店3": "-"
             })
         
         comp_df = pd.DataFrame(comparison_data)
