@@ -3,6 +3,69 @@
     {
       "date": "2026-03-19",
       "departure": "台中",
+      "destination": "東京",
+      "airline": "星宇航空 JX314",
+      "flight_date": "2026-07-21",
+      "price": 9218,
+      "note": "週二"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台中",
+      "destination": "東京",
+      "airline": "星宇航空 JX314",
+      "flight_date": "2026-07-22",
+      "price": 9218,
+      "note": "週三"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台中",
+      "destination": "東京",
+      "airline": "星宇航空 JX314",
+      "flight_date": "2026-07-23",
+      "price": 10722,
+      "note": "週四"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台中",
+      "destination": "東京",
+      "airline": "星宇航空 JX314",
+      "flight_date": "2026-07-24",
+      "price": 10722,
+      "note": "週五"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台中",
+      "destination": "東京",
+      "airline": "星宇航空 JX314",
+      "flight_date": "2026-07-25",
+      "price": 12322,
+      "note": "週六"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台中",
+      "destination": "東京",
+      "airline": "星宇航空 JX314",
+      "flight_date": "2026-07-26",
+      "price": 10722,
+      "note": "週日"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台中",
+      "destination": "東京",
+      "airline": "星宇航空 JX314",
+      "flight_date": "2026-07-27",
+      "price": 9218,
+      "note": "週一"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台中",
       "destination": "那霸",
       "airline": "星宇航空 JX302",
       "flight_date": "2026-07-21",
@@ -62,24 +125,6 @@
       "flight_date": "2026-07-27",
       "price": 20346,
       "note": "2大2小 週一"
-    },
-    {
-      "date": "2026-03-19",
-      "departure": "台中",
-      "destination": "那霸",
-      "airline": "星宇航空 JX302",
-      "flight_date": "2026-07-24",
-      "price": 36898,
-      "note": "經濟艙 1人 TWD 36,898"
-    },
-    {
-      "date": "2026-03-19",
-      "departure": "台中",
-      "destination": "那霸",
-      "airline": "星宇航空 JX312",
-      "flight_date": "2026-07-24",
-      "price": 26118,
-      "note": "經濟艙 1人 TWD 26,118"
     },
     {
       "date": "2026-03-19",
@@ -146,5 +191,5 @@
     }
   ],
   "hotels": [],
-  "notes": "=== 台中→沖繩 票價 ===\n- 7/21-7/23 週二三四：TWD 20,346（2大2小）\n- 7/24-7/26 週五六日：TWD 26,118（2大2小）\n- 7/27 週一：TWD 20,346（2大2小）\n\n=== 單程航班票價 ===\n- JX302 7/24 經濟艙：TWD 36,898\n- JX312 7/24 經濟艙：TWD 26,118"
+  "notes": "=== 台中→東京 票價 ===\n- 7/21 週二：TWD 9,218\n- 7/22 週三：TWD 9,218\n- 7/23 週四：TWD 10,722\n- 7/24 週五：TWD 10,722\n- 7/25 週六：TWD 12,322\n- 7/26 週日：TWD 10,722\n- 7/27 週一：TWD 9,218"
 }
