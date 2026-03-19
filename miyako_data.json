@@ -3,6 +3,69 @@
     {
       "date": "2026-03-19",
       "departure": "台北",
+      "destination": "名古屋",
+      "airline": "星宇航空 JX838",
+      "flight_date": "2026-07-21",
+      "price": 25016,
+      "note": "2大2小 週二"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台北",
+      "destination": "名古屋",
+      "airline": "星宇航空 JX838",
+      "flight_date": "2026-07-22",
+      "price": 25016,
+      "note": "2大2小 週三"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台北",
+      "destination": "名古屋",
+      "airline": "星宇航空 JX838",
+      "flight_date": "2026-07-23",
+      "price": 27136,
+      "note": "2大2小 週四"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台北",
+      "destination": "名古屋",
+      "airline": "星宇航空 JX838",
+      "flight_date": "2026-07-24",
+      "price": 27136,
+      "note": "2大2小 週五 14:55-18:45"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台北",
+      "destination": "名古屋",
+      "airline": "星宇航空 JX838",
+      "flight_date": "2026-07-25",
+      "price": 46912,
+      "note": "2大2小 週六"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台北",
+      "destination": "名古屋",
+      "airline": "星宇航空 JX838",
+      "flight_date": "2026-07-26",
+      "price": 32484,
+      "note": "2大2小 週日"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台北",
+      "destination": "名古屋",
+      "airline": "星宇航空 JX838",
+      "flight_date": "2026-07-27",
+      "price": 25016,
+      "note": "2大2小 週一"
+    },
+    {
+      "date": "2026-03-19",
+      "departure": "台北",
       "destination": "大阪",
       "airline": "星宇航空 JX820",
       "flight_date": "2026-07-21",
@@ -413,71 +476,8 @@
       "flight_date": "2026-07-27",
       "price": 20346,
       "note": "2大2小 週一"
-    },
-    {
-      "date": "2026-03-19",
-      "departure": "台北",
-      "destination": "名古屋",
-      "airline": "星宇航空 JX838",
-      "flight_date": "2026-07-21",
-      "price": 6939,
-      "note": "1人 週二"
-    },
-    {
-      "date": "2026-03-19",
-      "departure": "台北",
-      "destination": "名古屋",
-      "airline": "星宇航空 JX838",
-      "flight_date": "2026-07-22",
-      "price": 6939,
-      "note": "1人 週三"
-    },
-    {
-      "date": "2026-03-19",
-      "departure": "台北",
-      "destination": "名古屋",
-      "airline": "星宇航空 JX838",
-      "flight_date": "2026-07-23",
-      "price": 7545,
-      "note": "1人 週四"
-    },
-    {
-      "date": "2026-03-19",
-      "departure": "台北",
-      "destination": "名古屋",
-      "airline": "星宇航空 JX838",
-      "flight_date": "2026-07-24",
-      "price": 7545,
-      "note": "1人 週五"
-    },
-    {
-      "date": "2026-03-19",
-      "departure": "台北",
-      "destination": "名古屋",
-      "airline": "星宇航空 JX838",
-      "flight_date": "2026-07-25",
-      "price": 13195,
-      "note": "1人 週六"
-    },
-    {
-      "date": "2026-03-19",
-      "departure": "台北",
-      "destination": "名古屋",
-      "airline": "星宇航空 JX838",
-      "flight_date": "2026-07-26",
-      "price": 9073,
-      "note": "1人 週日"
-    },
-    {
-      "date": "2026-03-19",
-      "departure": "台北",
-      "destination": "名古屋",
-      "airline": "星宇航空 JX838",
-      "flight_date": "2026-07-27",
-      "price": 6939,
-      "note": "1人 週一"
     }
   ],
   "hotels": [],
-  "notes": "=== 台北→大阪 2大2小票價 ===\n- 7/21-7/24 週二五六：TWD 26,202\n- 7/25 週六：TWD 29,596\n- 7/26-7/27 週日一：TWD 26,202"
+  "notes": "=== 台北→名古屋 2大2小票價 ===\n- 7/21-7/22 週二三：TWD 25,016\n- 7/23-7/24 週四五：TWD 27,136\n- 7/25 週六：TWD 46,912（最貴）\n- 7/26 週日：TWD 32,484\n- 7/27 週一：TWD 25,016"
 }
