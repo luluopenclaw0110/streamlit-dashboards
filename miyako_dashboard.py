@@ -92,29 +92,37 @@ selected_dest = st.sidebar.radio("請問您想去哪個城市？", list(destinat
 
 # 超級比一比 - 在側邊欄顯示
 with st.sidebar.expander("📊 超級比一比"):
-    st.markdown("### ✈️+🏨 機票+飯店 比價 (7/24)")
+    st.markdown("### ✈️ 去程 (7/18) + 回程 (7/25) 比價")
     
     if data["flights"]:
         df = pd.DataFrame(data["flights"])
         
-        # 篩選 7/24 的票價
-        df_724 = df[df["flight_date"] == "2026-07-24"]
+        # 去程：7/18，出發地是台北/桃園/台中
+        df_outbound = df[df["flight_date"] == "2026-07-18"]
+        # 回程：7/25，出發地是目的地（那霸、宮古島等）
+        df_return = df[df["flight_date"] == "2026-07-25"]
         
         comparison_data = []
         for dest_option, dest_code in dest_map.items():
-            # 找台北/桃園出發的票價
-            taipei_flights = df_724[
-                (df_724["destination"].str.contains(dest_code, na=False)) & 
-                (df_724["departure"].str.contains("台北|桃園", na=False, regex=True))
+            # 去程 - 台北/桃園出發
+            taipei_flights = df_outbound[
+                (df_outbound["destination"].str.contains(dest_code, na=False)) & 
+                (df_outbound["departure"].str.contains("台北|桃園", na=False, regex=True))
             ]
             taipei_price = taipei_flights['price'].min() if not taipei_flights.empty else None
             
-            # 找台中出發的票價
-            taichung_flights = df_724[
-                (df_724["destination"].str.contains(dest_code, na=False)) & 
-                (df_724["departure"].str.contains("台中", na=False))
+            # 去程 - 台中出發
+            taichung_flights = df_outbound[
+                (df_outbound["destination"].str.contains(dest_code, na=False)) & 
+                (df_outbound["departure"].str.contains("台中", na=False))
             ]
             taichung_price = taichung_flights['price'].min() if not taichung_flights.empty else None
+            
+            # 回程 - 從目的地返回
+            return_flights = df_return[
+                (df_return["departure"].str.contains(dest_code, na=False))
+            ]
+            return_price = return_flights['price'].min() if not return_flights.empty else None
             
             # 飯店價格
             hotel_price = data.get("hotel_prices", {}).get(dest_code, None)
@@ -124,15 +132,16 @@ with st.sidebar.expander("📊 超級比一比"):
             
             comparison_data.append({
                 "目的地": dest_name,
-                "台北機票": f"TWD {taipei_price:,}" if taipei_price else "-",
-                "台中機票": f"TWD {taichung_price:,}" if taichung_price else "-",
+                "去程-台北": f"TWD {taipei_price:,}" if taipei_price else "-",
+                "去程-台中": f"TWD {taichung_price:,}" if taichung_price else "-",
+                "回程": f"TWD {return_price:,}" if return_price else "-",
                 "飯店/晚": f"TWD {hotel_price:,}" if hotel_price else "-"
             })
         
         comp_df = pd.DataFrame(comparison_data)
         st.dataframe(comp_df, hide_index=True, use_container_width=True)
         
-        st.info("💡 機票:7/24報價,2大2小 / 飯店:每晚")
+        st.info("💡 去程7/18，回程7/25，機票2大2小 / 飯店每晚")
     else:
         st.warning("尚無機票資料")
 
