@@ -97,9 +97,12 @@ with st.sidebar.expander("📊 超級比一比"):
     if data["flights"]:
         df = pd.DataFrame(data["flights"])
         
+        # 篩選 7/24 的票價
+        df_724 = df[df["flight_date"] == "2026-07-24"]
+        
         comparison_data = []
         for dest_option, dest_code in dest_map.items():
-            dest_flights = df[df["destination"].str.contains(dest_code, na=False)]
+            dest_flights = df_724[df_724["destination"].str.contains(dest_code, na=False)]
             if not dest_flights.empty:
                 min_price = dest_flights['price'].min()
                 cheapest = dest_flights.loc[dest_flights['price'].idxmin()]
@@ -112,15 +115,15 @@ with st.sidebar.expander("📊 超級比一比"):
             
             comparison_data.append({
                 "目的地": dest_option,
-                "機票": f"TWD {min_price:,}" if min_price else "-",
+                "機票(7/24)": f"TWD {min_price:,}" if min_price else "-",
                 "出發": cheapest_departure,
-                "飯店": f"TWD {hotel_price:,}" if hotel_price else "-"
+                "飯店/晚": f"TWD {hotel_price:,}" if hotel_price else "-"
             })
         
         comp_df = pd.DataFrame(comparison_data)
         st.dataframe(comp_df, hide_index=True, use_container_width=True)
         
-        st.info("💡 機票:2大2小 / 飯店:每晚")
+        st.info("💡 機票:7/24報價,2大2小 / 飯店:每晚")
     else:
         st.warning("尚無機票資料")
 
