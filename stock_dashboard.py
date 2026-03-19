@@ -276,7 +276,7 @@ if page == "📊 專業分析":
             rsi = calculate_rsi(df)
             
             fig_rsi = go.Figure()
-            fig_rsi.add_trace(go.Scatter(x=df.index, y=rsi, name='RSI', line=dict(color='yellow', width=2)))
+            fig_rsi.add_trace(go.Scatter(x=df.index, y=rsi, name='RSI', line=dict(color='cyan', width=2)))
             
             fig_rsi.add_hline(y=70, line_dash="dash", line_color="red", annotation_text="超買")
             fig_rsi.add_hline(y=30, line_dash="dash", line_color="green", annotation_text="超賣")
