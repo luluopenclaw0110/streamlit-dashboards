@@ -85,6 +85,9 @@ def get_realtime_price(code):
                     pct_text = text.replace('(', '').replace(')', '').replace('%', '')
                     try:
                         change_pct = float(pct_text)
+                        # 如果括號內有負號，才是負的
+                        if '(-' in text:
+                            change_pct = -change_pct
                     except:
                         change_pct = 0
                     break
