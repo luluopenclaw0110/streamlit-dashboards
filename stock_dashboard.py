@@ -227,7 +227,7 @@ if page == "📊 專業分析":
         col1, col2 = st.columns(2)
         
         with col1:
-            st.markdown("**📊 選擇時間範圍漲跌**")
+            st.markdown("**📊 區間漲跌（收盤價）**")
             col_a, col_b = st.columns(2)
             with col_a:
                 st.metric("目前價格", f"${current_price:,.2f}", f"{change:+.2f}")
@@ -240,7 +240,7 @@ if page == "📊 專業分析":
                 st.metric("期間最低", f"${df['Low'].min():,.2f}")
         
         with col2:
-            st.markdown("**📈 今日漲跌**")
+            st.markdown("**📈 即時報價**")
             if realtime_data:
                 col_e, col_f = st.columns(2)
                 with col_e:
