@@ -67,34 +67,39 @@ def get_realtime_price(code):
         if price_elem:
             price_text = price_elem[0].get_text().replace(',', '')
             price = float(price_text)
+            
+            # 判斷漲跌：檢查股價元素的顏色class
+            elem_classes = price_elem[0].get('class', [])
+            is_down = any('trend-down' in str(c) for c in elem_classes)
+            is_up = any('trend-up' in str(c) for c in elem_classes)
         else:
             return None
         
-        # 找漲跌幅 (20px 字體)
+        # 找漲跌幅 (20px 字體) - 從金額算百分比
         change_elem = soup.select('.Fz\\(20px\\)')
-        change = 0
         change_pct = 0
         if change_elem:
-            # change_elem[0] = 漲跌金額 (如 "35.00")
-            # change_elem[1] = 漲跌百分比 (如 "(1.87%)")
-            # 找百分比那個
-            for elem in change_elem:
-                text = elem.get_text().strip()
-                if '(' in text and ')' in text and '%' in text:
-                    # 解析 "(1.87%)" 或 "(-1.5%)"
-                    pct_text = text.replace('(', '').replace(')', '').replace('%', '')
-                    try:
-                        change_pct = float(pct_text)
-                        # 如果括號內有負號，才是負的
-                        if '(-' in text:
-                            change_pct = -change_pct
-                    except:
-                        change_pct = 0
-                    break
+            # change_elem[0] = 漲跌金額 (如 "3.50" 或 "-3.50")
+            change_text = change_elem[0].get_text().strip().replace(',', '')
+            try:
+                change_amount = float(change_text)
+                # 用漲跌金額計算百分比
+                if price > 0:
+                    change_pct = (change_amount / (price - change_amount)) * 100
+                    # 根據顏色調整正負號
+                    if is_down:
+                        change_pct = -abs(change_pct)
+                    elif is_up:
+                        change_pct = abs(change_pct)
+                    # 如果沒有顏色但金額是負數
+                    elif change_amount < 0:
+                        change_pct = change_pct
+            except:
+                change_pct = 0
         
         return {
             'price': price,
-            'change_pct': change_pct
+            'change_pct': round(change_pct, 2)
         }
     except Exception as e:
         return None
