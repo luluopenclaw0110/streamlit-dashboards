@@ -27,23 +27,23 @@ st.set_page_config(
 # 自訂字體大小
 st.markdown("""
 <style>
-    .dataframe {
+    /* 表格字體加大 */
+    .dataframe th, .dataframe td {
         font-size: 18px !important;
     }
-    .stDataFrame {
-        font-size: 18px;
+    div[data-testid="stDataFrame"] td {
+        font-size: 18px !important;
     }
-    div[data-testid="stDataFrame"] {
-        font-size: 18px;
+    div[data-testid="stDataFrame"] th {
+        font-size: 18px !important;
     }
-    .stMarkdown {
-        font-size: 16px;
+    /* 一般文字加大 */
+    .stMarkdown, .stText, p, li {
+        font-size: 18px !important;
     }
+    /* 基本資料文字加大 */
     div.stWrite {
-        font-size: 16px;
-    }
-    p {
-        font-size: 16px;
+        font-size: 18px !important;
     }
 </style>
 """, unsafe_allow_html=True)
