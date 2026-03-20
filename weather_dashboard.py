@@ -91,7 +91,7 @@ st.sidebar.markdown("- Open-Meteo API")
 
 # ===== 主頁面 =====
 st.title(f"🌤️ {selected_location} 天氣預報")
-st.markdown(f"**報告時間：** {datetime.now().strftime('%Y年%m月%d日 %H:%M')}")
+st.markdown(f"**報告時間：** {datetime.now(ZoneInfo('Asia/Taipei')).strftime('%Y年%m月%d日 %H:%M')}")
 
 # 取得天氣資料
 data = get_weather_data(
