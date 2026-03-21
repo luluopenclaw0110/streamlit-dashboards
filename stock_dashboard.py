@@ -645,6 +645,7 @@ elif page == "🏭 產業分析":
                 'EPS': data['EPS'],
                 'ROE': f"{data['ROE']:.1f}%",
                 '本益比': round(data['本益比'], 1) if data['本益比'] else 0,
+                '獲利成長': data['獲利成長'],  # 新增：用於計算建議
             })
     
     if ranking_data:
@@ -655,7 +656,8 @@ elif page == "🏭 產業分析":
         for i, row in df_rank.iterrows():
             rec, color = get_recommendation(
                 float(row['ROE'].replace('%', '')) if isinstance(row['ROE'], str) else row['ROE'],
-                0, row['本益比']
+                row.get('獲利成長', 0),  # 使用真實的獲利成長
+                row['本益比']
             )
             df_rank.loc[i, '建議'] = rec
         
