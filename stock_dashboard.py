@@ -513,109 +513,263 @@ else:
 
 # ===== 產業分析頁面 =====
 if page == "🏭 產業分析":
-    st.title("🏭 產業股票分析")
-    st.caption("每天自動更新 | 營收/獲利排名 + 買賣建議")
+    st.title("🏭 產業龍頭專業分析")
+    st.caption("每天自動更新 | 四大產業龍頭 - 專業技術分析 + 基本面 + 買賣建議")
     
-    # 產業股票清單
-    INDUSTRY_STOCKS = {
-        '半導體': {
-            'description': '半導體產業鏈',
-            'stocks': {'2330': '台積電', '2454': '聯發科', '3034': '聯詠', '3443': '創意', '4961': '力旺'}
-        },
-        '電子組裝': {
-            'description': '電子組裝代工',
-            'stocks': {'2317': '鴻海', '2382': '廣達', '2308': '台達電', '2357': '華碩', '3231': '緯創'}
-        },
-        '傳產-鋼鐵': {
-            'description': '鋼鐵產業',
-            'stocks': {'2002': '中鋼', '2105': '正新', '2027': '燁輝', '2031': '新光鋼'}
-        },
-        '傳產-塑化': {
-            'description': '塑化產業',
-            'stocks': {'1301': '台塑', '1303': '南亞', '1326': '台化', '1717': '長興', '1802': '台玻'}
-        },
-        '金融': {
-            'description': '金融產業',
-            'stocks': {'2884': '玉山金', '2886': '兆豐金', '2887': '台新金', '2891': '中信金', '2834': '臺企銀'}
-        }
+    # 產業龍頭股票（各產業營收第一）
+    INDUSTRY_LEADERS = {
+        '半導體': {'2330': '台積電'},
+        '電子組裝': {'2317': '鴻海'},
+        '傳產-鋼鐵': {'2002': '中鋼'},
+        '傳產-塑化': {'1326': '台化'},
     }
     
+    # 四大產業完整清單
+    INDUSTRY_ALL = {
+        '半導體': {'2330': '台積電', '2454': '聯發科', '3034': '聯詠'},
+        '電子組裝': {'2317': '鴻海', '2382': '廣達', '2308': '台達電'},
+        '傳產-鋼鐵': {'2002': '中鋼', '2027': '燁輝', '2105': '正新'},
+        '傳產-塑化': {'1326': '台化', '1303': '南亞', '1301': '台塑'},
+    }
+    
+    # 技術指標計算函數
+    def calculate_ma(df, period):
+        return df['Close'].rolling(window=period).mean()
+    
+    def calculate_rsi(df, period=14):
+        delta = df['Close'].diff()
+        gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
+        loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
+        rs = gain / loss
+        rsi = 100 - (100 / (1 + rs))
+        return rsi
+    
+    def calculate_kd(df):
+        low_min = df['Low'].rolling(window=9).min()
+        high_max = df['High'].rolling(window=9).max()
+        k = 100 * (df['Close'] - low_min) / (high_max - low_min)
+        d = k.rolling(window=3).mean()
+        return k, d
+    
+    def calculate_bollinger(df, period=20, std_dev=2):
+        ma = df['Close'].rolling(window=period).mean()
+        std = df['Close'].rolling(window=period).std()
+        upper = ma + std_dev * std
+        lower = ma - std_dev * std
+        return ma, upper, lower
+    
+    def calculate_macd(df, fast=12, slow=26, signal=9):
+        ema_fast = df['Close'].ewm(span=fast).mean()
+        ema_slow = df['Close'].ewm(span=slow).mean()
+        macd = ema_fast - ema_slow
+        signal_line = macd.ewm(span=signal).mean()
+        histogram = macd - signal_line
+        return macd, signal_line, histogram
+    
+    def get_recommendation(roe, profit_growth, pe_ratio):
+        """給出買賣建議"""
+        score = 0
+        if roe > 20: score += 2
+        elif roe > 10: score += 1
+        if profit_growth > 20: score += 2
+        elif profit_growth > 0: score += 1
+        elif profit_growth < -20: score -= 2
+        if 10 < pe_ratio < 25: score += 1
+        elif pe_ratio > 40: score -= 1
+        
+        if score >= 3: return "💚 建議買入", "green"
+        elif score >= 1: return "💙 持續觀察", "blue"
+        else: return "❤️ 建議觀望", "red"
+    
+    # 產業選擇器
+    selected_industry = st.selectbox("選擇產業", list(INDUSTRY_ALL.keys()))
+    
+    # 取得該產業的股票
+    industry_stocks = INDUSTRY_ALL[selected_industry]
+    
+    # 取得股價數據
+    @st.cache_data(ttl=300)
+    def get_industry_stock_data(code):
+        try:
+            ticker = yf.Ticker(f"{code}.TW")
+            df = ticker.history(period="3mo")
+            return df
+        except:
+            return None
+    
+    # 取得基本面數據
     @st.cache_data(ttl=3600)
-    def get_industry_data(stocks_dict):
-        """取得產業股票資料"""
-        results = {}
-        for industry, info in stocks_dict.items():
-            industry_data = []
-            for code, name in info['stocks'].items():
-                try:
-                    ticker = yf.Ticker(f"{code}.TW")
-                    info_data = ticker.info
-                    revenue = info_data.get('totalRevenue', 0) or 0
-                    profit = info_data.get('netIncome', 0) or 0
-                    revenue_growth = (info_data.get('revenueGrowth', 0) or 0) * 100
-                    profit_growth = (info_data.get('earningsGrowth', 0) or 0) * 100
-                    roe = (info_data.get('returnOnEquity', 0) or 0) * 100
-                    pe = info_data.get('trailingPE', 0) or 0
-                    current_price = info_data.get('currentPrice', 0)
-                    
-                    # 計算建議
-                    score = 0
-                    if roe > 20: score += 2
-                    elif roe > 10: score += 1
-                    if profit_growth > 20: score += 2
-                    elif profit_growth > 0: score += 1
-                    elif profit_growth < -20: score -= 2
-                    if 10 < pe < 25: score += 1
-                    elif pe > 40: score -= 1
-                    
-                    if score >= 3: recommendation = "💚 建議買入"
-                    elif score >= 1: recommendation = "💙 持續觀察"
-                    else: recommendation = "❤️ 建議觀望"
-                    
-                    industry_data.append({
-                        '代號': code,
-                        '名稱': name,
-                        '股價': current_price,
-                        '營收(B)': round(revenue / 1e9, 1) if revenue else 0,
-                        '淨利(B)': round(profit / 1e9, 2) if profit else 0,
-                        '營收成長': f"{revenue_growth:+.1f}%",
-                        '獲利成長': f"{profit_growth:+.1f}%",
-                        'ROE': f"{roe:.1f}%",
-                        '本益比': round(pe, 1) if pe else 0,
-                        '建議': recommendation
-                    })
-                except Exception as e:
-                    pass
-            results[industry] = industry_data
-        return results
+    def get_fundamental_data(code):
+        try:
+            ticker = yf.Ticker(f"{code}.TW")
+            info = ticker.info
+            return {
+                '股價': info.get('currentPrice', 0),
+                '本益比': info.get('trailingPE', 0),
+                '殖利率': info.get('dividendYield', 0) * 100 if info.get('dividendYield') else 0,
+                '每股淨值': info.get('bookValue', 0),
+                'EPS': info.get('trailingEps', 0),
+                'ROE': (info.get('returnOnEquity', 0) or 0) * 100,
+                '營收': info.get('totalRevenue', 0),
+                '淨利': info.get('netIncome', 0),
+                '營收成長': (info.get('revenueGrowth', 0) or 0) * 100,
+                '獲利成長': (info.get('earningsGrowth', 0) or 0) * 100,
+            }
+        except:
+            return None
     
-    with st.spinner('正在抓取產業數據...'):
-        industry_data = get_industry_data(INDUSTRY_STOCKS)
+    # 顯示產業龍頭排名
+    st.markdown("### 📊 產業營收排名")
     
-    # 顯示各產業
-    for industry, info in INDUSTRY_STOCKS.items():
-        with st.expander(f"🏭 {industry} - {info['description']}", expanded=True):
-            if industry in industry_data and len(industry_data[industry]) > 0:
-                df_ind = pd.DataFrame(industry_data[industry])
-                
-                # 按營收排序
-                df_ind = df_ind.sort_values('營收(B)', ascending=False)
-                
-                # 營收前三
-                st.markdown("**📈 營收排名前3：**")
-                top3_rev = df_ind.head(3)
-                for i, row in top3_rev.iterrows():
-                    st.write(f"  {top3_rev.index.get_loc(i)+1}. {row['名稱']} ({row['代號']}) - 營收 {row['營收(B)']}B")
-                
-                st.divider()
-                
-                # 完整表格
-                st.markdown("**📊 完整數據：**")
-                st.dataframe(df_ind, hide_index=True, use_container_width=True)
-            else:
-                st.info("無法取得資料")
+    ranking_data = []
+    for code, name in industry_stocks.items():
+        data = get_fundamental_data(code)
+        if data:
+            ranking_data.append({
+                '代號': code,
+                '名稱': name,
+                '營收(B)': round(data['營收'] / 1e9, 1) if data['營收'] else 0,
+                '淨利(B)': round(data['淨利'] / 1e9, 2) if data['淨利'] else 0,
+                'EPS': data['EPS'],
+                'ROE': f"{data['ROE']:.1f}%",
+                '本益比': round(data['本益比'], 1) if data['本益比'] else 0,
+            })
+    
+    if ranking_data:
+        df_rank = pd.DataFrame(ranking_data)
+        df_rank = df_rank.sort_values('營收(B)', ascending=False)
+        
+        # 格式化
+        for i, row in df_rank.iterrows():
+            rec, color = get_recommendation(
+                float(row['ROE'].replace('%', '')) if isinstance(row['ROE'], str) else row['ROE'],
+                0, row['本益比']
+            )
+            df_rank.loc[i, '建議'] = rec
+        
+        st.dataframe(df_rank, hide_index=True, use_container_width=True)
+    
+    st.markdown("---")
+    
+    # 選擇要分析的股票
+    analysis_stock = st.selectbox(
+        "選擇股票進行專業分析",
+        list(industry_stocks.items()),
+        format_func=lambda x: f"{x[1]} ({x[0]})"
+    )
+    
+    # 取得數據
+    df = get_industry_stock_data(analysis_stock[0])
+    fundamental = get_fundamental_data(analysis_stock[0])
+    
+    if df is not None and len(df) > 0:
+        # 基本面資訊
+        st.markdown("### 📈 基本面資料")
+        
+        if fundamental:
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                st.metric("股價", f"${fundamental['股價']:,.2f}")
+            with col2:
+                st.metric("本益比", f"{fundamental['本益比']:.1f}")
+            with col3:
+                st.metric("ROE", f"{fundamental['ROE']:.1f}%")
+            with col4:
+                rec, color = get_recommendation(fundamental['ROE'], fundamental['獲利成長'], fundamental['本益比'])
+                st.markdown(f"**{rec}**")
+            
+            col5, col6, col7, col8 = st.columns(4)
+            with col5:
+                st.metric("EPS", f"${fundamental['EPS']:.2f}")
+            with col6:
+                st.metric("殖利率", f"{fundamental['殖利率']:.2f}%")
+            with col7:
+                st.metric("營收成長", f"{fundamental['營收成長']:+.1f}%")
+            with col8:
+                st.metric("獲利成長", f"{fundamental['獲利成長']:+.1f}%")
         
         st.markdown("---")
+        
+        # K線圖 + 技術指標
+        st.markdown("### 📊 K線圖 + 技術指標")
+        
+        # K線
+        candle = go.Candlestick(
+            x=df.index,
+            open=df['Open'],
+            high=df['High'],
+            low=df['Low'],
+            close=df['Close'],
+            name='K線',
+            increasing_line_color='red',
+            decreasing_line_color='green'
+        )
+        
+        fig = go.Figure(data=[candle])
+        
+        # MA
+        ma20 = calculate_ma(df, 20)
+        ma60 = calculate_ma(df, 60)
+        fig.add_trace(go.Scatter(x=df.index, y=ma20, name='MA20', line=dict(color='purple', width=2)))
+        fig.add_trace(go.Scatter(x=df.index, y=ma60, name='MA60', line=dict(color='orange', width=2)))
+        
+        #布林通道
+        ma, upper, lower = calculate_bollinger(df)
+        fig.add_trace(go.Scatter(x=df.index, y=upper, name='布林上軌', line=dict(color='gray', width=1, dash='dash')))
+        fig.add_trace(go.Scatter(x=df.index, y=lower, name='布林下軌', line=dict(color='gray', width=1, dash='dash')))
+        
+        fig.update_layout(
+            xaxis_rangeslider_visible=False,
+            height=450,
+            template="plotly_dark",
+            title=f"{analysis_stock[1]} K線圖 + MA + 布林通道",
+            yaxis_title="價格",
+            xaxis_title="日期"
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # RSI + KD
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("#### RSI 指標")
+            rsi = calculate_rsi(df)
+            fig_rsi = go.Figure()
+            fig_rsi.add_trace(go.Scatter(x=df.index, y=rsi, name='RSI', line=dict(color='cyan', width=2)))
+            fig_rsi.add_hline(y=70, line_dash="dash", line_color="red", annotation_text="超買")
+            fig_rsi.add_hline(y=30, line_dash="dash", line_color="green", annotation_text="超賣")
+            fig_rsi.update_layout(height=300, template="plotly_dark", yaxis_range=[0, 100])
+            st.plotly_chart(fig_rsi, use_container_width=True)
+        
+        with col2:
+            st.markdown("#### KD 指標")
+            k, d = calculate_kd(df)
+            fig_kd = go.Figure()
+            fig_kd.add_trace(go.Scatter(x=df.index, y=k, name='K', line=dict(color='blue', width=2)))
+            fig_kd.add_trace(go.Scatter(x=df.index, y=d, name='D', line=dict(color='red', width=2)))
+            fig_kd.update_layout(height=300, template="plotly_dark")
+            st.plotly_chart(fig_kd, use_container_width=True)
+        
+        # MACD
+        st.markdown("#### MACD 指標")
+        macd, signal, hist = calculate_macd(df)
+        fig_macd = go.Figure()
+        fig_macd.add_trace(go.Bar(x=df.index, y=hist, name='柱狀', marker_color='gray'))
+        fig_macd.add_trace(go.Scatter(x=df.index, y=macd, name='MACD', line=dict(color='blue', width=2)))
+        fig_macd.add_trace(go.Scatter(x=df.index, y=signal, name='Signal', line=dict(color='orange', width=2)))
+        fig_macd.update_layout(height=300, template="plotly_dark")
+        st.plotly_chart(fig_macd, use_container_width=True)
+        
+        # 成交量
+        st.markdown("#### 成交量")
+        colors_vol = ['red' if df['Close'].iloc[i] >= df['Open'].iloc[i] else 'green' for i in range(len(df))]
+        fig_vol = go.Figure(data=[go.Bar(x=df.index, y=df['Volume'], name='成交量', marker_color=colors_vol)])
+        fig_vol.update_layout(height=250, template="plotly_dark")
+        st.plotly_chart(fig_vol, use_container_width=True)
+        
+    else:
+        st.error("無法取得股價資料")
     
     st.caption(f"🕐 資料更新時間：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
