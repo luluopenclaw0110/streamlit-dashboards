@@ -105,7 +105,7 @@ st.sidebar.markdown("---")
 # 分頁選擇
 page = st.sidebar.radio(
     "選擇頁面",
-    ["📊 專業分析", "⚡ 即時股價"]
+    ["📊 專業分析", "⚡ 即時股價", "🏭 產業分析"]
 )
 
 st.sidebar.markdown("---")
@@ -510,6 +510,114 @@ else:
         st.caption(f"🕐 更新時間：{datetime.now().strftime('%H:%M:%S')}")
     else:
         st.error("無法取得股價資料，請稍後再試")
+
+# ===== 產業分析頁面 =====
+elif page == "🏭 產業分析":
+    st.title("🏭 產業股票分析")
+    st.caption("每天自動更新 | 營收/獲利排名 + 買賣建議")
+    
+    # 產業股票清單
+    INDUSTRY_STOCKS = {
+        '半導體': {
+            'description': '半導體產業鏈',
+            'stocks': {'2330': '台積電', '2454': '聯發科', '3034': '聯詠', '3443': '創意', '4961': '力旺'}
+        },
+        '電子組裝': {
+            'description': '電子組裝代工',
+            'stocks': {'2317': '鴻海', '2382': '廣達', '2308': '台達電', '2357': '華碩', '3231': '緯創'}
+        },
+        '傳產-鋼鐵': {
+            'description': '鋼鐵產業',
+            'stocks': {'2002': '中鋼', '2105': '正新', '2027': '燁輝', '2031': '新光鋼'}
+        },
+        '傳產-塑化': {
+            'description': '塑化產業',
+            'stocks': {'1301': '台塑', '1303': '南亞', '1326': '台化', '1717': '長興', '1802': '台玻'}
+        },
+        '金融': {
+            'description': '金融產業',
+            'stocks': {'2884': '玉山金', '2886': '兆豐金', '2887': '台新金', '2891': '中信金', '2834': '臺企銀'}
+        }
+    }
+    
+    @st.cache_data(ttl=3600)
+    def get_industry_data(stocks_dict):
+        """取得產業股票資料"""
+        results = {}
+        for industry, info in stocks_dict.items():
+            industry_data = []
+            for code, name in info['stocks'].items():
+                try:
+                    ticker = yf.Ticker(f"{code}.TW")
+                    info_data = ticker.info
+                    revenue = info_data.get('totalRevenue', 0) or 0
+                    profit = info_data.get('netIncome', 0) or 0
+                    revenue_growth = (info_data.get('revenueGrowth', 0) or 0) * 100
+                    profit_growth = (info_data.get('earningsGrowth', 0) or 0) * 100
+                    roe = (info_data.get('returnOnEquity', 0) or 0) * 100
+                    pe = info_data.get('trailingPE', 0) or 0
+                    current_price = info_data.get('currentPrice', 0)
+                    
+                    # 計算建議
+                    score = 0
+                    if roe > 20: score += 2
+                    elif roe > 10: score += 1
+                    if profit_growth > 20: score += 2
+                    elif profit_growth > 0: score += 1
+                    elif profit_growth < -20: score -= 2
+                    if 10 < pe < 25: score += 1
+                    elif pe > 40: score -= 1
+                    
+                    if score >= 3: recommendation = "💚 建議買入"
+                    elif score >= 1: recommendation = "💙 持續觀察"
+                    else: recommendation = "❤️ 建議觀望"
+                    
+                    industry_data.append({
+                        '代號': code,
+                        '名稱': name,
+                        '股價': current_price,
+                        '營收(B)': round(revenue / 1e9, 1) if revenue else 0,
+                        '淨利(B)': round(profit / 1e9, 2) if profit else 0,
+                        '營收成長': f"{revenue_growth:+.1f}%",
+                        '獲利成長': f"{profit_growth:+.1f}%",
+                        'ROE': f"{roe:.1f}%",
+                        '本益比': round(pe, 1) if pe else 0,
+                        '建議': recommendation
+                    })
+                except Exception as e:
+                    pass
+            results[industry] = industry_data
+        return results
+    
+    with st.spinner('正在抓取產業數據...'):
+        industry_data = get_industry_data(INDUSTRY_STOCKS)
+    
+    # 顯示各產業
+    for industry, info in INDUSTRY_STOCKS.items():
+        with st.expander(f"🏭 {industry} - {info['description']}", expanded=True):
+            if industry in industry_data and len(industry_data[industry]) > 0:
+                df_ind = pd.DataFrame(industry_data[industry])
+                
+                # 按營收排序
+                df_ind = df_ind.sort_values('營收(B)', ascending=False)
+                
+                # 營收前三
+                st.markdown("**📈 營收排名前3：**")
+                top3_rev = df_ind.head(3)
+                for i, row in top3_rev.iterrows():
+                    st.write(f"  {top3_rev.index.get_loc(i)+1}. {row['名稱']} ({row['代號']}) - 營收 {row['營收(B)']}B")
+                
+                st.divider()
+                
+                # 完整表格
+                st.markdown("**📊 完整數據：**")
+                st.dataframe(df_ind, hide_index=True, use_container_width=True)
+            else:
+                st.info("無法取得資料")
+        
+        st.markdown("---")
+    
+    st.caption(f"🕐 資料更新時間：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
 # ===== 頁腳 =====
 st.markdown("---")
