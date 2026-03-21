@@ -110,27 +110,39 @@ page = st.sidebar.radio(
 
 st.sidebar.markdown("---")
 
-# 選擇股票
-selected_stock = st.sidebar.selectbox(
-    "選擇股票",
-    list(STOCKS.items()),
-    format_func=lambda x: f"{x[1]} ({x[0]})"
-)
+# 根據頁面顯示不同的選項
+if page == "📊 專業分析":
+    # 選擇股票
+    selected_stock = st.sidebar.selectbox(
+        "選擇股票",
+        list(STOCKS.items()),
+        format_func=lambda x: f"{x[1]} ({x[0]})"
+    )
+    
+    # 選擇時間範圍
+    period = st.sidebar.selectbox(
+        "選擇時間範圍",
+        ["1mo", "3mo", "6mo", "1y", "2y"],
+        index=1,
+        format_func=lambda x: {"1mo": "1個月", "3mo": "3個月", "6mo": "6個月", "1y": "1年", "2y": "2年"}[x]
+    )
+    
+    # 選擇技術指標
+    indicators = st.sidebar.multiselect(
+        "技術指標",
+        ["MA5", "MA20", "MA60", "RSI", "Volume"],
+        default=["MA20"]
+    )
 
-# 選擇時間範圍
-period = st.sidebar.selectbox(
-    "選擇時間範圍",
-    ["1mo", "3mo", "6mo", "1y", "2y"],
-    index=1,
-    format_func=lambda x: {"1mo": "1個月", "3mo": "3個月", "6mo": "6個月", "1y": "1年", "2y": "2年"}[x]
-)
+elif page == "🏭 產業分析":
+    # 產業分析頁面的選項
+    st.sidebar.markdown("### 🏭 產業分析")
+    st.sidebar.info("選擇產業和股票進行專業分析")
 
-# 選擇技術指標
-indicators = st.sidebar.multiselect(
-    "技術指標",
-    ["MA5", "MA20", "MA60", "RSI", "Volume"],
-    default=["MA20"]
-)
+elif page == "⚡ 即時股價":
+    # 即時股價頁面
+    st.sidebar.markdown("### ⚡ 即時報價")
+    st.sidebar.info("顯示所有股票的即時報價")
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 📊 快速連結")
@@ -592,7 +604,7 @@ elif page == "🏭 產業分析":
     def get_industry_stock_data(code):
         try:
             ticker = yf.Ticker(f"{code}.TW")
-            df = ticker.history(period="3mo")
+            df = ticker.history(period="6mo")  # 改為6個月，這樣MA60才能計算
             return df
         except:
             return None
