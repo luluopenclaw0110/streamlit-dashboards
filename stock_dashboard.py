@@ -110,27 +110,39 @@ page = st.sidebar.radio(
 
 st.sidebar.markdown("---")
 
-# 選擇股票
-selected_stock = st.sidebar.selectbox(
-    "選擇股票",
-    list(STOCKS.items()),
-    format_func=lambda x: f"{x[1]} ({x[0]})"
-)
+# 根據頁面顯示不同的選項
+if page == "📊 專業分析":
+    # 選擇股票
+    selected_stock = st.sidebar.selectbox(
+        "選擇股票",
+        list(STOCKS.items()),
+        format_func=lambda x: f"{x[1]} ({x[0]})"
+    )
+    
+    # 選擇時間範圍
+    period = st.sidebar.selectbox(
+        "選擇時間範圍",
+        ["1mo", "3mo", "6mo", "1y", "2y"],
+        index=1,
+        format_func=lambda x: {"1mo": "1個月", "3mo": "3個月", "6mo": "6個月", "1y": "1年", "2y": "2年"}[x]
+    )
+    
+    # 選擇技術指標
+    indicators = st.sidebar.multiselect(
+        "技術指標",
+        ["MA5", "MA20", "MA60", "RSI", "Volume"],
+        default=["MA20"]
+    )
 
-# 選擇時間範圍
-period = st.sidebar.selectbox(
-    "選擇時間範圍",
-    ["1mo", "3mo", "6mo", "1y", "2y"],
-    index=1,
-    format_func=lambda x: {"1mo": "1個月", "3mo": "3個月", "6mo": "6個月", "1y": "1年", "2y": "2年"}[x]
-)
+elif page == "🏭 產業分析":
+    # 產業分析頁面的選項
+    st.sidebar.markdown("### 🏭 產業分析")
+    st.sidebar.info("選擇產業和股票進行專業分析")
 
-# 選擇技術指標
-indicators = st.sidebar.multiselect(
-    "技術指標",
-    ["MA5", "MA20", "MA60", "RSI", "Volume"],
-    default=["MA20"]
-)
+elif page == "⚡ 即時股價":
+    # 即時股價頁面
+    st.sidebar.markdown("### ⚡ 即時報價")
+    st.sidebar.info("顯示所有股票的即時報價")
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 📊 快速連結")
@@ -456,7 +468,7 @@ if page == "📊 專業分析":
         st.info("無法取得美股資料")
 
 # ===== 即時股價頁面 =====
-else:
+elif page == "⚡ 即時股價":
     st.title("⚡ 即時股價")
     st.caption("資料來源：Yahoo 股市 | 每分鐘更新")
     
@@ -512,9 +524,9 @@ else:
         st.error("無法取得股價資料，請稍後再試")
 
 # ===== 產業分析頁面 =====
-if page == "🏭 產業分析":
+elif page == "🏭 產業分析":
     st.title("🏭 產業龍頭專業分析")
-    st.caption("每天自動更新 | 四大產業龍頭 - 專業技術分析 + 基本面 + 買賣建議")
+    st.caption("每天自動更新 | 產業排名 - 專業技術分析 + 基本面 + 買賣建議")
     
     # 產業龍頭股票（各產業營收第一）
     INDUSTRY_LEADERS = {
@@ -524,12 +536,30 @@ if page == "🏭 產業分析":
         '傳產-塑化': {'1326': '台化'},
     }
     
-    # 四大產業完整清單
+    # 產業完整清單
     INDUSTRY_ALL = {
-        '半導體': {'2330': '台積電', '2454': '聯發科', '3034': '聯詠'},
-        '電子組裝': {'2317': '鴻海', '2382': '廣達', '2308': '台達電'},
-        '傳產-鋼鐵': {'2002': '中鋼', '2027': '燁輝', '2105': '正新'},
-        '傳產-塑化': {'1326': '台化', '1303': '南亞', '1301': '台塑'},
+        # 上游（材料）
+        '矽晶圓': {'6488': '環球晶', '3532': '台勝科', '3016': '嘉晶'},
+        'CCL材料': {'2383': '台光電', '6213': '聯茂', '6274': '台燿'},
+        # 中游（製造）
+        '晶圓代工': {'2330': '台積電', '2303': '聯電', '5347': '世界先進'},
+        '記憶體': {'2408': '南亞科', '2344': '華邦電', '2337': '旺宏'},
+        # 設計（AI主飆段）
+        'IC設計': {'2454': '聯發科', '2379': '瑞昱', '3034': '聯詠'},
+        'ASIC': {'3661': '世芯-KY', '3443': '創意', '3035': '智原'},
+        'IP矽智財': {'3529': '力旺', '3035': '智原', '6643': 'M31'},
+        # 封測
+        '封測': {'3711': '日月光投控', '6239': '力成', '2449': '京元電子'},
+        # 設備
+        '設備': {'2404': '漢唐', '6196': '帆宣', '3583': '辛耘'},
+        # 載板/PCB
+        'IC載板': {'3037': '欣興', '3189': '景碩', '8046': '南電'},
+        'PCB': {'3044': '健鼎', '5469': '瀚宇博', '2313': '華通'},
+        # AI應用端
+        '散熱': {'3017': '奇鋐', '3324': '雙鴻', '6230': '超眾'},
+        '電源': {'2308': '台達電', '2301': '光寶科', '6412': '群電'},
+        '光通訊': {'3363': '上詮', '6442': '光聖', '3081': '聯亞'},
+        '光學': {'3008': '大立光', '3406': '玉晶光', '3019': '亞光'},
     }
     
     # 技術指標計算函數
@@ -592,7 +622,7 @@ if page == "🏭 產業分析":
     def get_industry_stock_data(code):
         try:
             ticker = yf.Ticker(f"{code}.TW")
-            df = ticker.history(period="3mo")
+            df = ticker.history(period="6mo")  # 改為6個月，這樣MA60才能計算
             return df
         except:
             return None
@@ -633,6 +663,7 @@ if page == "🏭 產業分析":
                 'EPS': data['EPS'],
                 'ROE': f"{data['ROE']:.1f}%",
                 '本益比': round(data['本益比'], 1) if data['本益比'] else 0,
+                '獲利成長': data['獲利成長'],  # 新增：用於計算建議
             })
     
     if ranking_data:
@@ -643,7 +674,8 @@ if page == "🏭 產業分析":
         for i, row in df_rank.iterrows():
             rec, color = get_recommendation(
                 float(row['ROE'].replace('%', '')) if isinstance(row['ROE'], str) else row['ROE'],
-                0, row['本益比']
+                row.get('獲利成長', 0),  # 使用真實的獲利成長
+                row['本益比']
             )
             df_rank.loc[i, '建議'] = rec
         
