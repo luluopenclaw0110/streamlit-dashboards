@@ -652,6 +652,8 @@ elif page == "🏭 產業分析":
             return None
     
     # 顯示產業營收排名（顯示所有股票）
+    import time
+    
     st.markdown("### 📊 產業營收排名")
     st.caption("顯示該產業所有股票，按營收排序")
     
@@ -682,6 +684,7 @@ elif page == "🏭 產業分析":
                 '本益比': 'N/A',
                 '獲利成長': 0,
             })
+        time.sleep(0.5)  # 避免請求太快
     
     if ranking_data:
         df_rank = pd.DataFrame(ranking_data)
