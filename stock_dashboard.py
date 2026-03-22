@@ -651,61 +651,51 @@ elif page == "🏭 產業分析":
         except Exception as e:
             return None
     
-    # 先顯示股票名單（不查資料）
-    st.markdown("**股票名單：**")
-    for code, name in industry_stocks.items():
-        st.write(f"- {name} ({code})")
+    import time
     
-    # 按鈕查詢
-    if st.button("🔍 查詢營收排名", type="primary"):
-        import time
-        
-        st.markdown("### 📊 產業營收排名")
-        st.caption("顯示該產業所有股票，按營收排序")
-        
-        def get_fundamental_data_with_retry(code, retries=2):
-            for attempt in range(retries):
-                data = get_fundamental_data(code)
-                if data:
-                    return data
-                time.sleep(1)
-            return None
-        
-        ranking_data = []
-        progress_bar = st.progress(0)
-        stocks_list = list(industry_stocks.items())
-        
-        for idx, (code, name) in enumerate(stocks_list):
-            progress_bar.progress((idx + 1) / len(stocks_list))
-            data = get_fundamental_data_with_retry(code)
-            if data:
-                rev = data.get('營收', 0)
-                ranking_data.append({
-                    '代號': code,
-                    '名稱': name,
-                    '營收(B)': round(rev / 1e9, 1) if rev else '-',
-                    '淨利(B)': round(data.get('淨利', 0) / 1e9, 2) if data.get('淨利') else '-',
-                    'EPS': round(data.get('EPS', 0), 2) if data.get('EPS') else '-',
-                    'ROE': f"{data.get('ROE', 0):.1f}%" if data.get('ROE') else '-',
-                    '本益比': round(data.get('本益比', 0), 1) if data.get('本益比') else '-',
-                    '獲利成長': data.get('獲利成長', 0),
-                })
-            else:
-                ranking_data.append({
-                    '代號': code,
-                    '名稱': name,
-                    '營收(B)': 'N/A',
-                    '淨利(B)': 'N/A',
-                    'EPS': 'N/A',
-                    'ROE': 'N/A',
-                    '本益比': 'N/A',
-                    '獲利成長': 0,
-                })
-            time.sleep(1.5)
+    # 營收排名：進入就開始查，一隻一隻慢慢查
+    st.markdown("### 📊 產業營收排名")
+    st.caption("正在查詢...")
+    
+    stocks_list = list(industry_stocks.items())
+    
+    # 一隻一隻查，慢慢來
+    ranking_data = []
+    status_text = st.empty()
+    
+    for idx, (code, name) in enumerate(stocks_list):
+        status_text.text(f"查詢中 {idx+1}/{len(stocks_list)}: {name} ({code})...")
+        data = get_fundamental_data(code)
+        if data:
+            rev = data.get('營收', 0)
+            ranking_data.append({
+                '代號': code,
+                '名稱': name,
+                '營收(B)': round(rev / 1e9, 1) if rev else '-',
+                '淨利(B)': round(data.get('淨利', 0) / 1e9, 2) if data.get('淨利') else '-',
+                'EPS': round(data.get('EPS', 0), 2) if data.get('EPS') else '-',
+                'ROE': f"{data.get('ROE', 0):.1f}%" if data.get('ROE') else '-',
+                '本益比': round(data.get('本益比', 0), 1) if data.get('本益比') else '-',
+                '獲利成長': data.get('獲利成長', 0),
+            })
+        else:
+            ranking_data.append({
+                '代號': code,
+                '名稱': name,
+                '營收(B)': 'N/A',
+                '淨利(B)': 'N/A',
+                'EPS': 'N/A',
+                'ROE': 'N/A',
+                '本益比': 'N/A',
+                '獲利成長': 0,
+            })
+        time.sleep(1.5)  # 慢慢查
+    
+    status_text.text("完成！")
     
     if ranking_data:
         df_rank = pd.DataFrame(ranking_data)
-        # 按營收排序（數字在前，N/A在後）
+        # 按營收排序
         df_rank['sort_key'] = df_rank['營收(B)'].apply(lambda x: float(x) if isinstance(x, (int, float)) else -1)
         df_rank = df_rank.sort_values('sort_key', ascending=False).drop('sort_key', axis=1)
         
@@ -720,15 +710,15 @@ elif page == "🏭 產業分析":
                 df_rank.loc[i, '建議'] = '-'
         
         st.dataframe(df_rank, use_container_width=True)
-    else:
-        st.info("暫無營收資料")
     
     st.markdown("---")
     
-    # 選擇要分析的股票
+    # 選擇要分析的股票（預設第一個）
+    default_index = 0
     analysis_stock = st.selectbox(
         "選擇股票進行專業分析",
-        list(industry_stocks.items()),
+        stocks_list,
+        index=default_index,
         format_func=lambda x: f"{x[1]} ({x[0]})"
     )
     
