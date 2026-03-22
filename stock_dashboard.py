@@ -657,9 +657,22 @@ elif page == "🏭 產業分析":
     st.markdown("### 📊 產業營收排名")
     st.caption("顯示該產業所有股票，按營收排序")
     
+    def get_fundamental_data_with_retry(code, retries=2):
+        """帶重試的取得基本面資料"""
+        for attempt in range(retries):
+            data = get_fundamental_data(code)
+            if data:
+                return data
+            time.sleep(1)  # 重試前等待
+        return None
+    
     ranking_data = []
-    for code, name in industry_stocks.items():
-        data = get_fundamental_data(code)
+    progress_bar = st.progress(0)
+    stocks_list = list(industry_stocks.items())
+    
+    for idx, (code, name) in enumerate(stocks_list):
+        progress_bar.progress((idx + 1) / len(stocks_list))
+        data = get_fundamental_data_with_retry(code)
         if data:
             rev = data.get('營收', 0)
             ranking_data.append({
@@ -673,7 +686,6 @@ elif page == "🏭 產業分析":
                 '獲利成長': data.get('獲利成長', 0),
             })
         else:
-            # 如果抓不到資料，仍然顯示股票名稱
             ranking_data.append({
                 '代號': code,
                 '名稱': name,
@@ -684,7 +696,7 @@ elif page == "🏭 產業分析":
                 '本益比': 'N/A',
                 '獲利成長': 0,
             })
-        time.sleep(0.5)  # 避免請求太快
+        time.sleep(1.5)  # 避免請求太快
     
     if ranking_data:
         df_rank = pd.DataFrame(ranking_data)
