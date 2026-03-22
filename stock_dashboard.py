@@ -661,13 +661,7 @@ elif page == "🏭 產業分析":
     st.markdown(f"**{first_name} ({first_code})**")
     
     # 頁面載入就查
-    import traceback
-    try:
-        fundamental = get_fundamental_data(first_code)
-    except Exception as e:
-        st.error(f"錯誤: {e}")
-        st.code(traceback.format_exc())
-        fundamental = None
+    fundamental = get_fundamental_data(first_code)
     
     if fundamental:
         col1, col2, col3, col4 = st.columns(4)
