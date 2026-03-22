@@ -614,16 +614,30 @@ elif page == "🏭 產業分析":
     # 產業選擇器
     selected_industry = st.selectbox("選擇產業", list(INDUSTRY_ALL.keys()))
     
+    # 時間範圍選擇
+    col1, col2 = st.columns(2)
+    with col1:
+        period_options = {
+            "1個月": "1mo",
+            "3個月": "3mo", 
+            "6個月": "6mo",
+            "1年": "1y",
+            "2年": "2y",
+            "5年": "5y",
+        }
+        selected_period_label = st.selectbox("選擇時間範圍", list(period_options.keys()), index=2)
+        selected_period = period_options[selected_period_label]
+    
     # 取得該產業的股票
     industry_stocks = INDUSTRY_ALL[selected_industry]
     
     # 取得股價數據（加入重試機制）
-    def get_industry_stock_data(code, retry=2):
+    def get_industry_stock_data(code, period="6mo", retry=2):
         import time
         for attempt in range(retry + 1):
             try:
                 ticker = yf.Ticker(f"{code}.TW")
-                df = ticker.history(period="6mo")
+                df = ticker.history(period=period)
                 if df is not None and len(df) > 0:
                     return df
                 if attempt < retry:
@@ -736,7 +750,7 @@ elif page == "🏭 產業分析":
     )
     
     # 取得數據
-    df = get_industry_stock_data(analysis_stock[0])
+    df = get_industry_stock_data(analysis_stock[0], selected_period)
     fundamental = get_fundamental_data(analysis_stock[0])
     
     # 檢查是否有有效的基本面資料
