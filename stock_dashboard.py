@@ -654,29 +654,59 @@ elif page == "🏭 產業分析":
     ranking_data = []
     for code, name in industry_stocks.items():
         data = get_fundamental_data(code)
-        if data:
+        # 無論有沒有資料都顯示，只是沒有資料的顯示 N/A
+        if data and data.get('營收'):
             ranking_data.append({
                 '代號': code,
                 '名稱': name,
-                '營收(B)': round(data['營收'] / 1e9, 1) if data['營收'] else 0,
-                '淨利(B)': round(data['淨利'] / 1e9, 2) if data['淨利'] else 0,
-                'EPS': data['EPS'],
-                'ROE': f"{data['ROE']:.1f}%",
-                '本益比': round(data['本益比'], 1) if data['本益比'] else 0,
-                '獲利成長': data['獲利成長'],  # 新增：用於計算建議
+                '營收(B)': round(data['營收'] / 1e9, 1),
+                '淨利(B)': round(data['淨利'] / 1e9, 2) if data.get('淨利') else "N/A",
+                'EPS': data.get('EPS') if data.get('EPS') else "N/A",
+                'ROE': f"{data['ROE']:.1f}%" if data.get('ROE') else "N/A",
+                '本益比': round(data['本益比'], 1) if data.get('本益比') else "N/A",
+                '獲利成長': data.get('獲利成長', "N/A"),
+            })
+        else:
+            # 沒有資料的股票也顯示出來，只是標記為 N/A
+            ranking_data.append({
+                '代號': code,
+                '名稱': name,
+                '營收(B)': "N/A",
+                '淨利(B)': "N/A",
+                'EPS': "N/A",
+                'ROE': "N/A",
+                '本益比': "N/A",
+                '獲利成長': "N/A",
             })
     
     if ranking_data:
         df_rank = pd.DataFrame(ranking_data)
-        df_rank = df_rank.sort_values('營收(B)', ascending=False)
+        # 先把 N/A 轉換成數字以便排序，有資料的排前面
+        df_rank['_sort'] = df_rank['營收(B)'].apply(lambda x: x if isinstance(x, (int, float)) else -1)
+        df_rank = df_rank.sort_values('_sort', ascending=False).drop('_sort', axis=1)
         
-        # 格式化
+        # 格式化 - 根據是否有資料來顯示建議
         for i, row in df_rank.iterrows():
-            rec, color = get_recommendation(
-                float(row['ROE'].replace('%', '')) if isinstance(row['ROE'], str) else row['ROE'],
-                row.get('獲利成長', 0),  # 使用真實的獲利成長
-                row['本益比']
-            )
+            try:
+                roe_val = row['ROE']
+                if isinstance(roe_val, str) and '%' in roe_val:
+                    roe_num = float(roe_val.replace('%', ''))
+                elif isinstance(roe_val, (int, float)):
+                    roe_num = roe_val
+                else:
+                    roe_num = 0
+                    
+                profit_growth = row.get('獲利成長', 0)
+                if profit_growth == "N/A":
+                    profit_growth = 0
+                    
+                pe_val = row['本益比']
+                if pe_val == "N/A":
+                    pe_val = 0
+                    
+                rec, color = get_recommendation(roe_num, profit_growth, pe_val)
+            except:
+                rec = "N/A"
             df_rank.loc[i, '建議'] = rec
         
         st.dataframe(df_rank, hide_index=True, use_container_width=True)
@@ -694,31 +724,43 @@ elif page == "🏭 產業分析":
     df = get_industry_stock_data(analysis_stock[0])
     fundamental = get_fundamental_data(analysis_stock[0])
     
+    # 檢查是否有有效的基本面資料
+    has_fundamental = fundamental and (fundamental.get('股價') or fundamental.get('EPS'))
+    
     if df is not None and len(df) > 0:
         # 基本面資訊
         st.markdown("### 📈 基本面資料")
         
-        if fundamental:
+        if has_fundamental:
             col1, col2, col3, col4 = st.columns(4)
             with col1:
-                st.metric("股價", f"${fundamental['股價']:,.2f}")
+                price = fundamental.get('股價', 0)
+                st.metric("股價", f"${price:,.2f}" if price else "N/A")
             with col2:
-                st.metric("本益比", f"{fundamental['本益比']:.1f}")
+                pe = fundamental.get('本益比', 0)
+                st.metric("本益比", f"{pe:.1f}" if pe else "N/A")
             with col3:
-                st.metric("ROE", f"{fundamental['ROE']:.1f}%")
+                roe = fundamental.get('ROE', 0)
+                st.metric("ROE", f"{roe:.1f}%" if roe else "N/A")
             with col4:
-                rec, color = get_recommendation(fundamental['ROE'], fundamental['獲利成長'], fundamental['本益比'])
+                rec, color = get_recommendation(fundamental.get('ROE', 0), fundamental.get('獲利成長', 0), fundamental.get('本益比', 0))
                 st.markdown(f"**{rec}**")
             
             col5, col6, col7, col8 = st.columns(4)
             with col5:
-                st.metric("EPS", f"${fundamental['EPS']:.2f}")
+                eps = fundamental.get('EPS', 0)
+                st.metric("EPS", f"${eps:.2f}" if eps else "N/A")
             with col6:
-                st.metric("殖利率", f"{fundamental['殖利率']:.2f}%")
+                div = fundamental.get('殖利率', 0)
+                st.metric("殖利率", f"{div:.2f}%" if div else "N/A")
             with col7:
-                st.metric("營收成長", f"{fundamental['營收成長']:+.1f}%")
+                rev_g = fundamental.get('營收成長', 0)
+                st.metric("營收成長", f"{rev_g:+.1f}%" if rev_g else "N/A")
             with col8:
-                st.metric("獲利成長", f"{fundamental['獲利成長']:+.1f}%")
+                profit_g = fundamental.get('獲利成長', 0)
+                st.metric("獲利成長", f"{profit_g:+.1f}%" if profit_g else "N/A")
+        else:
+            st.warning("⚠️ 該股票基本面資料暫時無法取得")
         
         st.markdown("---")
         
@@ -801,7 +843,40 @@ elif page == "🏭 產業分析":
         st.plotly_chart(fig_vol, use_container_width=True)
         
     else:
-        st.error("無法取得股價資料")
+        if has_fundamental:
+            # 如果有基本面資料但沒有股價，仍然顯示基本面
+            st.markdown("### 📈 基本面資料")
+            st.warning("⚠️ 股價資料暫時無法取得，基本面資料如下：")
+            
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                price = fundamental.get('股價', 0)
+                st.metric("股價", f"${price:,.2f}" if price else "N/A")
+            with col2:
+                pe = fundamental.get('本益比', 0)
+                st.metric("本益比", f"{pe:.1f}" if pe else "N/A")
+            with col3:
+                roe = fundamental.get('ROE', 0)
+                st.metric("ROE", f"{roe:.1f}%" if roe else "N/A")
+            with col4:
+                rec, color = get_recommendation(fundamental.get('ROE', 0), fundamental.get('獲利成長', 0), fundamental.get('本益比', 0))
+                st.markdown(f"**{rec}**")
+            
+            col5, col6, col7, col8 = st.columns(4)
+            with col5:
+                eps = fundamental.get('EPS', 0)
+                st.metric("EPS", f"${eps:.2f}" if eps else "N/A")
+            with col6:
+                div = fundamental.get('殖利率', 0)
+                st.metric("殖利率", f"{div:.2f}%" if div else "N/A")
+            with col7:
+                rev_g = fundamental.get('營收成長', 0)
+                st.metric("營收成長", f"{rev_g:+.1f}%" if rev_g else "N/A")
+            with col8:
+                profit_g = fundamental.get('獲利成長', 0)
+                st.metric("獲利成長", f"{profit_g:+.1f}%" if profit_g else "N/A")
+        else:
+            st.error("無法取得股價資料")
     
     st.caption(f"🕐 資料更新時間：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
