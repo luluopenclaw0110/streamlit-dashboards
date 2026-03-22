@@ -110,39 +110,27 @@ page = st.sidebar.radio(
 
 st.sidebar.markdown("---")
 
-# 根據頁面顯示不同的選項
-if page == "📊 專業分析":
-    # 選擇股票
-    selected_stock = st.sidebar.selectbox(
-        "選擇股票",
-        list(STOCKS.items()),
-        format_func=lambda x: f"{x[1]} ({x[0]})"
-    )
-    
-    # 選擇時間範圍
-    period = st.sidebar.selectbox(
-        "選擇時間範圍",
-        ["1mo", "3mo", "6mo", "1y", "2y"],
-        index=1,
-        format_func=lambda x: {"1mo": "1個月", "3mo": "3個月", "6mo": "6個月", "1y": "1年", "2y": "2年"}[x]
-    )
-    
-    # 選擇技術指標
-    indicators = st.sidebar.multiselect(
-        "技術指標",
-        ["MA5", "MA20", "MA60", "RSI", "Volume"],
-        default=["MA20"]
-    )
+# 選擇股票
+selected_stock = st.sidebar.selectbox(
+    "選擇股票",
+    list(STOCKS.items()),
+    format_func=lambda x: f"{x[1]} ({x[0]})"
+)
 
-elif page == "🏭 產業分析":
-    # 產業分析頁面的選項
-    st.sidebar.markdown("### 🏭 產業分析")
-    st.sidebar.info("選擇產業和股票進行專業分析")
+# 選擇時間範圍
+period = st.sidebar.selectbox(
+    "選擇時間範圍",
+    ["1mo", "3mo", "6mo", "1y", "2y"],
+    index=1,
+    format_func=lambda x: {"1mo": "1個月", "3mo": "3個月", "6mo": "6個月", "1y": "1年", "2y": "2年"}[x]
+)
 
-elif page == "⚡ 即時股價":
-    # 即時股價頁面
-    st.sidebar.markdown("### ⚡ 即時報價")
-    st.sidebar.info("顯示所有股票的即時報價")
+# 選擇技術指標
+indicators = st.sidebar.multiselect(
+    "技術指標",
+    ["MA5", "MA20", "MA60", "RSI", "Volume"],
+    default=["MA20"]
+)
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 📊 快速連結")
@@ -468,7 +456,7 @@ if page == "📊 專業分析":
         st.info("無法取得美股資料")
 
 # ===== 即時股價頁面 =====
-elif page == "⚡ 即時股價":
+else:
     st.title("⚡ 即時股價")
     st.caption("資料來源：Yahoo 股市 | 每分鐘更新")
     
@@ -524,9 +512,9 @@ elif page == "⚡ 即時股價":
         st.error("無法取得股價資料，請稍後再試")
 
 # ===== 產業分析頁面 =====
-elif page == "🏭 產業分析":
+if page == "🏭 產業分析":
     st.title("🏭 產業龍頭專業分析")
-    st.caption("每天自動更新 | 產業排名 - 專業技術分析 + 基本面 + 買賣建議")
+    st.caption("每天自動更新 | 四大產業龍頭 - 專業技術分析 + 基本面 + 買賣建議")
     
     # 產業龍頭股票（各產業營收第一）
     INDUSTRY_LEADERS = {
@@ -536,32 +524,12 @@ elif page == "🏭 產業分析":
         '傳產-塑化': {'1326': '台化'},
     }
     
-    # 產業完整清單
+    # 四大產業完整清單
     INDUSTRY_ALL = {
-        # AI / 電子產業鏈
-        '晶圓代工': {'2330': '台積電', '2303': '聯電', '5347': '世界先進'},
-        'IC設計': {'2454': '聯發科', '2379': '瑞昱', '3034': '聯詠', '6415': '矽力-KY'},
-        'ASIC': {'3661': '世芯-KY', '3443': '創意', '3035': '智原'},
-        'IP矽智財': {'3529': '力旺', '6643': 'M31', '3035': '智原'},
-        '記憶體': {'2408': '南亞科', '2344': '華邦電', '2337': '旺宏'},
-        '封測': {'3711': '日月光投控', '6239': '力成', '2449': '京元電子'},
-        '半導體設備': {'2404': '漢唐', '6196': '帆宣', '3583': '辛耘', '6223': '旺矽'},
-        '矽晶圓': {'6488': '環球晶', '3532': '台勝科', '3016': '嘉晶'},
-        'CCL材料': {'2383': '台光電', '6213': '聯茂', '6274': '台燿'},
-        'IC載板': {'3037': '欣興', '3189': '景碩', '8046': '南電'},
-        'PCB': {'3044': '健鼎', '5469': '瀚宇博', '2313': '華通'},
-        'AI伺服器': {'2317': '鴻海', '2382': '廣達', '3231': '緯創', '6669': '緯穎', '2356': '英業達', '2376': '技嘉'},
-        '散熱': {'3017': '奇鋐', '3324': '雙鴻', '6230': '超眾'},
-        '電源': {'2308': '台達電', '2301': '光寶科', '6412': '群電'},
-        '光通訊': {'3363': '上詮', '6442': '光聖', '3081': '聯亞'},
-        '光學': {'3008': '大立光', '3406': '玉晶光', '3019': '亞光'},
-        # 傳產
-        '塑化': {'1301': '台塑', '1303': '南亞', '1326': '台化'},
-        '鋼鐵': {'2002': '中鋼', '2014': '中鴻', '2027': '大成鋼'},
-        '航運': {'2603': '長榮', '2609': '陽明', '2615': '萬海'},
-        '水泥': {'1101': '台泥', '1102': '亞泥'},
-        # 金融
-        '金控': {'2881': '富邦金', '2882': '國泰金', '2891': '中信金', '2886': '兆豐金', '2884': '玉山金'},
+        '半導體': {'2330': '台積電', '2454': '聯發科', '3034': '聯詠'},
+        '電子組裝': {'2317': '鴻海', '2382': '廣達', '2308': '台達電'},
+        '傳產-鋼鐵': {'2002': '中鋼', '2027': '燁輝', '2105': '正新'},
+        '傳產-塑化': {'1326': '台化', '1303': '南亞', '1301': '台塑'},
     }
     
     # 技術指標計算函數
@@ -624,18 +592,17 @@ elif page == "🏭 產業分析":
     def get_industry_stock_data(code):
         try:
             ticker = yf.Ticker(f"{code}.TW")
-            df = ticker.history(period="6mo")  # 改為6個月，這樣MA60才能計算
+            df = ticker.history(period="3mo")
             return df
         except:
             return None
     
-    # 取得基本面數據（不安裝快取，確保每次取得最新資料）
+    # 取得基本面數據
+    @st.cache_data(ttl=3600)
     def get_fundamental_data(code):
         try:
             ticker = yf.Ticker(f"{code}.TW")
             info = ticker.info
-            if not info or len(info) < 3:
-                return None
             return {
                 '股價': info.get('currentPrice', 0),
                 '本益比': info.get('trailingPE', 0),
@@ -648,10 +615,42 @@ elif page == "🏭 產業分析":
                 '營收成長': (info.get('revenueGrowth', 0) or 0) * 100,
                 '獲利成長': (info.get('earningsGrowth', 0) or 0) * 100,
             }
-        except Exception as e:
+        except:
             return None
     
-    import time
+    # 顯示產業龍頭排名
+    st.markdown("### 📊 產業營收排名")
+    
+    ranking_data = []
+    for code, name in industry_stocks.items():
+        data = get_fundamental_data(code)
+        if data:
+            ranking_data.append({
+                '代號': code,
+                '名稱': name,
+                '營收(B)': round(data['營收'] / 1e9, 1) if data['營收'] else 0,
+                '淨利(B)': round(data['淨利'] / 1e9, 2) if data['淨利'] else 0,
+                'EPS': data['EPS'],
+                'ROE': f"{data['ROE']:.1f}%",
+                '本益比': round(data['本益比'], 1) if data['本益比'] else 0,
+            })
+    
+    if ranking_data:
+        df_rank = pd.DataFrame(ranking_data)
+        df_rank = df_rank.sort_values('營收(B)', ascending=False)
+        
+        # 格式化
+        for i, row in df_rank.iterrows():
+            rec, color = get_recommendation(
+                float(row['ROE'].replace('%', '')) if isinstance(row['ROE'], str) else row['ROE'],
+                0, row['本益比']
+            )
+            df_rank.loc[i, '建議'] = rec
+        
+        st.dataframe(df_rank, hide_index=True, use_container_width=True)
+    
+    st.markdown("---")
+    
     # 選擇要分析的股票
     analysis_stock = st.selectbox(
         "選擇股票進行專業分析",
