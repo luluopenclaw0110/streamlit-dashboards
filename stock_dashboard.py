@@ -676,32 +676,32 @@ elif page == "🏭 產業分析":
         stocks_list = list(industry_stocks.items())
         
         for idx, (code, name) in enumerate(stocks_list):
-        progress_bar.progress((idx + 1) / len(stocks_list))
-        data = get_fundamental_data_with_retry(code)
-        if data:
-            rev = data.get('營收', 0)
-            ranking_data.append({
-                '代號': code,
-                '名稱': name,
-                '營收(B)': round(rev / 1e9, 1) if rev else '-',
-                '淨利(B)': round(data.get('淨利', 0) / 1e9, 2) if data.get('淨利') else '-',
-                'EPS': round(data.get('EPS', 0), 2) if data.get('EPS') else '-',
-                'ROE': f"{data.get('ROE', 0):.1f}%" if data.get('ROE') else '-',
-                '本益比': round(data.get('本益比', 0), 1) if data.get('本益比') else '-',
-                '獲利成長': data.get('獲利成長', 0),
-            })
-        else:
-            ranking_data.append({
-                '代號': code,
-                '名稱': name,
-                '營收(B)': 'N/A',
-                '淨利(B)': 'N/A',
-                'EPS': 'N/A',
-                'ROE': 'N/A',
-                '本益比': 'N/A',
-                '獲利成長': 0,
-            })
-        time.sleep(1.5)  # 避免請求太快
+            progress_bar.progress((idx + 1) / len(stocks_list))
+            data = get_fundamental_data_with_retry(code)
+            if data:
+                rev = data.get('營收', 0)
+                ranking_data.append({
+                    '代號': code,
+                    '名稱': name,
+                    '營收(B)': round(rev / 1e9, 1) if rev else '-',
+                    '淨利(B)': round(data.get('淨利', 0) / 1e9, 2) if data.get('淨利') else '-',
+                    'EPS': round(data.get('EPS', 0), 2) if data.get('EPS') else '-',
+                    'ROE': f"{data.get('ROE', 0):.1f}%" if data.get('ROE') else '-',
+                    '本益比': round(data.get('本益比', 0), 1) if data.get('本益比') else '-',
+                    '獲利成長': data.get('獲利成長', 0),
+                })
+            else:
+                ranking_data.append({
+                    '代號': code,
+                    '名稱': name,
+                    '營收(B)': 'N/A',
+                    '淨利(B)': 'N/A',
+                    'EPS': 'N/A',
+                    'ROE': 'N/A',
+                    '本益比': 'N/A',
+                    '獲利成長': 0,
+                })
+            time.sleep(1.5)
     
     if ranking_data:
         df_rank = pd.DataFrame(ranking_data)
