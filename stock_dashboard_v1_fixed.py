@@ -648,11 +648,15 @@ elif page == "🏭 產業分析":
         except:
             return None
     
-    # 顯示產業龍頭排名
-    st.markdown("### 📊 產業營收排名")
+    # 顯示產業龍頭排名（前3名）
+    st.markdown("### 📊 產業營收排名（前3名）")
+    st.caption("顯示該產業營收前3名")
     
+    # 只取前三個股票來查
     ranking_data = []
-    for code, name in industry_stocks.items():
+    stocks_to_query = list(industry_stocks.items())[:3]  # 只取前三個
+    
+    for code, name in stocks_to_query:
         data = get_fundamental_data(code)
         if data:
             ranking_data.append({
@@ -663,7 +667,7 @@ elif page == "🏭 產業分析":
                 'EPS': data['EPS'],
                 'ROE': f"{data['ROE']:.1f}%",
                 '本益比': round(data['本益比'], 1) if data['本益比'] else 0,
-                '獲利成長': data['獲利成長'],  # 新增：用於計算建議
+                '獲利成長': data['獲利成長'],
             })
     
     if ranking_data:
