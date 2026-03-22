@@ -652,29 +652,6 @@ elif page == "🏭 產業分析":
             return None
     
     import time
-    # 營收排名：只顯示第一個股票
-    st.markdown("### 📊 產業營收排名")
-    
-    first_code, first_name = list(industry_stocks.items())[0]
-    fundamental = get_fundamental_data(first_code)
-    
-    if fundamental:
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.metric("股票", f"{first_name} ({first_code})")
-        with col2:
-            rev = fundamental.get('營收', 0)
-            st.metric("營收", f"{round(rev/1e9, 1)}B" if rev else "N/A")
-        with col3:
-            st.metric("EPS", round(fundamental.get('EPS', 0), 2) if fundamental.get('EPS') else "N/A")
-        with col4:
-            rec, _ = get_recommendation(fundamental.get('ROE', 0), fundamental.get('獲利成長', 0), fundamental.get('本益比', 0))
-            st.metric("建議", rec)
-    else:
-        st.info(f"無法取得 {first_name} 資料")
-    
-    st.markdown("---")
-    
     # 選擇要分析的股票
     analysis_stock = st.selectbox(
         "選擇股票進行專業分析",
