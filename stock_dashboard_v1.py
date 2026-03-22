@@ -538,30 +538,28 @@ elif page == "🏭 產業分析":
     
     # 產業完整清單
     INDUSTRY_ALL = {
-        # AI / 電子產業鏈
-        '晶圓代工': {'2330': '台積電', '2303': '聯電', '5347': '世界先進'},
-        'IC設計': {'2454': '聯發科', '2379': '瑞昱', '3034': '聯詠', '6415': '矽力-KY'},
-        'ASIC': {'3661': '世芯-KY', '3443': '創意', '3035': '智原'},
-        'IP矽智財': {'3529': '力旺', '6643': 'M31', '3035': '智原'},
-        '記憶體': {'2408': '南亞科', '2344': '華邦電', '2337': '旺宏'},
-        '封測': {'3711': '日月光投控', '6239': '力成', '2449': '京元電子'},
-        '半導體設備': {'2404': '漢唐', '6196': '帆宣', '3583': '辛耘', '6223': '旺矽'},
+        # 上游（材料）
         '矽晶圓': {'6488': '環球晶', '3532': '台勝科', '3016': '嘉晶'},
         'CCL材料': {'2383': '台光電', '6213': '聯茂', '6274': '台燿'},
+        # 中游（製造）
+        '晶圓代工': {'2330': '台積電', '2303': '聯電', '5347': '世界先進'},
+        '記憶體': {'2408': '南亞科', '2344': '華邦電', '2337': '旺宏'},
+        # 設計（AI主飆段）
+        'IC設計': {'2454': '聯發科', '2379': '瑞昱', '3034': '聯詠'},
+        'ASIC': {'3661': '世芯-KY', '3443': '創意', '3035': '智原'},
+        'IP矽智財': {'3529': '力旺', '3035': '智原', '6643': 'M31'},
+        # 封測
+        '封測': {'3711': '日月光投控', '6239': '力成', '2449': '京元電子'},
+        # 設備
+        '設備': {'2404': '漢唐', '6196': '帆宣', '3583': '辛耘'},
+        # 載板/PCB
         'IC載板': {'3037': '欣興', '3189': '景碩', '8046': '南電'},
         'PCB': {'3044': '健鼎', '5469': '瀚宇博', '2313': '華通'},
-        'AI伺服器': {'2317': '鴻海', '2382': '廣達', '3231': '緯創', '6669': '緯穎', '2356': '英業達', '2376': '技嘉'},
+        # AI應用端
         '散熱': {'3017': '奇鋐', '3324': '雙鴻', '6230': '超眾'},
         '電源': {'2308': '台達電', '2301': '光寶科', '6412': '群電'},
         '光通訊': {'3363': '上詮', '6442': '光聖', '3081': '聯亞'},
         '光學': {'3008': '大立光', '3406': '玉晶光', '3019': '亞光'},
-        # 傳產
-        '塑化': {'1301': '台塑', '1303': '南亞', '1326': '台化'},
-        '鋼鐵': {'2002': '中鋼', '2014': '中鴻', '2027': '大成鋼'},
-        '航運': {'2603': '長榮', '2609': '陽明', '2615': '萬海'},
-        '水泥': {'1101': '台泥', '1102': '亞泥'},
-        # 金融
-        '金控': {'2881': '富邦金', '2882': '國泰金', '2891': '中信金', '2886': '兆豐金', '2884': '玉山金'},
     }
     
     # 技術指標計算函數
@@ -629,13 +627,12 @@ elif page == "🏭 產業分析":
         except:
             return None
     
-    # 取得基本面數據（不安裝快取，確保每次取得最新資料）
+    # 取得基本面數據
+    @st.cache_data(ttl=3600)
     def get_fundamental_data(code):
         try:
             ticker = yf.Ticker(f"{code}.TW")
             info = ticker.info
-            if not info or len(info) < 3:
-                return None
             return {
                 '股價': info.get('currentPrice', 0),
                 '本益比': info.get('trailingPE', 0),
@@ -648,30 +645,41 @@ elif page == "🏭 產業分析":
                 '營收成長': (info.get('revenueGrowth', 0) or 0) * 100,
                 '獲利成長': (info.get('earningsGrowth', 0) or 0) * 100,
             }
-        except Exception as e:
+        except:
             return None
     
-    import time
-    # 營收排名：只顯示第一個股票
+    # 顯示產業龍頭排名
     st.markdown("### 📊 產業營收排名")
     
-    first_code, first_name = list(industry_stocks.items())[0]
-    fundamental = get_fundamental_data(first_code)
+    ranking_data = []
+    for code, name in industry_stocks.items():
+        data = get_fundamental_data(code)
+        if data:
+            ranking_data.append({
+                '代號': code,
+                '名稱': name,
+                '營收(B)': round(data['營收'] / 1e9, 1) if data['營收'] else 0,
+                '淨利(B)': round(data['淨利'] / 1e9, 2) if data['淨利'] else 0,
+                'EPS': data['EPS'],
+                'ROE': f"{data['ROE']:.1f}%",
+                '本益比': round(data['本益比'], 1) if data['本益比'] else 0,
+                '獲利成長': data['獲利成長'],  # 新增：用於計算建議
+            })
     
-    if fundamental:
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.metric("股票", f"{first_name} ({first_code})")
-        with col2:
-            rev = fundamental.get('營收', 0)
-            st.metric("營收", f"{round(rev/1e9, 1)}B" if rev else "N/A")
-        with col3:
-            st.metric("EPS", round(fundamental.get('EPS', 0), 2) if fundamental.get('EPS') else "N/A")
-        with col4:
-            rec, _ = get_recommendation(fundamental.get('ROE', 0), fundamental.get('獲利成長', 0), fundamental.get('本益比', 0))
-            st.metric("建議", rec)
-    else:
-        st.info(f"無法取得 {first_name} 資料")
+    if ranking_data:
+        df_rank = pd.DataFrame(ranking_data)
+        df_rank = df_rank.sort_values('營收(B)', ascending=False)
+        
+        # 格式化
+        for i, row in df_rank.iterrows():
+            rec, color = get_recommendation(
+                float(row['ROE'].replace('%', '')) if isinstance(row['ROE'], str) else row['ROE'],
+                row.get('獲利成長', 0),  # 使用真實的獲利成長
+                row['本益比']
+            )
+            df_rank.loc[i, '建議'] = rec
+        
+        st.dataframe(df_rank, hide_index=True, use_container_width=True)
     
     st.markdown("---")
     
