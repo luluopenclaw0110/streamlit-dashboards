@@ -682,7 +682,7 @@ elif page == "🏭 產業分析":
             )
             df_rank.loc[i, '建議'] = rec
         
-        st.dataframe(df_rank, hide_index=True, use_container_width=True)
+        st.dataframe(df_rank, use_container_width=True)
     else:
         st.info("暫無營收資料")
     
