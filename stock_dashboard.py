@@ -629,8 +629,7 @@ elif page == "🏭 產業分析":
         except:
             return None
     
-    # 取得基本面數據
-    @st.cache_data(ttl=3600)
+    # 取得基本面數據（不安裝快取，確保取得最新資料）
     def get_fundamental_data(code):
         try:
             ticker = yf.Ticker(f"{code}.TW")
