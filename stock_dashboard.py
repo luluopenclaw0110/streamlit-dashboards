@@ -651,26 +651,31 @@ elif page == "🏭 產業分析":
         except Exception as e:
             return None
     
-    # 顯示產業營收排名（顯示所有股票）
-    import time
+    # 先顯示股票名單（不查資料）
+    st.markdown("**股票名單：**")
+    for code, name in industry_stocks.items():
+        st.write(f"- {name} ({code})")
     
-    st.markdown("### 📊 產業營收排名")
-    st.caption("顯示該產業所有股票，按營收排序")
-    
-    def get_fundamental_data_with_retry(code, retries=2):
-        """帶重試的取得基本面資料"""
-        for attempt in range(retries):
-            data = get_fundamental_data(code)
-            if data:
-                return data
-            time.sleep(1)  # 重試前等待
-        return None
-    
-    ranking_data = []
-    progress_bar = st.progress(0)
-    stocks_list = list(industry_stocks.items())
-    
-    for idx, (code, name) in enumerate(stocks_list):
+    # 按鈕查詢
+    if st.button("🔍 查詢營收排名", type="primary"):
+        import time
+        
+        st.markdown("### 📊 產業營收排名")
+        st.caption("顯示該產業所有股票，按營收排序")
+        
+        def get_fundamental_data_with_retry(code, retries=2):
+            for attempt in range(retries):
+                data = get_fundamental_data(code)
+                if data:
+                    return data
+                time.sleep(1)
+            return None
+        
+        ranking_data = []
+        progress_bar = st.progress(0)
+        stocks_list = list(industry_stocks.items())
+        
+        for idx, (code, name) in enumerate(stocks_list):
         progress_bar.progress((idx + 1) / len(stocks_list))
         data = get_fundamental_data_with_retry(code)
         if data:
