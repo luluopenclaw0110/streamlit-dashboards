@@ -652,37 +652,53 @@ elif page == "🏭 產業分析":
         except Exception as e:
             return None
     
-    # 顯示產業龍頭排名
+    # 顯示產業營收排名（顯示所有股票）
     st.markdown("### 📊 產業營收排名")
-    st.caption("按營收排序，顯示前5名")
+    st.caption("顯示該產業所有股票，按營收排序")
     
     ranking_data = []
     for code, name in industry_stocks.items():
         data = get_fundamental_data(code)
-        if data and data.get('營收', 0) > 0:
+        if data:
+            rev = data.get('營收', 0)
             ranking_data.append({
                 '代號': code,
                 '名稱': name,
-                '營收(B)': round(data['營收'] / 1e9, 1),
-                '淨利(B)': round(data['淨利'] / 1e9, 2) if data.get('淨利') else 0,
-                'EPS': round(data.get('EPS', 0), 2),
-                'ROE': f"{data.get('ROE', 0):.1f}%",
-                '本益比': round(data.get('本益比', 0), 1),
+                '營收(B)': round(rev / 1e9, 1) if rev else '-',
+                '淨利(B)': round(data.get('淨利', 0) / 1e9, 2) if data.get('淨利') else '-',
+                'EPS': round(data.get('EPS', 0), 2) if data.get('EPS') else '-',
+                'ROE': f"{data.get('ROE', 0):.1f}%" if data.get('ROE') else '-',
+                '本益比': round(data.get('本益比', 0), 1) if data.get('本益比') else '-',
                 '獲利成長': data.get('獲利成長', 0),
+            })
+        else:
+            # 如果抓不到資料，仍然顯示股票名稱
+            ranking_data.append({
+                '代號': code,
+                '名稱': name,
+                '營收(B)': 'N/A',
+                '淨利(B)': 'N/A',
+                'EPS': 'N/A',
+                'ROE': 'N/A',
+                '本益比': 'N/A',
+                '獲利成長': 0,
             })
     
     if ranking_data:
         df_rank = pd.DataFrame(ranking_data)
-        df_rank = df_rank.sort_values('營收(B)', ascending=False).head(5)  # 顯示前5名
+        # 按營收排序（數字在前，N/A在後）
+        df_rank['sort_key'] = df_rank['營收(B)'].apply(lambda x: float(x) if isinstance(x, (int, float)) else -1)
+        df_rank = df_rank.sort_values('sort_key', ascending=False).drop('sort_key', axis=1)
         
-        # 格式化
+        # 格式化建議
         for i, row in df_rank.iterrows():
-            rec, color = get_recommendation(
-                float(row['ROE'].replace('%', '')) if isinstance(row['ROE'], str) else row['ROE'],
-                row.get('獲利成長', 0),
-                row['本益比']
-            )
-            df_rank.loc[i, '建議'] = rec
+            try:
+                roe_val = float(str(row['ROE']).replace('%', '')) if row['ROE'] != 'N/A' else 0
+                pe_val = float(row['本益比']) if row['本益比'] != 'N/A' else 0
+                rec, color = get_recommendation(roe_val, row.get('獲利成長', 0), pe_val)
+                df_rank.loc[i, '建議'] = rec
+            except:
+                df_rank.loc[i, '建議'] = '-'
         
         st.dataframe(df_rank, use_container_width=True)
     else:
