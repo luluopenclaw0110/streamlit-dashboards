@@ -653,72 +653,43 @@ elif page == "🏭 產業分析":
     
     import time
     
-    # 營收排名：進入就開始查，一隻一隻慢慢查
+    # 營收排名：只留第一個股票，頁面載入就查
     st.markdown("### 📊 產業營收排名")
-    st.caption("正在查詢...")
     
-    stocks_list = list(industry_stocks.items())
+    # 只取第一個股票
+    first_code, first_name = list(industry_stocks.items())[0]
+    st.markdown(f"**{first_name} ({first_code})**")
     
-    # 一隻一隻查，慢慢來
-    ranking_data = []
-    status_text = st.empty()
+    # 頁面載入就查
+    fundamental = get_fundamental_data(first_code)
     
-    for idx, (code, name) in enumerate(stocks_list):
-        status_text.text(f"查詢中 {idx+1}/{len(stocks_list)}: {name} ({code})...")
-        data = get_fundamental_data(code)
-        if data:
-            rev = data.get('營收', 0)
-            ranking_data.append({
-                '代號': code,
-                '名稱': name,
-                '營收(B)': round(rev / 1e9, 1) if rev else '-',
-                '淨利(B)': round(data.get('淨利', 0) / 1e9, 2) if data.get('淨利') else '-',
-                'EPS': round(data.get('EPS', 0), 2) if data.get('EPS') else '-',
-                'ROE': f"{data.get('ROE', 0):.1f}%" if data.get('ROE') else '-',
-                '本益比': round(data.get('本益比', 0), 1) if data.get('本益比') else '-',
-                '獲利成長': data.get('獲利成長', 0),
-            })
-        else:
-            ranking_data.append({
-                '代號': code,
-                '名稱': name,
-                '營收(B)': 'N/A',
-                '淨利(B)': 'N/A',
-                'EPS': 'N/A',
-                'ROE': 'N/A',
-                '本益比': 'N/A',
-                '獲利成長': 0,
-            })
-        time.sleep(1.5)  # 慢慢查
-    
-    status_text.text("完成！")
-    
-    if ranking_data:
-        df_rank = pd.DataFrame(ranking_data)
-        # 按營收排序
-        df_rank['sort_key'] = df_rank['營收(B)'].apply(lambda x: float(x) if isinstance(x, (int, float)) else -1)
-        df_rank = df_rank.sort_values('sort_key', ascending=False).drop('sort_key', axis=1)
+    if fundamental:
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            rev = fundamental.get('營收', 0)
+            st.metric("營收", f"{round(rev/1e9, 1)}B" if rev else "N/A")
+        with col2:
+            st.metric("淨利", f"{round(fundamental.get('淨利', 0)/1e9, 2)}B" if fundamental.get('淨利') else "N/A")
+        with col3:
+            st.metric("EPS", f"{round(fundamental.get('EPS', 0), 2)}" if fundamental.get('EPS') else "N/A")
+        with col4:
+            st.metric("ROE", f"{fundamental.get('ROE', 0):.1f}%" if fundamental.get('ROE') else "N/A")
         
-        # 格式化建議
-        for i, row in df_rank.iterrows():
-            try:
-                roe_val = float(str(row['ROE']).replace('%', '')) if row['ROE'] != 'N/A' else 0
-                pe_val = float(row['本益比']) if row['本益比'] != 'N/A' else 0
-                rec, color = get_recommendation(roe_val, row.get('獲利成長', 0), pe_val)
-                df_rank.loc[i, '建議'] = rec
-            except:
-                df_rank.loc[i, '建議'] = '-'
-        
-        st.dataframe(df_rank, use_container_width=True)
+        col5, col6 = st.columns(2)
+        with col5:
+            st.metric("本益比", round(fundamental.get('本益比', 0), 1) if fundamental.get('本益比') else "N/A")
+        with col6:
+            rec, _ = get_recommendation(fundamental.get('ROE', 0), fundamental.get('獲利成長', 0), fundamental.get('本益比', 0))
+            st.metric("建議", rec)
+    else:
+        st.info("無法取得資料")
     
     st.markdown("---")
     
-    # 選擇要分析的股票（預設第一個）
-    default_index = 0
+    # 選擇要分析的股票
     analysis_stock = st.selectbox(
         "選擇股票進行專業分析",
-        stocks_list,
-        index=default_index,
+        list(industry_stocks.items()),
         format_func=lambda x: f"{x[1]} ({x[0]})"
     )
     
