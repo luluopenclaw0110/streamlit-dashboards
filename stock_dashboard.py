@@ -652,36 +652,39 @@ elif page == "🏭 產業分析":
     
     # 顯示產業龍頭排名
     st.markdown("### 📊 產業營收排名")
+    st.caption("按營收排序，顯示前5名")
     
     ranking_data = []
     for code, name in industry_stocks.items():
         data = get_fundamental_data(code)
-        if data:
+        if data and data.get('營收', 0) > 0:
             ranking_data.append({
                 '代號': code,
                 '名稱': name,
-                '營收(B)': round(data['營收'] / 1e9, 1) if data['營收'] else 0,
-                '淨利(B)': round(data['淨利'] / 1e9, 2) if data['淨利'] else 0,
-                'EPS': data['EPS'],
-                'ROE': f"{data['ROE']:.1f}%",
-                '本益比': round(data['本益比'], 1) if data['本益比'] else 0,
-                '獲利成長': data['獲利成長'],  # 新增：用於計算建議
+                '營收(B)': round(data['營收'] / 1e9, 1),
+                '淨利(B)': round(data['淨利'] / 1e9, 2) if data.get('淨利') else 0,
+                'EPS': round(data.get('EPS', 0), 2),
+                'ROE': f"{data.get('ROE', 0):.1f}%",
+                '本益比': round(data.get('本益比', 0), 1),
+                '獲利成長': data.get('獲利成長', 0),
             })
     
     if ranking_data:
         df_rank = pd.DataFrame(ranking_data)
-        df_rank = df_rank.sort_values('營收(B)', ascending=False)
+        df_rank = df_rank.sort_values('營收(B)', ascending=False).head(5)  # 顯示前5名
         
         # 格式化
         for i, row in df_rank.iterrows():
             rec, color = get_recommendation(
                 float(row['ROE'].replace('%', '')) if isinstance(row['ROE'], str) else row['ROE'],
-                row.get('獲利成長', 0),  # 使用真實的獲利成長
+                row.get('獲利成長', 0),
                 row['本益比']
             )
             df_rank.loc[i, '建議'] = rec
         
         st.dataframe(df_rank, hide_index=True, use_container_width=True)
+    else:
+        st.info("暫無營收資料")
     
     st.markdown("---")
     
