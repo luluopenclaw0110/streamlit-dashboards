@@ -617,37 +617,51 @@ elif page == "🏭 產業分析":
     # 取得該產業的股票
     industry_stocks = INDUSTRY_ALL[selected_industry]
     
-    # 取得股價數據（不安裝快取，確保每次取得最新資料）
-    def get_industry_stock_data(code):
-        try:
-            ticker = yf.Ticker(f"{code}.TW")
-            df = ticker.history(period="6mo")  # 改為6個月，這樣MA60才能計算
-            return df
-        except:
-            return None
+    # 取得股價數據（加入重試機制）
+    def get_industry_stock_data(code, retry=2):
+        import time
+        for attempt in range(retry + 1):
+            try:
+                ticker = yf.Ticker(f"{code}.TW")
+                df = ticker.history(period="6mo")
+                if df is not None and len(df) > 0:
+                    return df
+                if attempt < retry:
+                    time.sleep(1)
+            except:
+                if attempt < retry:
+                    time.sleep(1)
+        return None
     
     # 取得基本面數據（不安裝快取，確保每次取得最新資料）
-    def get_fundamental_data(code):
-        try:
-            ticker = yf.Ticker(f"{code}.TW")
-            info = ticker.info
-            # 檢查是否有有效資料
-            if not info or len(info) < 3:
-                return None
-            return {
-                '股價': info.get('currentPrice', 0),
-                '本益比': info.get('trailingPE', 0),
-                '殖利率': info.get('dividendYield', 0) * 100 if info.get('dividendYield') else 0,
-                '每股淨值': info.get('bookValue', 0),
-                'EPS': info.get('trailingEps', 0),
-                'ROE': (info.get('returnOnEquity', 0) or 0) * 100,
-                '營收': info.get('totalRevenue', 0),
-                '淨利': info.get('netIncome', 0),
-                '營收成長': (info.get('revenueGrowth', 0) or 0) * 100,
-                '獲利成長': (info.get('earningsGrowth', 0) or 0) * 100,
-            }
-        except Exception as e:
-            return None
+    def get_fundamental_data(code, retry=2):
+        """取得基本面資料，加入重試機制"""
+        import time
+        for attempt in range(retry + 1):
+            try:
+                ticker = yf.Ticker(f"{code}.TW")
+                info = ticker.info
+                # 檢查是否有有效資料
+                if info and len(info) >= 3:
+                    return {
+                        '股價': info.get('currentPrice', 0),
+                        '本益比': info.get('trailingPE', 0),
+                        '殖利率': info.get('dividendYield', 0) * 100 if info.get('dividendYield') else 0,
+                        '每股淨值': info.get('bookValue', 0),
+                        'EPS': info.get('trailingEps', 0),
+                        'ROE': (info.get('returnOnEquity', 0) or 0) * 100,
+                        '營收': info.get('totalRevenue', 0),
+                        '淨利': info.get('netIncome', 0),
+                        '營收成長': (info.get('revenueGrowth', 0) or 0) * 100,
+                        '獲利成長': (info.get('earningsGrowth', 0) or 0) * 100,
+                    }
+                # 如果沒有有效資料，且還有重試次數，等待後重試
+                if attempt < retry:
+                    time.sleep(1)  # 等待1秒後重試
+            except Exception as e:
+                if attempt < retry:
+                    time.sleep(1)
+        return None
     
     # 顯示產業龍頭排名
     st.markdown("### 📊 產業營收排名")
