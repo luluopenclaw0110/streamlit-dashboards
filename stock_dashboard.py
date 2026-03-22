@@ -617,8 +617,7 @@ elif page == "🏭 產業分析":
     # 取得該產業的股票
     industry_stocks = INDUSTRY_ALL[selected_industry]
     
-    # 取得股價數據
-    @st.cache_data(ttl=300)
+    # 取得股價數據（不安裝快取，確保每次取得最新資料）
     def get_industry_stock_data(code):
         try:
             ticker = yf.Ticker(f"{code}.TW")
@@ -627,12 +626,14 @@ elif page == "🏭 產業分析":
         except:
             return None
     
-    # 取得基本面數據
-    @st.cache_data(ttl=3600)
+    # 取得基本面數據（不安裝快取，確保每次取得最新資料）
     def get_fundamental_data(code):
         try:
             ticker = yf.Ticker(f"{code}.TW")
             info = ticker.info
+            # 檢查是否有有效資料
+            if not info or len(info) < 3:
+                return None
             return {
                 '股價': info.get('currentPrice', 0),
                 '本益比': info.get('trailingPE', 0),
@@ -645,7 +646,7 @@ elif page == "🏭 產業分析":
                 '營收成長': (info.get('revenueGrowth', 0) or 0) * 100,
                 '獲利成長': (info.get('earningsGrowth', 0) or 0) * 100,
             }
-        except:
+        except Exception as e:
             return None
     
     # 顯示產業龍頭排名
