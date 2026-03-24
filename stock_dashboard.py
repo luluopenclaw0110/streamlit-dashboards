@@ -520,9 +520,7 @@ elif page == "⚡ 即時股價":
                                     '代號': code,
                                     '名稱': name,
                                     '現價': data['price'],
-                                    '漲跌': data['change'],
-                                    '漲跌幅': data['change_pct'],
-                                    '成交量': data.get('volume', 0)
+                                    '漲跌幅': data['change_pct']
                                 })
                             time.sleep(0.3)
                         
@@ -545,16 +543,13 @@ elif page == "⚡ 即時股價":
                                 
                                 # 顯示卡片
                                 with st.container():
-                                    col1, col2, col3, col4 = st.columns([2, 2, 2, 1])
+                                    col1, col2, col3 = st.columns([2, 2, 2])
                                     with col1:
                                         st.markdown(f"**{row['代號']}** {row['名稱']}")
                                     with col2:
                                         st.markdown(f"💵 **${row['現價']:,.2f}**")
                                     with col3:
                                         st.markdown(f"<span style='color:{color}; font-weight:bold;'>{arrow} {row['漲跌幅']:+.2f}%</span>", unsafe_allow_html=True)
-                                    with col4:
-                                        vol = row['成交量'] / 1000 if row['成交量'] else 0
-                                        st.caption(f"成交量: {vol:,.0f}K")
                                     st.divider()
                         else:
                             st.warning("無法取得資料")
