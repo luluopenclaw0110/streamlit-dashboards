@@ -144,6 +144,10 @@ elif page == "⚡ 即時股價":
     st.sidebar.markdown("### ⚡ 即時報價")
     st.sidebar.info("顯示所有股票的即時報價")
 
+elif page == "🐲 龍龍操盤":
+    st.sidebar.markdown("### 🐲 龍龍操盤")
+    st.sidebar.info("虛擬交易 | 初始資金 $10,000")
+
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 📊 快速連結")
 st.sidebar.markdown("- [Yahoo 股市](https://tw.stock.yahoo.com/)")
@@ -1015,7 +1019,7 @@ st.markdown(f"*📊 資料更新時間：{datetime.now().strftime('%Y-%m-%d %H:%
 st.markdown("*本報告僅供參考，不構成投資建議*")
 
 # ===== 龍龍操盤頁面 =====
-elif page == "🐲 龍龍操盤":
+if page == "🐲 龍龍操盤":
     st.title("🐲 龍龍的虛擬操盤日誌")
     st.caption("🤖 每日獨立決策 | 初始資金 $10,000 TWD")
     
