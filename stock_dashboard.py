@@ -783,7 +783,6 @@ elif page == "🏭 產業分析":
     
     # 顯示產業龍頭排名
     st.markdown("### 📊 產業營收排名")
-    st.write("DEBUG: industry_stocks =", industry_stocks)
     
     ranking_data = []
     for code, name in industry_stocks.items():
@@ -815,6 +814,10 @@ elif page == "🏭 產業分析":
     
     if ranking_data:
         df_rank = pd.DataFrame(ranking_data)
+        
+        # 修復 Arrow 問題：把所有 "N/A" 字串變成 -1
+        df_rank = df_rank.replace("N/A", -1)
+        
         # 先把 N/A 轉換成數字以便排序，有資料的排前面
         df_rank['_sort'] = df_rank['營收(B)'].apply(lambda x: x if isinstance(x, (int, float)) else -1)
         df_rank = df_rank.sort_values('_sort', ascending=False).drop('_sort', axis=1)
@@ -831,11 +834,11 @@ elif page == "🏭 產業分析":
                     roe_num = 0
                     
                 profit_growth = row.get('獲利成長', 0)
-                if profit_growth == "N/A":
+                if profit_growth == "N/A" or profit_growth == -1:
                     profit_growth = 0
                     
                 pe_val = row['本益比']
-                if pe_val == "N/A":
+                if pe_val == "N/A" or pe_val == -1:
                     pe_val = 0
                     
                 rec, color = get_recommendation(roe_num, profit_growth, pe_val)
