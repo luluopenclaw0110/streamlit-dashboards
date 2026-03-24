@@ -105,7 +105,7 @@ st.sidebar.markdown("---")
 # 分頁選擇
 page = st.sidebar.radio(
     "選擇頁面",
-    ["📊 專業分析", "⚡ 即時股價", "🏭 產業分析"]
+    ["📊 專業分析", "⚡ 即時股價", "🏭 產業分析", "🐲 龍龍操盤"]
 )
 
 st.sidebar.markdown("---")
@@ -1013,3 +1013,142 @@ elif page == "🏭 產業分析":
 st.markdown("---")
 st.markdown(f"*📊 資料更新時間：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*")
 st.markdown("*本報告僅供參考，不構成投資建議*")
+
+# ===== 龍龍操盤頁面 =====
+elif page == "🐲 龍龍操盤":
+    st.title("🐲 龍龍的虛擬操盤日誌")
+    st.caption("🤖 每日獨立決策 | 初始資金 $10,000 TWD")
+    
+    # 讀取交易記錄
+    import os
+    log_file = "/Users/yhlut_tsmc/.openclaw/workspace/streamlit-dashboards/trading_log.md"
+    
+    # 持股記錄（用 Session State 模擬）
+    if 'positions' not in st.session_state:
+        st.session_state.positions = []
+    if 'cash' not in st.session_state:
+        st.session_state.cash = 10000
+    if 'trades' not in st.session_state:
+        st.session_state.trades = []
+    
+    # 顯示總資產
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("現金餘額", f"${st.session_state.cash:,.0f}")
+    with col2:
+        # 計算持股價值
+        position_value = 0
+        for p in st.session_state.positions:
+            position_value += p['current_value']
+        st.metric("持股價值", f"${position_value:,.0f}")
+    with col3:
+        total = st.session_state.cash + position_value
+        change = total - 10000
+        st.metric("總資產", f"${total:,.0f}", delta=f"{change:+,.0f}")
+    
+    st.markdown("---")
+    
+    # 持股列表
+    st.subheader("📋 持有部位")
+    if st.session_state.positions:
+        for i, p in enumerate(st.session_state.positions):
+            with st.container():
+                col1, col2, col3, col4 = st.columns([2, 2, 2, 1])
+                with col1:
+                    st.markdown(f"**{p['code']}** {p['name']}")
+                with col2:
+                    cost = p['shares'] * p['buy_price']
+                    st.caption(f"買入: ${cost:,.0f}")
+                with col3:
+                    now_val = p['shares'] * p['current_price']
+                    pnl = now_val - cost
+                    color = "green" if pnl > 0 else "red"
+                    st.markdown(f"<span style='color:{color}'>現值: ${now_val:,.0f} ({pnl:+,.0f})</span>", unsafe_allow_html=True)
+                with col4:
+                    if st.button("賣出", key=f"sell_{i}"):
+                        # 賣出
+                        st.session_state.cash += p['shares'] * p['current_price']
+                        st.session_state.trades.append({
+                            'date': datetime.now().strftime('%Y-%m-%d'),
+                            'code': p['code'],
+                            'name': p['name'],
+                            'action': '賣出',
+                            'price': p['current_price'],
+                            'shares': p['shares'],
+                            'reason': '紀錄賣出'
+                        })
+                        st.session_state.positions.pop(i)
+                        st.rerun()
+    else:
+        st.info("目前沒有持股")
+    
+    st.markdown("---")
+    
+    # 買入功能
+    st.subheader("➕ 買入股票")
+    col1, col2, col3 = st.columns([2, 2, 1])
+    with col1:
+        buy_code = st.selectbox("選擇股票", list(STOCKS.items()), format_func=lambda x: f"{x[1]} ({x[0]})")
+    with col2:
+        buy_shares = st.number_input("股數", min_value=100, step=100, value=100)
+    with col3:
+        if st.button("查詢現價"):
+            from stock_dashboard import get_realtime_price
+            if buy_code:
+                data = get_realtime_price(buy_code[0])
+                if data:
+                    st.session_state.temp_price = data['price']
+                    st.rerun()
+    
+    # 顯示現價
+    if 'temp_price' in st.session_state and buy_code:
+        current_price = st.session_state.temp_price
+        st.write(f"現價: ${current_price:,.2f}")
+        
+        cost = current_price * buy_shares
+        if cost <= st.session_state.cash:
+            reason = st.text_area("買入理由")
+            if st.button("確認買入"):
+                # 取得即時價格
+                from stock_dashboard import get_realtime_price
+                data = get_realtime_price(buy_code[0])
+                if data:
+                    st.session_state.positions.append({
+                        'code': buy_code[0],
+                        'name': buy_code[1],
+                        'buy_price': data['price'],
+                        'current_price': data['price'],
+                        'shares': buy_shares,
+                        'current_value': data['price'] * buy_shares
+                    })
+                    st.session_state.cash -= cost
+                    st.session_state.trades.append({
+                        'date': datetime.now().strftime('%Y-%m-%d'),
+                        'code': buy_code[0],
+                        'name': buy_code[1],
+                        'action': '買入',
+                        'price': data['price'],
+                        'shares': buy_shares,
+                        'reason': reason
+                    })
+                    st.session_state.temp_price = None
+                    st.rerun()
+        else:
+            st.error(f"餘額不足！需要 ${cost:,.0f}，但只有 ${st.session_state.cash:,.0f}")
+    
+    st.markdown("---")
+    
+    # 交易記錄
+    st.subheader("📜 交易記錄")
+    if st.session_state.trades:
+        for t in reversed(st.session_state.trades):
+            with st.expander(f"{t['date']} - {t['code']} {t['name']} - {t['action']}"):
+                st.write(f"**動作：** {t['action']}")
+                st.write(f"**價格：** ${t['price']:,.2f}")
+                st.write(f"**股數：** {t['shares']}")
+                st.write(f"**理由：** {t.get('reason', '-')}")
+    else:
+        st.info("尚無交易記錄")
+    
+    st.markdown("---")
+    st.caption(f"🕐 記錄時間：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
