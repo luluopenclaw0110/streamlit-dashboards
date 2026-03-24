@@ -17,6 +17,63 @@ import time
 import pytz
 from bs4 import BeautifulSoup
 
+# ===== 快取設定 =====
+CACHE_FILE = os.path.join(os.path.dirname(__file__), "industry_cache.json")
+
+def load_industry_cache():
+    """載入產業資料快取"""
+    if os.path.exists(CACHE_FILE):
+        try:
+            with open(CACHE_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except:
+            return {}
+    return {}
+
+def save_industry_cache(data):
+    """儲存產業資料快取"""
+    try:
+        with open(CACHE_FILE, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"儲存快取失敗: {e}")
+
+def update_industry_cache():
+    """更新所有產業的資料並存到快取（背景執行）"""
+    industries_to_update = {
+        '晶圓代工': {'2330': '台積電', '2303': '聯電', '5347': '世界先進'},
+        'IC設計': {'2454': '聯發科', '2379': '瑞昱', '3034': '聯詠'},
+        'AI伺服器': {'2317': '鴻海', '2382': '廣達', '3231': '緯創'},
+        '封測': {'3711': '日月光投控', '6239': '力成'},
+        '記憶體': {'2408': '南亞科', '2344': '華邦電'},
+    }
+    
+    cache_data = {
+        'last_update': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'industries': {}
+    }
+    
+    for industry, stocks in industries_to_update.items():
+        cache_data['industries'][industry] = {}
+        for code, name in stocks.items():
+            try:
+                data = get_fundamental_data(code)
+                if data:
+                    cache_data['industries'][industry][code] = {
+                        'name': name,
+                        '股價': data.get('股價'),
+                        '本益比': data.get('本益比'),
+                        'EPS': data.get('EPS'),
+                        'ROE': data.get('ROE'),
+                        '營收': data.get('營收'),
+                    }
+                time.sleep(1)
+            except:
+                pass
+    
+    save_industry_cache(cache_data)
+    return cache_data
+
 # 頁面設定
 st.set_page_config(
     page_title="少爺的股票儀表板",
