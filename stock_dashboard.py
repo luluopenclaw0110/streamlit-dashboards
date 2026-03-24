@@ -656,10 +656,65 @@ elif page == "🏭 產業分析":
                     time.sleep(1)
         return None
     
-    # 取得基本面數據（不安裝快取，確保每次取得最新資料）
+    # 從 Yahoo Finance 網站抓基本面資料
+    def get_fundamental_from_yahoo(code):
+        """從 Yahoo Finance 網站抓基本面資料"""
+        import requests
+        try:
+            # 嘗試抓個股頁面
+            url = f"https://tw.stock.yahoo.com/quote/{code}.TW"
+            headers = {'User-Agent': 'Mozilla/5.0'}
+            response = requests.get(url, headers=headers, timeout=10)
+            
+            if response.status_code == 200:
+                # 用簡單的字串搜尋來找關鍵資料
+                html = response.text
+                
+                # 嘗試找股價
+                price = None
+                import re
+                price_match = re.search(r'成交(\d+\.?\d*)', html)
+                if price_match:
+                    price = float(price_match.group(1))
+                
+                # 嘗試找本益比
+                pe_match = re.search(r'本益比[\s\S]*?(\d+\.?\d*)', html)
+                pe = float(pe_match.group(1)) if pe_match else 0
+                
+                if price:
+                    return {
+                        '股價': price,
+                        '本益比': pe,
+                        '來源': 'Yahoo Finance',
+                    }
+        except:
+            pass
+        return None
+
+    # 取得基本面數據（三方交叉比對）
     def get_fundamental_data(code, retry=2):
-        """取得基本面資料，加入重試機制"""
+        """取得基本面資料，三方交叉比對：Yahoo Finance -> yfinance -> TWSE"""
         import time
+        
+        # 方法1：先嘗試 Yahoo Finance 網站
+        yahoo_data = get_fundamental_from_yahoo(code)
+        if yahoo_data and yahoo_data.get('股價'):
+            # 補充其他欄位，用 None 表示還需要從 yfinance 取得
+            return {
+                '股價': yahoo_data.get('股價', 0),
+                '本益比': yahoo_data.get('本益比', 0),
+                '殖利率': 0,
+                '每股淨值': 0,
+                'EPS': 0,
+                'ROE': 0,
+                '營收': 0,
+                '淨利': 0,
+                '營收成長': 0,
+                '獲利成長': 0,
+                '來源': 'Yahoo Finance',
+            }
+        
+        # 方法2：嘗試 yfinance
         for attempt in range(retry + 1):
             try:
                 ticker = yf.Ticker(f"{code}.TW")
@@ -677,6 +732,7 @@ elif page == "🏭 產業分析":
                         '淨利': info.get('netIncome', 0),
                         '營收成長': (info.get('revenueGrowth', 0) or 0) * 100,
                         '獲利成長': (info.get('earningsGrowth', 0) or 0) * 100,
+                        '來源': 'yfinance',
                     }
                 # 如果沒有有效資料，且還有重試次數，等待後重試
                 if attempt < retry:
@@ -684,6 +740,8 @@ elif page == "🏭 產業分析":
             except Exception as e:
                 if attempt < retry:
                     time.sleep(1)
+        
+        # 方法3：都失敗了，回傳 None
         return None
     
     # 顯示產業龍頭排名
