@@ -783,6 +783,7 @@ elif page == "🏭 產業分析":
     
     # 顯示產業龍頭排名
     st.markdown("### 📊 產業營收排名")
+    st.write("DEBUG: industry_stocks =", industry_stocks)
     
     ranking_data = []
     for code, name in industry_stocks.items():
