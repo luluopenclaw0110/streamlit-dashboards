@@ -824,8 +824,38 @@ elif page == "🏭 產業分析":
         df_rank['_sort'] = df_rank['營收(B)'].apply(lambda x: x if x.replace('.', '').replace('-', '').isdigit() else '0')
         df_rank = df_rank.sort_values('_sort', ascending=False).drop('_sort', axis=1)
         
-        # 格式化建議
-        df_rank['建議'] = '💚 買入'
+        # 計算建議 - 使用跟基本面一樣的邏輯
+        def calc_recommendation(row):
+            try:
+                # 從 ROE 取出數字
+                roe_str = str(row.get('ROE', '0')).replace('%', '')
+                roe = float(roe_str) if roe_str not in ['N/A', ''] else 0
+                
+                # 從 獲利成長 取出數字
+                growth_str = str(row.get('獲利成長', '0')).replace('%', '').replace('+', '')
+                profit_growth = float(growth_str) if growth_str not in ['N/A', ''] else 0
+                
+                # 從 本益比 取出數字
+                pe_str = str(row.get('本益比', '0'))
+                pe_ratio = float(pe_str) if pe_str not in ['N/A', ''] else 0
+                
+                # 使用 get_recommendation 邏輯
+                score = 0
+                if roe > 20: score += 2
+                elif roe > 10: score += 1
+                if profit_growth > 20: score += 2
+                elif profit_growth > 0: score += 1
+                elif profit_growth < -20: score -= 2
+                if 10 < pe_ratio < 25: score += 1
+                elif pe_ratio > 40: score -= 1
+                
+                if score >= 3: return "💚 建議買入"
+                elif score >= 1: return "💙 持續觀察"
+                else: return "❤️ 建議觀望"
+            except:
+                return "❤️ 建議觀望"
+        
+        df_rank['建議'] = df_rank.apply(calc_recommendation, axis=1)
         
         st.dataframe(df_rank, hide_index=True, use_container_width=True)
     
