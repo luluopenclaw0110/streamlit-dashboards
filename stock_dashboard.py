@@ -467,61 +467,99 @@ if page == "📊 專業分析":
     else:
         st.info("無法取得美股資料")
 
-# ===== 即時股價頁面 =====
+# ===== 即時股價頁面（美化版）=====
 elif page == "⚡ 即時股價":
     st.title("⚡ 即時股價")
     st.caption("資料來源：Yahoo 股市 | 每分鐘更新")
     
-    with st.spinner('正在抓取即時股價...'):
-        prices = []
-        for code, name in STOCKS.items():
-            data = get_realtime_price(code)
-            if data:
-                prices.append({
-                    '代號': code,
-                    '名稱': name,
-                    '現價': data['price'],
-                    '漲跌幅': data['change_pct']
-                })
-            time.sleep(0.5)
+    # 定義產業分類
+    INDUSTRY_TABS = {
+        '🏭 傳產': {
+            '塑化': {'1301': '台塑', '1303': '南亞', '1326': '台化', '1717': '長興', '1802': '台玻'},
+            '鋼鐵': {'2002': '中鋼', '2014': '中鴻', '2027': '大成鋼'},
+            '航運': {'2603': '長榮', '2609': '陽明', '2615': '萬海'},
+            '水泥': {'1101': '台泥', '1102': '亞泥'},
+        },
+        '💰 金融': {
+            '金控': {'2881': '富邦金', '2882': '國泰金', '2891': '中信金', '2886': '兆豐金', '2884': '玉山金'},
+            '銀行': {'2892': '玉山金', '2801': '彰銀', '2823': '中壽'},
+        },
+        '🧠 AI電子': {
+            'AI伺服器': {'2317': '鴻海', '2382': '廣達', '3231': '緯創', '6669': '緯穎', '2356': '英業達'},
+            '半導體': {'2330': '台積電', '2303': '聯電', '5347': '世界先進'},
+            'IC設計': {'2454': '聯發科', '2379': '瑞昱', '3034': '聯詠'},
+            '記憶體': {'2408': '南亞科', '2344': '華邦電', '2337': '旺宏'},
+            '封測': {'3711': '日月光', '6239': '力成', '2449': '京元電子'},
+        },
+        '🔌 電子': {
+            '散熱': {'3017': '奇鋐', '3324': '雙鴻', '6230': '超眾'},
+            '電源': {'2308': '台達電', '2301': '光寶科', '6412': '群電'},
+            'PCB': {'3044': '健鼎', '5469': '瀚宇博', '2313': '華通'},
+            '光學': {'3008': '大立光', '3406': '玉晶光', '3019': '亞光'},
+            '顯示器': {'3481': '群創', '6116': '彩晶', '2409': '友達'},
+        },
+    }
     
-    if prices:
-        df = pd.DataFrame(prices)
-        
-        # 顯示
-        for _, row in df.iterrows():
-            emoji = '🔴' if row['漲跌幅'] > 0 else '🟢' if row['漲跌幅'] < 0 else '⚪'
-            
-            col1, col2, col3 = st.columns([1, 2, 2])
-            with col1:
-                st.write(f"**{row['代號']}** {row['名稱']}")
-            with col2:
-                st.write(f"💵 ${row['現價']:,.2f}")
-            with col3:
-                st.write(f"{emoji} {row['漲跌幅']:+.2f}%")
-        
-        st.divider()
-        
-        # 簡易表格
-        st.subheader("📊 報價表")
-        
-        df['漲跌'] = df['漲跌幅'].apply(lambda x: f"+{x:.2f}%" if x > 0 else f"{x:.2f}%")
-        df['現價'] = df['現價'].apply(lambda x: f"${x:,.2f}")
-        
-        df = df.sort_values('漲跌幅', ascending=False)
-        
-        def color_change(val):
-            return 'red' if val > 0 else 'green' if val < 0 else 'gray'
-        
-        st.dataframe(
-            df[['代號', '名稱', '現價', '漲跌']],
-            hide_index=True,
-            use_container_width=True
-        )
-        
-        st.caption(f"🕐 更新時間：{datetime.now().strftime('%H:%M:%S')}")
-    else:
-        st.error("無法取得股價資料，請稍後再試")
+    # 建立產業標籤頁
+    industry_tabs = st.tabs(list(INDUSTRY_TABS.keys()))
+    
+    with st.spinner('正在抓取即時股價...'):
+        for tab_idx, (industry_name, industries) in enumerate(INDUSTRY_TABS.items()):
+            with industry_tabs[tab_idx]:
+                # 每個產業標籤下再細分
+                sub_tabs = st.tabs(list(industries.keys()))
+                
+                for sub_idx, (industry, stocks) in enumerate(industries.items()):
+                    with sub_tabs[sub_idx]:
+                        # 抓取該產業所有股票資料
+                        prices = []
+                        for code, name in stocks.items():
+                            data = get_realtime_price(code)
+                            if data:
+                                prices.append({
+                                    '代號': code,
+                                    '名稱': name,
+                                    '現價': data['price'],
+                                    '漲跌': data['change'],
+                                    '漲跌幅': data['change_pct'],
+                                    '成交量': data.get('volume', 0)
+                                })
+                            time.sleep(0.3)
+                        
+                        if prices:
+                            df = pd.DataFrame(prices)
+                            df = df.sort_values('漲跌幅', ascending=False)
+                            
+                            # 美化顯示
+                            for _, row in df.iterrows():
+                                # 顏色
+                                if row['漲跌幅'] > 0:
+                                    color = '#FF6B6B'  # 紅色上漲
+                                    arrow = '▲'
+                                elif row['漲跌幅'] < 0:
+                                    color = '#4ECB71'  # 綠色下跌
+                                    arrow = '▼'
+                                else:
+                                    color = '#888888'  # 灰色持平
+                                    arrow = '─'
+                                
+                                # 顯示卡片
+                                with st.container():
+                                    col1, col2, col3, col4 = st.columns([2, 2, 2, 1])
+                                    with col1:
+                                        st.markdown(f"**{row['代號']}** {row['名稱']}")
+                                    with col2:
+                                        st.markdown(f"💵 **${row['現價']:,.2f}**")
+                                    with col3:
+                                        st.markdown(f"<span style='color:{color}; font-weight:bold;'>{arrow} {row['漲跌幅']:+.2f}%</span>", unsafe_allow_html=True)
+                                    with col4:
+                                        vol = row['成交量'] / 1000 if row['成交量'] else 0
+                                        st.caption(f"成交量: {vol:,.0f}K")
+                                    st.divider()
+                        else:
+                            st.warning("無法取得資料")
+    
+    st.caption(f"🕐 資料更新時間：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
 # ===== 產業分析頁面 =====
 elif page == "🏭 產業分析":
