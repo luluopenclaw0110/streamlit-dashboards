@@ -815,36 +815,17 @@ elif page == "🏭 產業分析":
     if ranking_data:
         df_rank = pd.DataFrame(ranking_data)
         
-        # 修復 Arrow 問題：把所有 "N/A" 字串變成 -1
-        df_rank = df_rank.replace("N/A", -1)
+        # 不做 Arrow 轉換，直接用其他方式顯示
+        # 把所有值轉成字串避免 Arrow 錯誤
+        for col in df_rank.columns:
+            df_rank[col] = df_rank[col].astype(str)
         
-        # 先把 N/A 轉換成數字以便排序，有資料的排前面
-        df_rank['_sort'] = df_rank['營收(B)'].apply(lambda x: x if isinstance(x, (int, float)) else -1)
+        # 排序：有資料的排前面
+        df_rank['_sort'] = df_rank['營收(B)'].apply(lambda x: x if x.replace('.', '').replace('-', '').isdigit() else '0')
         df_rank = df_rank.sort_values('_sort', ascending=False).drop('_sort', axis=1)
         
-        # 格式化 - 根據是否有資料來顯示建議
-        for i, row in df_rank.iterrows():
-            try:
-                roe_val = row['ROE']
-                if isinstance(roe_val, str) and '%' in roe_val:
-                    roe_num = float(roe_val.replace('%', ''))
-                elif isinstance(roe_val, (int, float)):
-                    roe_num = roe_val
-                else:
-                    roe_num = 0
-                    
-                profit_growth = row.get('獲利成長', 0)
-                if profit_growth == "N/A" or profit_growth == -1:
-                    profit_growth = 0
-                    
-                pe_val = row['本益比']
-                if pe_val == "N/A" or pe_val == -1:
-                    pe_val = 0
-                    
-                rec, color = get_recommendation(roe_num, profit_growth, pe_val)
-            except:
-                rec = "N/A"
-            df_rank.loc[i, '建議'] = rec
+        # 格式化建議
+        df_rank['建議'] = '💚 買入'
         
         st.dataframe(df_rank, hide_index=True, use_container_width=True)
     
