@@ -16,3 +16,4 @@ streamlit run stock_dashboard.py
 3. 選擇這個倉庫部署
 # Sat Mar 21 12:24:33 CST 2026
 # test
+trigger redeploy
