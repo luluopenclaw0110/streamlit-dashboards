@@ -107,8 +107,38 @@ st.markdown("""
 
 # 少爺的股票清單
 STOCKS = {
+    # 熱門股票
     '2330': '台積電',
-    '2317': '鴻海', 
+    '2303': '聯電',
+    '5347': '世界先進',
+    '2317': '鴻海',
+    '2382': '廣達',
+    '3231': '緯創',
+    '6669': '緯穎',
+    '2454': '聯發科',
+    '2379': '瑞昱',
+    '3034': '聯詠',
+    '2603': '長榮',
+    '2609': '陽明',
+    '2615': '萬海',
+    '3711': '日月光',
+    '2408': '南亞科',
+    '2344': '華邦電',
+    '2337': '旺宏',
+    # 傳產
+    '2002': '中鋼',
+    '1326': '台化',
+    '1301': '台塑',
+    '1303': '南亞',
+    '1101': '台泥',
+    '1102': '亞泥',
+    # 金融
+    '2881': '富邦金',
+    '2882': '國泰金',
+    '2891': '中信金',
+    '2886': '兆豐金',
+    '2801': '彰銀',
+    # 其他
     '3532': '台勝科',
     '1503': '士電',
     '2887': '台新新光金',
@@ -117,6 +147,12 @@ STOCKS = {
     '1802': '台玻',
     '2399': '映泰',
     '1514': '亞力',
+    '6488': '環球晶',
+    '3008': '大立光',
+    '3017': '奇鋐',
+    '3324': '雙鴻',
+    '2308': '台達電',
+    '6412': '群電',
 }
 
 # ===== 從 JSON 讀取基本面資料 =====
@@ -1101,11 +1137,20 @@ if page == "🐲 龍龍操盤":
     
     # 持股記錄（用 Session State 模擬）
     if 'positions' not in st.session_state:
-        st.session_state.positions = []
+        # 初始化今天的持股
+        st.session_state.positions = [
+            {'code': '6669', 'name': '緯穎', 'buy_price': 3780, 'current_price': 3760, 'shares': 10, 'current_value': 37600},
+            {'code': '2317', 'name': '鴻海', 'buy_price': 198.5, 'current_price': 200, 'shares': 100, 'current_value': 20000},
+            {'code': '2603', 'name': '長榮', 'buy_price': 204, 'current_price': 206, 'shares': 200, 'current_value': 41200},
+        ]
     if 'cash' not in st.session_state:
-        st.session_state.cash = 10000
+        st.session_state.cash = 100000 - 98800  # 100000 - 買入成本 98800 = 1200
     if 'trades' not in st.session_state:
-        st.session_state.trades = []
+        st.session_state.trades = [
+            {'date': '2026-03-25', 'code': '6669', 'name': '緯穎', 'action': '買入', 'price': 3780, 'shares': 10, 'reason': 'AI伺服器需求旺，ROE 48%'},
+            {'date': '2026-03-25', 'code': '2317', 'name': '鴻海', 'action': '買入', 'price': 198.5, 'shares': 100, 'reason': 'AI伺服器龍頭，便宜'},
+            {'date': '2026-03-25', 'code': '2603', 'name': '長榮', 'action': '買入', 'price': 204, 'shares': 200, 'reason': '航運低點，本益比6.4'},
+        ]
     
     # 顯示總資產
     col1, col2, col3 = st.columns(3)
@@ -1119,7 +1164,7 @@ if page == "🐲 龍龍操盤":
         st.metric("持股價值", f"${position_value:,.0f}")
     with col3:
         total = st.session_state.cash + position_value
-        change = total - 10000
+        change = total - 100000
         st.metric("總資產", f"${total:,.0f}", delta=f"{change:+,.0f}")
     
     st.markdown("---")
