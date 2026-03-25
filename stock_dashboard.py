@@ -1155,17 +1155,19 @@ if page == "🐲 龍龍操盤":
     # 顯示總資產
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("現金餘額", f"${st.session_state.cash:,.0f}")
+        st.metric("💰 現金餘額", f"${st.session_state.cash:,.0f}")
     with col2:
         # 計算持股價值
         position_value = 0
         for p in st.session_state.positions:
             position_value += p['current_value']
-        st.metric("持股價值", f"${position_value:,.0f}")
+        st.metric("📈 持股價值", f"${position_value:,.0f}")
     with col3:
         total = st.session_state.cash + position_value
         change = total - 100000
-        st.metric("總資產", f"${total:,.0f}", delta=f"{change:+,.0f}")
+        # 紅色漲（賺錢），綠色跌（虧損）- 與一般股票相反
+        delta_color = "inverse" if change >= 0 else "normal"
+        st.metric("💎 總資產", f"${total:,.0f}", delta=f"{change:+,.0f}", delta_color=delta_color)
     
     st.markdown("---")
     
@@ -1173,6 +1175,17 @@ if page == "🐲 龍龍操盤":
     st.subheader("📋 持有部位")
     if st.session_state.positions:
         for i, p in enumerate(st.session_state.positions):
+            profit = (p['current_price'] - p['buy_price']) * p['shares']
+            profit_pct = ((p['current_price'] / p['buy_price']) - 1) * 100
+            
+            # 紅色漲（賺），綠色跌（虧）
+            if profit >= 0:
+                color = "🔴"
+                profit_color = "red"
+            else:
+                color = "🟢"
+                profit_color = "green"
+                
             with st.container():
                 col1, col2, col3, col4 = st.columns([2, 2, 2, 1])
                 with col1:
@@ -1182,6 +1195,7 @@ if page == "🐲 龍龍操盤":
                     st.caption(f"買入: ${cost:,.0f}")
                 with col3:
                     now_val = p['shares'] * p['current_price']
+                    st.markdown(f"<span style='color:{profit_color}'>{color} ${now_val:,.0f} ({profit_pct:+.1f}%)</span>", unsafe_allow_html=True)
                     pnl = now_val - cost
                     color = "green" if pnl > 0 else "red"
                     st.markdown(f"<span style='color:{color}'>現值: ${now_val:,.0f} ({pnl:+,.0f})</span>", unsafe_allow_html=True)
