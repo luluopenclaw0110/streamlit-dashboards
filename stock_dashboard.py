@@ -1187,7 +1187,7 @@ if page == "🐲 龍龍操盤":
                 profit_color = "green"
                 
             with st.container():
-                col1, col2, col3, col4, col5, col6 = st.columns([2, 1.5, 1.5, 2, 2, 1])
+                col1, col2, col3, col4, col5, col6, col7 = st.columns([2, 1.5, 1.5, 1.5, 2, 2, 1])
                 with col1:
                     st.markdown(f"**{p['code']}** {p['name']}")
                 with col2:
@@ -1196,9 +1196,11 @@ if page == "🐲 龍龍操盤":
                     cost = p['shares'] * p['buy_price']
                     st.caption(f"成本: ${cost:,.0f}")
                 with col4:
+                    st.markdown(f"📊 ${p['current_price']}")
+                with col5:
                     now_val = p['shares'] * p['current_price']
                     st.markdown(f"💵 ${now_val:,.0f}")
-                with col5:
+                with col6:
                     pnl = now_val - cost
                     if pnl >= 0:
                         color = "red"
@@ -1207,7 +1209,7 @@ if page == "🐲 龍龍操盤":
                         color = "green"
                         emoji = "🟢"
                     st.markdown(f"<span style='color:{color}'>{emoji} {pnl:+,.0f} ({profit_pct:+.1f}%)</span>", unsafe_allow_html=True)
-                with col6:
+                with col7:
                     if st.button("賣出", key=f"sell_{i}"):
                         # 賣出
                         st.session_state.cash += p['shares'] * p['current_price']
