@@ -1205,7 +1205,7 @@ if page == "🐲 龍龍操盤":
                         color = "green"
                         emoji = "🟢"
                     st.markdown(f"<span style='color:{color}'>{emoji} {pnl:+,.0f} ({profit_pct:+.1f}%)</span>", unsafe_allow_html=True)
-                with col4:
+                with col5:
                     if st.button("賣出", key=f"sell_{i}"):
                         # 賣出
                         st.session_state.cash += p['shares'] * p['current_price']
