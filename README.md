@@ -19,3 +19,4 @@ streamlit run stock_dashboard.py
 trigger redeploy
 trigger
 redeploy
+x
