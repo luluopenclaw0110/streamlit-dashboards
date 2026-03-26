@@ -16,7 +16,8 @@
       "flight_date": "2026-07-19",
       "price": 20346,
       "time": "13:10-15:45",
-      "note": "去程 7/19"
+      "note": "✅ 盧家確定",
+      "confirmed": true
     },
     {
       "departure": "那霸",
@@ -43,7 +44,8 @@
       "flight_date": "2026-07-25",
       "price": 33950,
       "time": "20:10-20:50",
-      "note": "回程 7/25"
+      "note": "✅ 盧家確定",
+      "confirmed": true
     },
     {
       "departure": "台北",
