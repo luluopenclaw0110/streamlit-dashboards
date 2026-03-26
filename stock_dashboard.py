@@ -1283,15 +1283,25 @@ if page == "🐲 龍龍操盤":
     
     st.markdown("---")
     
-    # 交易記錄
-    st.subheader("📜 交易記錄")
-    if st.session_state.trades:
-        for t in reversed(st.session_state.trades):
-            with st.expander(f"{t['date']} - {t['code']} {t['name']} - {t['action']}"):
-                st.write(f"**動作：** {t['action']}")
-                st.write(f"**價格：** ${t['price']:,.2f}")
-                st.write(f"**股數：** {t['shares']}")
-                st.write(f"**理由：** {t.get('reason', '-')}")
+    # 交易記錄（從 JSON 檔案讀取）
+    st.subheader("📜 龍龍的交易記錄")
+    
+    history_file = os.path.join(os.path.dirname(__file__), "trading_history.json")
+    if os.path.exists(history_file):
+        try:
+            with open(history_file, 'r', encoding='utf-8') as f:
+                history = json.load(f)
+            if history:
+                for t in reversed(history):
+                    with st.expander(f"{t['date']} - {t['action']} {t['code']} {t['name']}"):
+                        st.write(f"**動作：** {t['action']}")
+                        st.write(f"**價格：** ${t['price']:,.2f}")
+                        st.write(f"**股數：** {t['shares']}")
+                        st.write(f"**理由：** {t.get('reason', '-')}")
+            else:
+                st.info("尚無交易記錄")
+        except:
+            st.info("尚無交易記錄")
     else:
         st.info("尚無交易記錄")
     
