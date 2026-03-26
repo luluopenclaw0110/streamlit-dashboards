@@ -16,8 +16,8 @@
       "flight_date": "2026-07-19",
       "price": 20346,
       "time": "13:10-15:45",
-      "note": "✅ 盧家確定",
-      "confirmed": true
+      "note": "去程 7/19",
+      "confirmed": false
     },
     {
       "departure": "那霸",
@@ -44,7 +44,7 @@
       "flight_date": "2026-07-25",
       "price": 33950,
       "time": "20:10-20:50",
-      "note": "✅ 盧家確定",
+      "note": "✅ 盧家確定 JX313",
       "confirmed": true
     },
     {
