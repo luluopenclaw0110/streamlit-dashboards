@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏝️ 沖繩之旅 2026 | 盧家×方家</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', 'PingFang TC', 'Microsoft JhengHei', Arial, sans-serif; background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        
+        /* Header */
+        .header { text-align: center; padding: 60px 20px; color: white; position: relative; overflow: hidden; }
+        .header::before { content: '🌺'; font-size: 200px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.1; }
+        .header h1 { font-size: 4em; margin-bottom: 15px; text-shadow: 0 0 50px rgba(255,255,255,0.3); animation: glow 3s ease-in-out infinite; }
+        @keyframes glow { 0%, 100% { text-shadow: 0 0 30px rgba(255,255,255,0.3); } 50% { text-shadow: 0 0 60px rgba(255,255,255,0.5); } }
+        .header .subtitle { font-size: 1.5em; opacity: 0.9; margin-bottom: 30px; }
+        .header .badges { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
+        .header .badge { background: rgba(255,255,255,0.2); padding: 12px 25px; border-radius: 30px; backdrop-filter: blur(10px); font-size: 1.1em; }
+        
+        /* Day Cards */
+        .day-card { background: linear-gradient(145deg, rgba(255,255,255,0.97), rgba(255,255,255,0.92)); border-radius: 30px; margin-bottom: 30px; overflow: hidden; box-shadow: 0 25px 80px rgba(0,0,0,0.4); transform: translateY(0); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .day-card:hover { transform: translateY(-10px) scale(1.02); box-shadow: 0 35px 100px rgba(0,0,0,0.5); }
+        
+        .day-header { padding: 30px 40px; color: white; display: flex; justify-content: space-between; align-items: center; position: relative; overflow: hidden; }
+        .day-header::before { content: ''; position: absolute; top: -50%; right: -10%; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%; }
+        .day-header h2 { font-size: 2em; position: relative; z-index: 1; }
+        .day-header .date { font-size: 1.2em; opacity: 0.9; position: relative; z-index: 1; }
+        
+        .d1 { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .d2 { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .d3 { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .d4 { background: linear-gradient(135deg, #43e97b, #38ef7d); }
+        .d5 { background: linear-gradient(135deg, #fa709a, #fee140); }
+        .d6 { background: linear-gradient(135deg, #ff9a9e, #fecfef); color: #333; }
+        .d7 { background: linear-gradient(135deg, #ffecd2, #fcb69f); color: #333; }
+        
+        .day-content { padding: 35px 40px; }
+        
+        /* Flight Info */
+        .flight-info { background: linear-gradient(135deg, #11998e, #38ef7d); color: white; padding: 20px 30px; border-radius: 20px; display: flex; align-items: center; gap: 30px; margin-bottom: 25px; flex-wrap: wrap; }
+        .flight-icon { font-size: 4em; }
+        .flight-details .flight-name { font-size: 1.3em; font-weight: bold; margin-bottom: 5px; }
+        .flight-details .flight-route { font-size: 1.8em; font-weight: bold; }
+        .flight-details .flight-time { opacity: 0.9; margin-top: 5px; }
+        
+        /* Activities */
+        .activities { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .activity { background: linear-gradient(135deg, #f8f9fa, #e9ecef); padding: 20px 25px; border-radius: 15px; display: flex; align-items: flex-start; gap: 15px; border-left: 5px solid #667eea; transition: all 0.3s; }
+        .activity:hover { transform: translateX(10px); border-left-color: #f5576c; }
+        .activity-emoji { font-size: 2.5em; }
+        .activity-content .activity-title { font-weight: bold; color: #333; font-size: 1.15em; margin-bottom: 5px; }
+        .activity-content .activity-desc { color: #666; line-height: 1.6; }
+        
+        /* Hotel */
+        .hotel-info { background: linear-gradient(135deg, #ff9a9e, #fecfef); color: white; padding: 20px 30px; border-radius: 15px; margin-top: 20px; display: flex; align-items: center; gap: 20px; }
+        .hotel-emoji { font-size: 3em; }
+        .hotel-content .hotel-name { font-weight: bold; font-size: 1.2em; }
+        .hotel-content .hotel-nights { opacity: 0.9; margin-top: 3px; }
+        
+        /* Footer */
+        .footer { text-align: center; padding: 60px 20px; color: white; }
+        .footer h2 { font-size: 2.5em; margin-bottom: 15px; }
+        .footer p { opacity: 0.8; font-size: 1.2em; }
+        .footer .hearts { font-size: 3em; margin-top: 20px; animation: heartbeat 1.5s ease-in-out infinite; }
+        @keyframes heartbeat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2.5em; }
+            .header .badge { font-size: 0.9em; padding: 10px 18px; }
+            .day-header { flex-direction: column; text-align: center; gap: 10px; }
+            .day-content { padding: 25px 20px; }
+            .flight-info { flex-direction: column; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🏝️ 沖繩之旅</h1>
+            <p class="subtitle">2026年7月19日 - 7月25日 | 7天6夜</p>
+            <div class="badges">
+                <span class="badge">👨‍👩‍👧‍👦 盧家四口</span>
+                <span class="badge">👨‍👩‍👦 方家三口</span>
+                <span class="badge">✈️ 台中↔沖繩</span>
+                <span class="badge">🚗 自駕</span>
+            </div>
+        </div>
+
+        <!-- Day 1 -->
+        <div class="day-card">
+            <div class="day-header d1">
+                <h2>📅 Day 1</h2>
+                <span class="date">7月19日 (六) - 出發日</span>
+            </div>
+            <div class="day-content">
+                <div class="flight-info">
+                    <span class="flight-icon">🛫</span>
+                    <div class="flight-details">
+                        <div class="flight-name">星宇航空 JX312</div>
+                        <div class="flight-route">台中 → 沖繩</div>
+                        <div class="flight-time">16:40 起飛 → 19:10 抵達</div>
+                    </div>
+                </div>
+                <div class="activities">
+                    <div class="activity">
+                        <span class="activity-emoji">🚗</span>
+                        <div class="activity-content">
+                            <div class="activity-title">領取租車</div>
+                            <div class="activity-desc">抵達那霸機場後，直接領取預訂的租車</div>
+                        </div>
+                    </div>
+                    <div class="activity">
+                        <span class="activity-emoji">🍖</span>
+                        <div class="activity-content">
+                            <div class="activity-title">88牛排 / 拉麵</div>
+                            <div class="activity-desc">晚餐推薦：縣廳前通宵拉麵或 En男爵和牛燒肉</div>
+                        </div>
+                    </div>
+                    <div class="activity">
+                        <span class="activity-emoji">🏨</span>
+                        <div class="activity-content">
+                            <div class="activity-title">入住：東京急Stay那霸</div>
+                            <div class="activity-desc">2晚 · 位置绝佳，靠近國際通</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Day 2 -->
+        <div class="day-card">
+            <div class="day-header d2">
+                <h2>📅 Day 2</h2>
+                <span class="date">7月20日 (日) - 那霸市區</span>
+            </div>
+            <div class="day-content">
+                <div class="activities">
+                    <div class="activity">
+                        <span class="activity-emoji">🏛️</span>
+                        <div class="activity-content">
+                            <div class="activity-title">波上宮 + 波之上海灘</div>
+                            <div class="activity-desc">沖繩最上位的神社，擁有俯瞰大海的絕佳景色，附近的白砂海灘也很適合玩水</div>
+                        </div>
+                    </div>
+                    <div class="activity">
+                        <span class="activity-emoji">☀️</span>
+                        <div class="activity-content">
+                            <div class="activity-title">縣廳前海灘</div>
+                            <div class="activity-desc">市區最近的海灘</div>
+                        </div>
+                    </div>
+                    <div class="activity">
+                        <span class="activity-emoji">🍖</span>
+                        <div class="activity-content">
+                            <div class="activity-title">En男爵和牛燒肉</div>
+                            <div class="activity-desc">午餐推薦：的和牛燒肉</div>
+                        </div>
+                    </div>
+                    <div class="activity">
+                        <span class="activity-emoji">🛍️</span>
+                        <div class="activity-content">
+                            <div class="activity-title">國際通</div>
+                            <div class="activity-desc">下午購物，傍晚逛街</div>
+                        </div>
+                    </div>
+                    <div class="activity">
+                        <span class="activity-emoji">🦐</span>
+                        <div class="activity-content">
+                            <div class="activity-title">牧志市場</div>
+                            <div class="activity-desc">晚餐：海鮮料理</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Day 3 -->
+        <div class="day-card">
+            <div class="day-header d3">
+                <h2>📅 Day 3</h2>
+                <span class="date">7月21日 (一) - 移動至BEB5</span>
+            </div>
+            <div class="day-content">
+                <div class="activities">
+                    <div class="activity">
+                        <span class="activity-emoji">🚗</span>
+                        <div class="activity-content">
+                            <div class="activity-title">退房出發</div>
+                            <div class="activity-desc">開車前往瀨良垣</div>
+                        </div>
+                    </div>
+                    <div class="activity">
+                        <span class="activity-emoji">🏨</span>
+                        <div class="activity-content">
+                            <div class="activity-title">入住 BEB5 瀨良垣</div>
+                            <div class="activity-desc">星野集團公寓（4晚）· 有廚房、洗衣機</div>
+                        </div>
+                    </div>
+                    <div class="activity">
+                        <span class="activity-emoji">🏖️</span>
+                        <div class="activity-content">
+                            <div class="activity-title">瀨良垣海灘</div>
+                            <div class="activity-desc">下午海灘時光</div>
+                        </div>
+                    </div>
+                    <div class="activity">
+                        <span class="activity-emoji">🍳</span>
+                        <div class="activity-content">
+                            <div class="activity-title">自炊晚餐</div>
+                            <div class="activity-desc">BEB5有完整廚房，可以買食材回來大展身手</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Day 4 -->
+        <div class="day-card">
+            <div class="day-header d4">
+                <h2>📅 Day 4</h2>
+                <span class="date">7月22日 (二) - 北部文化遊</span>
+            </div>
+            <div class="day-content">
+                <div class="activities">
+                    <div class="activity">
+                        <span class="activity-emoji">🏰</span>
+                        <div class="activity-content">
+                            <div class="activity-title">勝連城跡</div>
+                            <div class="activity-desc">世界文化遺產，眺望大海的壯闘景色</div>
+                        </div>
+                    </div>
+                    <div class="activity">
+                        <span class="activity-emoji">🍝</span>
+                        <div class="activity-content">
+                            <div class="activity-title">午餐推薦</div>
+                            <div class="activity-desc">瀨良垣附近的義大利餐廳</div>
+                        </div>
+                    </div>
+                    <div class="activity">
+                        <span class="activity-emoji">🛒</span>
+                        <div class="activity-content">
+                            <div class="activity-title">AEON Mall</div>
+                            <div class="activity-desc">下午購物</div>
+                        </div>
+                    </div>
+                    <div class="activity">
+                        <span class="activity-emoji">🌅</span>
+                        <div class="activity-content">
+                            <div class="activity-title">美國村夕陽</div>
+                            <div class="activity-desc">傍晚觀賞日落海灘的絕美夕陽</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Day 5 -->
+        <div class="day-card">
+            <div class="day-header d5">
+                <h2>📅 Day 5</h2>
+                <span class="date">7月23日 (三) - 水族館日</span>
+            </div>
+            <div class="day-content">
+                <div class="activities">
+                    <div class="activity">
+                        <span class="activity-emoji">🐠</span>
+                        <div class="activity-content">
+                            <div class="activity-title">美ら海水族館</div>
+                            <div class="activity-desc">世界最大的黑潮之海水族館，孩子們的最愛！</div>
+                        </div>
+                    </div>
+                    <div class="activity">
+                        <span class="activity-emoji">🦈</span>
+                        <div class="activity-content">
+                            <div class="activity-title">黑潮探險</div>
+                            <div class="activity-desc">看鯊魚、魟魚群在巨大的水族箱中游泳</div>
+                        </div>
+                    </div>
+                    <div class="activity">
+                        <span class="activity-emoji">🐢</span>
+                        <div class="activity-content">
+                            <div class="activity-title">海龜館</div>
+                            <div class="activity-desc">近距離接觸可愛的海龜</div>
+                        </div>
+                    </div>
+                    <div class="activity">
+                        <span class="activity-emoji">🏖️</span>
+                        <div class="activity-content">
+                            <div class="activity-title">萬座毛海灘</div>
+                            <div class="activity-desc">下午玩水</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Day 6 -->
+        <div class="day-card">
+            <div class="day-header d6">
+                <h2>📅 Day 6</h2>
+                <span class="date">7月24日 (四) - 最後購物日</span>
+            </div>
+            <div class="day-content">
+                <div class="activities">
+                    <div class="activity">
+                        <span class="activity-emoji">🛍️</span>
+                        <div class="activity-content">
+                            <div class="activity-title">Okinawa Outlet</div>
+                            <div class="activity-desc">Ashibinaa 恩間折扣商場，最後購物機會</div>
+                        </div>
+                    </div>
+                    <div class="activity">
+                        <span class="activity-emoji">🎪</span>
+                        <div class="activity-content">
+                            <div class="activity-title">玩具反斗城</div>
+                            <div class="activity-desc">小朋友的最愛</div>
+                        </div>
+                    </div>
+                    <div class="activity">
+                        <span class="activity-emoji">🍜</span>
+                        <div class="activity-content">
+                            <div class="activity-title">琉風拉麵</div>
+                            <div class="activity-desc">午餐推薦</div>
+                        </div>
+                    </div>
+                    <div class="activity">
+                        <span class="activity-emoji">🏖️</span>
+                        <div class="activity-content">
+                            <div class="activity-title">最後海灘</div>
+                            <div class="activity-desc">把握最後海邊時光</div>
+                        </div>
+                    </div>
+                    <div class="activity">
+                        <span class="activity-emoji">🍖</span>
+                        <div class="activity-content">
+                            <div class="activity-title">燒肉王</div>
+                            <div class="activity-desc">最後晚餐：燒肉</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Day 7 -->
+        <div class="day-card">
+            <div class="day-header d7">
+                <h2>📅 Day 7</h2>
+                <span class="date">7月25日 (五) - 返程日</span>
+            </div>
+            <div class="day-content">
+                <div class="flight-info" style="background: linear-gradient(135deg, #eb3349, #f45c43);">
+                    <span class="flight-icon">🛫</span>
+                    <div class="flight-details">
+                        <div class="flight-name">星宇航空 JX313</div>
+                        <div class="flight-route">沖繩 → 台中</div>
+                        <div class="flight-time">20:10 起飛 → 20:50 抵達</div>
+                    </div>
+                </div>
+                <div class="activities">
+                    <div class="activity">
+                        <span class="activity-emoji">🍳</span>
+                        <div class="activity-content">
+                            <div class="activity-title">悠閒早餐</div>
+                            <div class="activity-desc">飯店最後悠閒時光</div>
+                        </div>
+                    </div>
+                    <div class="activity">
+                        <span class="activity-emoji">🚗</span>
+                        <div class="activity-content">
+                            <div class="activity-title">還車</div>
+                            <div class="activity-desc">前往那霸機場還車</div>
+                        </div>
+                    </div>
+                    <div class="activity">
+                        <span class="activity-emoji">✈️</span>
+                        <div class="activity-content">
+                            <div class="activity-title">回家</div>
+                            <div class="activity-desc">帶著滿滿的回憶回家</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <h2>🌺 兩家人一起的美好回憶 🌺</h2>
+            <p>7天6夜的沖繩之旅，滿滿的笑容與歡笑</p>
+            <p style="margin-top: 20px; opacity: 0.7;">❤️ Made with love by 龍龍</p>
+            <div class="hearts">💕</div>
+        </div>
+    </div>
+</body>
+</html>
