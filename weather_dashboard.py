@@ -218,6 +218,9 @@ def get_wind_level(speed):
 
 # ===== 主程式 =====
 def main():
+    # ===== 版本設定 =====
+    VERSION = "2.1"
+    
     # ===== 初始化 session_state =====
     if 'current_tab' not in st.session_state:
         st.session_state.current_tab = "domestic"
@@ -227,7 +230,8 @@ def main():
         st.session_state.international_location = list(JAPAN_LOCATIONS.keys())[0]
     
     # ===== 側邊欄 =====
-    st.sidebar.title("🌤️ 少爺的天氣儀表板")
+    st.sidebar.title(f"🌤️ 少爺的天氣儀表板")
+    st.sidebar.markdown(f"**V{VERSION}** | {datetime.now(ZoneInfo('Asia/Taipei')).strftime('%Y-%m-%d')}")
     st.sidebar.markdown("---")
     
     # ===== Tab 切換按鈕（側邊欄）=====
@@ -283,24 +287,19 @@ def main():
     st.sidebar.markdown("- 環保署 AQI（國內）")
     st.sidebar.markdown("- WAQI AQI（國外）")
     
-    # ===== 主頁面：Tab 切換 =====
+    # ===== 版次資訊（側邊欄底部）=====
+    st.sidebar.markdown("---")
+    st.sidebar.caption(f"📌 V{VERSION} | {datetime.now(ZoneInfo('Asia/Taipei')).strftime('%Y-%m-%d')}")
+    
+    # ===== 主頁面：統一天氣顯示 =====
     st.title(f"🌤️ {selected_location} 天氣預報")
     st.markdown(f"**報告時間：** {datetime.now(ZoneInfo('Asia/Taipei')).strftime('%Y年%m月%d日 %H:%M')}")
-    
-    # 國內/國外 Tab
-    tab_domestic, tab_international = st.tabs(["🇹🇼 國內", "🇯🇵 國外"])
     
     # 判斷是國內還是國外
     is_domestic = selected_location in TAIWAN_LOCATIONS
     
-    # 根據地點決定在哪個 Tab 顯示
-    with tab_domestic if is_domestic else tab_international:
-        render_weather_content(selected_location, show_aqi, days_to_show, is_domestic=True)
-    
-    with tab_international if is_domestic else tab_domestic:
-        # 渲染另一個 Tab 的內容 - 預設顯示第一個國外地點
-        first_intl = list(JAPAN_LOCATIONS.keys())[0]
-        render_weather_content(first_intl, show_aqi, days_to_show, is_domestic=False)
+    # 直接渲染當前選擇的天氣內容
+    render_weather_content(selected_location, show_aqi, days_to_show, is_domestic=is_domestic)
 
 
 def render_weather_content(location_name, show_aqi, days_to_show, is_domestic=True):
