@@ -141,7 +141,7 @@ def get_waqi_aqi(lat, lon):
         headers = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
         }
-        params = {'token': 'demo'}  # 測試用 token，正式需申請
+        params = {'token': 'f67a217b6e937a17498b19a39261aa9c90c6bbda'}  # 少爺專用 WAQI Token
         response = requests.get(url, params=params, headers=headers, timeout=10)
         
         if response.status_code == 200:
