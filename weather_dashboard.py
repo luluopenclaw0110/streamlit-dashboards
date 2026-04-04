@@ -922,15 +922,16 @@ def main():
             ))
             fig_temp.update_layout(
                 title=dict(text='🌡️ 溫度趨勢', font=dict(color='white', size=15)),
-                xaxis_title=dict(text='時間', font=dict(color='rgba(255,255,255,0.6)')),
-                yaxis_title=dict(text='°C', font=dict(color='rgba(255,255,255,0.6)')),
+                xaxis=dict(title=dict(text='時間', font=dict(color='rgba(255,255,255,0.6)')),
+                           showgrid=False, color='rgba(255,255,255,0.3)'),
+                yaxis=dict(title=dict(text='°C', font=dict(color='rgba(255,255,255,0.6)')),
+                           showgrid=True, gridcolor='rgba(255,255,255,0.06)', color='rgba(255,255,255,0.3)'),
                 height=320, template='plotly_dark',
                 paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
                 font=dict(color='rgba(255,255,255,0.8)'),
                 hovermode='x unified',
-                xaxis=dict(showgrid=False, color='rgba(255,255,255,0.3)'),
-                yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.06)', color='rgba(255,255,255,0.3)'),
-                legend=dict(font=dict(color='rgba(255,255,255,0.7)'), bgcolor='rgba(0,0,0,0)')
+                legend=dict(font=dict(color='rgba(255,255,255,0.7)'), bgcolor='rgba(0,0,0,0)'),
+                autosize=True
             )
 
             # 濕度 + 降雨圖
@@ -947,17 +948,20 @@ def main():
             fig_hr.update_layout(
                 title=dict(text='💧 濕度與降雨機率', font=dict(color='white', size=15)),
                 xaxis=dict(showgrid=False, color='rgba(255,255,255,0.3)'),
-                yaxis=dict(title='降雨機率 %', range=[0,100], showgrid=True,
+                yaxis=dict(title=dict(text='降雨機率 %', font=dict(color='rgba(255,255,255,0.6)')),
+                           range=[0,100], showgrid=True,
                            gridcolor='rgba(255,255,255,0.06)', color='rgba(255,255,255,0.3)',
-                           title_font=dict(color='rgba(255,255,255,0.6)'), font=dict(color='rgba(255,255,255,0.6)')),
-                yaxis2=dict(title='濕度 %', overlaying='y', side='right', range=[0,100],
-                            color='rgba(255,255,255,0.3)', title_font=dict(color='rgba(255,255,255,0.6)'),
-                            font=dict(color='rgba(255,255,255,0.6)')),
+                           tickfont=dict(color='rgba(255,255,255,0.6)')),
+                yaxis2=dict(title=dict(text='濕度 %', font=dict(color='rgba(255,255,255,0.6)')),
+                            overlaying='y', side='right', range=[0,100],
+                            color='rgba(255,255,255,0.3)',
+                            tickfont=dict(color='rgba(255,255,255,0.6)')),
                 height=320, template='plotly_dark',
                 paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
                 font=dict(color='rgba(255,255,255,0.8)'),
                 hovermode='x unified',
-                legend=dict(font=dict(color='rgba(255,255,255,0.7)'), bgcolor='rgba(0,0,0,0)')
+                legend=dict(font=dict(color='rgba(255,255,255,0.7)'), bgcolor='rgba(0,0,0,0)'),
+                autosize=True
             )
 
             # 風速圖
@@ -970,14 +974,16 @@ def main():
             fig_wind.update_layout(
                 title=dict(text=f'{get_wind_emoji(avg_wind)} 風速趨勢（平均 {avg_wind} km/h）', font=dict(color='white', size=15)),
                 xaxis=dict(showgrid=False, color='rgba(255,255,255,0.3)'),
-                yaxis=dict(title='km/h', showgrid=True, gridcolor='rgba(255,255,255,0.06)',
+                yaxis=dict(title=dict(text='km/h', font=dict(color='rgba(255,255,255,0.6)')),
+                           showgrid=True, gridcolor='rgba(255,255,255,0.06)',
                            color='rgba(255,255,255,0.3)',
-                           title_font=dict(color='rgba(255,255,255,0.6)'), font=dict(color='rgba(255,255,255,0.6)')),
+                           tickfont=dict(color='rgba(255,255,255,0.6)')),
                 height=300, template='plotly_dark',
                 paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
                 font=dict(color='rgba(255,255,255,0.8)'),
                 hovermode='x unified',
-                legend=dict(font=dict(color='rgba(255,255,255,0.7)'), bgcolor='rgba(0,0,0,0)')
+                legend=dict(font=dict(color='rgba(255,255,255,0.7)'), bgcolor='rgba(0,0,0,0)'),
+                autosize=True
             )
 
             col_chart1, col_chart2 = st.columns(2)
