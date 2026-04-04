@@ -79,13 +79,13 @@ def get_weather_data(lat, lon):
 def get_taiwan_aqi(city_name):
     """從台灣環保署 AQI API 取得空氣品質資料"""
     try:
-        # 台灣環保署開放資料 AQI API (需要 API key)
-        # 正確端點格式: https://data.moenv.gov.tw/api/v2/aqx_p_432
-        # 若無 API key，回傳 None 並在 UI 顯示提示
+        # 台灣環保署開放資料 AQI API
+        # API Key: a75a9b46-160f-4724-b3a1-446633472310
         url = "https://data.moenv.gov.tw/api/v2/aqx_p_432"
         headers = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'Authorization': 'a75a9b46-160f-4724-b3a1-446633472310'
         }
         params = {
             'offset': '0',
