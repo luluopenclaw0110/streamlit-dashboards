@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-少爺專用 - 專業財經儀表板
+少爺專用 - 專業財經儀表板（含宏觀經濟）
 使用方式: streamlit run stock_dashboard.py
 """
 
@@ -13,6 +13,17 @@ from datetime import datetime, timedelta
 import json
 import requests
 
+# ===== 配色系統 =====
+COLORS = {
+    'background': '#0D1117',
+    'card': '#161B22',
+    'bullish': '#3FB950',     # 多頭 🟢
+    'neutral': '#D29922',      # 中性 🟡
+    'bearish': '#F85149',      # 空頭 🔴
+    'text': '#E6EDF3',
+    'text_secondary': '#8B949E',
+}
+
 # 頁面設定
 st.set_page_config(
     page_title="少爺的股票儀表板",
@@ -20,23 +31,144 @@ st.set_page_config(
     layout="wide"
 )
 
-# 少爺的8檔股票
+# 自訂 CSS
+st.markdown("""
+<style>
+.stApp { background-color: #0D1117; }
+.css-1d391kg { background-color: #161B22; }
+div[data-testid="stMetricValue"] { color: #E6EDF3; font-size: 1.8rem; }
+div[data-testid="stMetricLabel"] { color: #8B949E; }
+.st-dx { background-color: #161B22; }
+.element-container { background-color: #161B22; }
+</style>
+""", unsafe_allow_html=True)
+
+# ===== FRED API =====
+FRED_API_KEY = 'edaa5b7562ebd132c42effa0193e5772'
+
+@st.cache_data(ttl=3600)
+def get_fred_data(series_id, name, months=12):
+    try:
+        url = f'https://api.stlouisfed.org/fred/series/observations'
+        params = {
+            'series_id': series_id,
+            'api_key': FRED_API_KEY,
+            'file_type': 'json',
+            'limit': months,
+            'sort_order': 'DESC'
+        }
+        r = requests.get(url, params=params, timeout=15)
+        data = r.json()
+        if 'observations' in data:
+            observations = data['observations']
+            df = pd.DataFrame(observations)
+            df['date'] = pd.to_datetime(df['date'])
+            df['value'] = pd.to_numeric(df['value'], errors='coerce')
+            df = df.dropna()
+            df = df.sort_values('date')
+            return df.rename(columns={'value': name})
+        return None
+    except Exception as e:
+        print(f"FRED Error ({series_id}): {e}")
+        return None
+
+@st.cache_data(ttl=300)
+def get_fred_latest(series_id):
+    try:
+        url = f'https://api.stlouisfed.org/fred/series/observations'
+        params = {
+            'series_id': series_id,
+            'api_key': FRED_API_KEY,
+            'file_type': 'json',
+            'limit': 2,
+            'sort_order': 'DESC'
+        }
+        r = requests.get(url, params=params, timeout=10)
+        data = r.json()
+        if 'observations' in data and len(data['observations']) >= 2:
+            latest = float(data['observations'][0]['value'])
+            previous = float(data['observations'][1]['value'])
+            return latest, previous
+        return None, None
+    except:
+        return None, None
+
+@st.cache_data(ttl=60)
+def get_market_data(ticker, period='1mo'):
+    try:
+        t = yf.Ticker(ticker)
+        df = t.history(period=period)
+        return df
+    except:
+        return None
+
+def get_ticker_price_change(ticker):
+    try:
+        t = yf.Ticker(ticker)
+        price = t.info.get('regularMarketPrice') or t.info.get('currentPrice')
+        change = t.info.get('regularMarketChange') or t.info.get('change')
+        change_pct = t.info.get('regularMarketChangePercent') or 0
+        return price, change, change_pct
+    except:
+        return None, None, None
+
+def render_macro_card(title, latest_val, prev_val, unit='', status='neutral', bar_width=0.7):
+    if latest_val is not None and prev_val is not None:
+        change = latest_val - prev_val
+        change_pct = (change / prev_val * 100) if prev_val != 0 else 0
+    else:
+        change = None
+        change_pct = None
+    
+    if status == 'bullish':
+        status_color = COLORS['bullish']
+        arrow = '▲'
+    elif status == 'bearish':
+        status_color = COLORS['bearish']
+        arrow = '▼'
+    else:
+        status_color = COLORS['neutral']
+        arrow = '◆'
+    
+    if latest_val is not None:
+        val_str = f"{latest_val:.2f}{unit}" if unit else f"{latest_val:.2f}"
+    else:
+        val_str = 'N/A'
+    
+    prev_str = f"{prev_val:.2f}{unit}" if prev_val is not None else 'N/A'
+    change_str = f"{arrow} {abs(change_pct):.2f}%" if change is not None else ''
+    
+    card_html = f"""
+    <div style="background-color: {COLORS['card']}; border-radius: 12px; padding: 16px; margin: 8px; border: 1px solid #30363D;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="color: {COLORS['text_secondary']}; font-size: 0.85rem;">{title}</span>
+            <span style="color: {status_color}; font-size: 1.2rem;">●</span>
+        </div>
+        <div style="color: {COLORS['text']}; font-size: 1.5rem; font-weight: bold; margin-bottom: 8px;">{val_str}</div>
+        <div style="background-color: #0D1117; border-radius: 4px; height: 6px; width: {bar_width*100}%; margin-bottom: 12px;">
+            <div style="background-color: {status_color}; border-radius: 4px; height: 100%; width: 100%;"></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; color: {COLORS['text_secondary']}; font-size: 0.8rem;">
+            <span>前值: {prev_str}</span>
+            <span style="color: {status_color};">{change_str}</span>
+        </div>
+    </div>
+    """
+    return card_html
+
 STOCKS = {
-    '2330': '台積電',
-    '2317': '鴻海', 
-    '3532': '台勝科',
-    '1503': '士電',
-    '2887': '台新新光金',
-    '1605': '華新',
-    '1717': '長興',
-    '1802': '台玻'
+    '2330': '台積電', '2317': '鴻海', '3532': '台勝科', '1503': '士電',
+    '2887': '台新新光金', '1605': '華新', '1717': '長興', '1802': '台玻'
 }
 
-# ===== 從 JSON 讀取基本面資料 =====
+US_STOCKS = {
+    'NVDA': 'NVIDIA', 'TSLA': 'Tesla', 'AAPL': 'Apple', 'MSFT': 'Microsoft',
+    'GOOGL': 'Google', 'META': 'Meta', 'AMZN': 'Amazon'
+}
+
 import os
 
 def load_fundamentals():
-    """從 JSON 檔案載入基本面資料"""
     json_path = os.path.join(os.path.dirname(__file__), 'data', 'stock_fundamentals.json')
     try:
         with open(json_path, 'r', encoding='utf-8') as f:
@@ -48,356 +180,301 @@ def load_fundamentals():
 
 FUNDAMENTALS, FUNDAMENTALS_UPDATE_DATE = load_fundamentals()
 
-# 美股
-US_STOCKS = {
-    'NVDA': 'NVIDIA',
-    'TSLA': 'Tesla',
-    'AAPL': 'Apple',
-    'MSFT': 'Microsoft',
-    'GOOGL': 'Google',
-    'META': 'Meta',
-    'AMZN': 'Amazon'
-}
-
-# ===== 台灣證交所 API =====
 @st.cache_data
 def get_twse_data(code, days=90):
-    """從台灣證交所取得股票數據"""
     try:
-        from datetime import datetime, timedelta
-        import time
-        
         all_data = []
         end_date = datetime.now()
-        
-        # 分多次請求來獲取多天數據
         for i in range(0, days, 30):
             date_str = end_date.strftime('%Y%m%d')
             url = f'https://www.twse.com.tw/rwd/zh/afterTrading/STOCK_DAY?&date={date_str}&stockNo={code}&response=json'
-            
             headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)'}
             r = requests.get(url, headers=headers, timeout=10)
             data = r.json()
-            
             if data.get('stat') == 'OK' and data.get('data'):
                 for row in data['data']:
                     try:
-                        # 解析民國年日期
-                        tw_date = row[0]  # 115/03/17
+                        tw_date = row[0]
                         year = int(tw_date.split('/')[0]) + 1911
                         month = tw_date.split('/')[1]
                         day = tw_date.split('/')[2]
                         date = f"{year}-{month}-{day}"
-                        
-                        # 解析價格（移除逗號）
-                        open_price = float(row[3].replace(',', ''))
-                        high = float(row[4].replace(',', ''))
-                        low = float(row[5].replace(',', ''))
-                        close = float(row[6].replace(',', ''))
-                        
                         all_data.append({
-                            'Date': date,
-                            'Open': open_price,
-                            'High': high,
-                            'Low': low,
-                            'Close': close,
-                            'Volume': int(row[1].replace(',', ''))
+                            'Date': date, 'Open': float(row[3].replace(',', '')),
+                            'High': float(row[4].replace(',', '')), 'Low': float(row[5].replace(',', '')),
+                            'Close': float(row[6].replace(',', '')), 'Volume': int(row[1].replace(',', ''))
                         })
                     except:
                         continue
-            
-            time.sleep(0.5)  # 避免請求太快
-        
+            import time; time.sleep(0.5)
         if all_data:
             df = pd.DataFrame(all_data)
             df['Date'] = pd.to_datetime(df['Date'])
-            df = df.sort_values('Date')
-            return df
+            return df.sort_values('Date')
         return None
     except Exception as e:
         print(f"TWSE Error: {e}")
         return None
 
-# ===== 函數定義 =====
 @st.cache_data
 def get_stock_data(code, period="1mo"):
-    """取得股票數據 - 優先使用台灣證交所"""
-    # 先嘗試台灣證交所
     df = get_twse_data(code)
     if df is not None and not df.empty:
         return df
-    
-    # 如果失敗，改用 yfinance
     try:
         ticker = yf.Ticker(f"{code}.TW")
-        df = ticker.history(period=period)
-        return df
+        return ticker.history(period=period)
     except:
         return None
 
 @st.cache_data  
 def get_us_stock_data(code, period="5d"):
-    """取得美股數據"""
     try:
         ticker = yf.Ticker(code)
-        df = ticker.history(period=period)
-        return df
+        return ticker.history(period=period)
     except:
         return None
 
 def calculate_ma(df, days):
-    """計算均線"""
     return df['Close'].rolling(window=days).mean()
 
 def calculate_rsi(df, days=14):
-    """計算RSI"""
     delta = df['Close'].diff()
     gain = (delta.where(delta > 0, 0)).rolling(window=days).mean()
     loss = (-delta.where(delta < 0, 0)).rolling(window=days).mean()
     rs = gain / loss
-    rsi = 100 - (100 / (1 + rs))
-    return rsi
-
-@st.cache_data
-def get_twse_basic_info(code):
-    """從台灣證交所取得基本資訊"""
-    try:
-        url = f'https://www.twse.com.tw/rwd/zh/fund/T86?date=&stockNo={code}&response=json'
-        headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)'}
-        r = requests.get(url, headers=headers, timeout=10)
-        data = r.json()
-        
-        if data.get('stat') == 'OK' and data.get('data'):
-            # 取最新一季資料
-            latest = data['data'][0]
-            return {
-                '季別': latest[0],
-                'EPS': float(latest[2].replace(',', '')) if latest[2] != '--' else None,
-                '殖利率': float(latest[4].replace(',', '')) if latest[4] != '--' else None,
-                '股息': float(latest[5].replace(',', '')) if latest[5] != '--' else None,
-            }
-        return None
-    except:
-        return None
+    return 100 - (100 / (1 + rs))
 
 @st.cache_data
 def get_fundamental_data(code):
-    """取得基本面數據 - 從 JSON 檔案讀取"""
-    
-    # 從 JSON 檔案取得資料 (由 load_fundamentals 載入)
     if code in FUNDAMENTALS:
         data = FUNDAMENTALS[code]
         return {
-            'EPS': data.get('EPS'),
-            '本益比': data.get('本益比'),
-            '殖利率': data.get('殖利率'),
-            '股息': data.get('股息'),
-            '每股淨值': data.get('每股淨值'),
-            '股價淨值比': data.get('股價淨值比'),
-            '52週最高': None,
-            '52週最低': None,
-            '市值': None,
-            '產業': data.get('產業'),
-            '產業類別': None,
+            'EPS': data.get('EPS'), '本益比': data.get('本益比'),
+            '殖利率': data.get('殖利率'), '股息': data.get('股息'),
+            '每股淨值': data.get('每股淨值'), '股價淨值比': data.get('股價淨值比'),
+            '52週最高': None, '52週最低': None, '市值': None,
+            '產業': data.get('產業'), '產業類別': None,
             '財報季度': data.get('財報季度', 'N/A'),
             '備註': data.get('備註', ''),
             '資料來源': f'證交所 ({FUNDAMENTALS_UPDATE_DATE})'
         }
-    
-    # 如果 JSON 沒有，嘗試 yfinance
     try:
         ticker = yf.Ticker(f"{code}.TW")
         info = ticker.info
-        
         fundamentals = {
-            'EPS': info.get('trailingEps'),
-            '本益比': info.get('trailingPE'),
-            '殖利率': info.get('dividendYield'),
-            '股息': info.get('dividendRate'),
-            '每股淨值': info.get('bookValue'),
-            '股價淨值比': info.get('priceToBook'),
-            '52週最高': info.get('fiftyTwoWeekHigh'),
-            '52週最低': info.get('fiftyTwoWeekLow'),
-            '市值': info.get('marketCap'),
-            '產業': info.get('sector'),
-            '產業類別': info.get('industry'),
-            '資料來源': 'yfinance'
+            'EPS': info.get('trailingEps'), '本益比': info.get('trailingPE'),
+            '殖利率': info.get('dividendYield'), '股息': info.get('dividendRate'),
+            '每股淨值': info.get('bookValue'), '股價淨值比': info.get('priceToBook'),
+            '52週最高': info.get('fiftyTwoWeekHigh'), '52週最低': info.get('fiftyTwoWeekLow'),
+            '市值': info.get('marketCap'), '產業': info.get('sector'),
+            '產業類別': info.get('industry'), '資料來源': 'yfinance'
         }
-        
         if fundamentals.get('EPS') or fundamentals.get('本益比'):
             return fundamentals
-            
     except:
         pass
-    
     return None
 
 # ===== 側邊欄 =====
 st.sidebar.title("📈 少爺的股票儀表板")
 st.sidebar.markdown("---")
-
-# 選擇股票
-selected_stock = st.sidebar.selectbox(
-    "選擇股票",
-    list(STOCKS.items()),
-    format_func=lambda x: f"{x[1]} ({x[0]})"
-)
-
-# 選擇時間範圍
-period = st.sidebar.selectbox(
-    "選擇時間範圍",
-    ["1mo", "3mo", "6mo", "1y", "2y"],
-    index=1,
-    format_func=lambda x: {"1mo": "1個月", "3mo": "3個月", "6mo": "6個月", "1y": "1年", "2y": "2年"}[x]
-)
-
-# 選擇技術指標
-indicators = st.sidebar.multiselect(
-    "技術指標",
-    ["MA5", "MA20", "MA60", "RSI", "Volume"],
-    default=["MA20"]
-)
-
+selected_stock = st.sidebar.selectbox("選擇股票", list(STOCKS.items()), format_func=lambda x: f"{x[1]} ({x[0]})")
+period = st.sidebar.selectbox("選擇時間範圍", ["1mo", "3mo", "6mo", "1y", "2y"], index=1, format_func=lambda x: {"1mo": "1個月", "3mo": "3個月", "6mo": "6個月", "1y": "1年", "2y": "2年"}[x])
+indicators = st.sidebar.multiselect("技術指標", ["MA5", "MA20", "MA60", "RSI", "Volume"], default=["MA20"])
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 📊 快速連結")
 st.sidebar.markdown("- [Yahoo 股市](https://tw.stock.yahoo.com/)")
 st.sidebar.markdown("- [TradingView](https://www.tradingview.com/)")
 
 # ===== 主頁面 =====
-st.title(f"📈 {selected_stock[1]} ({selected_stock[0]}) - 專業分析")
+st.title("🌐 少爺的股票儀表板（含宏觀經濟）")
 
-# 取得數據
+# ================================================
+# 🌐 第一區塊：宏觀局勢分析
+# ================================================
+st.markdown("---")
+st.markdown("### 🌐 宏觀局勢分析")
+
+fed_rate, fed_prev = get_fred_latest('FEDFUNDS')
+unemp_rate, unemp_prev = get_fred_latest('UNRATE')
+cpi, cpi_prev = get_fred_latest('CPIAUCSL')
+cpi_yoy = ((cpi / cpi_prev) - 1) * 100 * 12 if cpi is not None and cpi_prev is not None and cpi_prev > 0 else None
+gdp, gdp_prev = get_fred_latest('GDP')
+tnxy, tnxy_prev = get_ticker_price_change('^TNX')
+vix_price, vix_change, vix_change_pct = get_ticker_price_change('^VIX')
+sp_price, sp_change, sp_change_pct = get_ticker_price_change('^GSPC')
+nasdaq_price, nasdaq_change, nasdaq_change_pct = get_ticker_price_change('^IXIC')
+dxy_price, dxy_change, dxy_change_pct = get_ticker_price_change('DX-Y.NYB')
+gold_price, gold_change, gold_change_pct = get_ticker_price_change('GC=F')
+btc_price, btc_change, btc_change_pct = get_ticker_price_change('BTC-USD')
+nvda_price, nvda_change, nvda_change_pct = get_ticker_price_change('NVDA')
+tsm_price, tsm_change, tsm_change_pct = get_ticker_price_change('TSM')
+qqq_price, qqq_change, qqq_change_pct = get_ticker_price_change('QQQ')
+hy_spread, hy_prev = get_fred_latest('BAMLEMBISPREAD')
+ig_spread, ig_prev = get_fred_latest('BAMLEASPPISAC')
+
+# 第一排：核心巨觀指標
+st.markdown("#### 📊 核心巨觀指標")
+c1, c2, c3, c4, c5 = st.columns(5)
+with c1:
+    status = 'bearish' if fed_rate and fed_rate > 5 else 'neutral'
+    st.markdown(render_macro_card('🏦 Fed利率', fed_rate, fed_prev, '%', status), unsafe_allow_html=True)
+with c2:
+    status = 'bearish' if unemp_rate and unemp_rate > 5 else 'bullish'
+    st.markdown(render_macro_card('👷 失業率', unemp_rate, unemp_prev, '%', status), unsafe_allow_html=True)
+with c3:
+    status = 'bearish' if cpi_yoy and cpi_yoy > 3 else 'neutral'
+    st.markdown(render_macro_card('📈 CPI通膨(年)', cpi_yoy, None, '%', status), unsafe_allow_html=True)
+with c4:
+    gdp_growth = ((gdp / gdp_prev) - 1) * 100 if gdp and gdp_prev else None
+    status = 'bullish' if gdp_growth and gdp_growth > 2 else 'neutral'
+    st.markdown(render_macro_card('📊 GDP季增率', gdp_growth, None, '%', status), unsafe_allow_html=True)
+with c5:
+    status = 'bearish' if tnxy and tnxy > 4.5 else 'neutral'
+    st.markdown(render_macro_card('💵 10年債殖利率', tnxy, tnxy_prev, '%', status), unsafe_allow_html=True)
+
+# 第二排：市場情緒
+st.markdown("#### 😰 市場情緒 & 資金流向")
+c1, c2, c3, c4, c5, c6 = st.columns(6)
+with c1:
+    status = 'bearish' if vix_price and vix_price > 25 else 'bullish' if vix_price and vix_price < 15 else 'neutral'
+    st.markdown(render_macro_card('😰 VIX恐慌', vix_price, None, '', status, 0.3), unsafe_allow_html=True)
+with c2:
+    st.markdown(render_macro_card('📈 S&P 500', sp_price, None, '', 'neutral', 0.8), unsafe_allow_html=True)
+with c3:
+    st.markdown(render_macro_card('🔷 Nasdaq', nasdaq_price, None, '', 'neutral', 0.8), unsafe_allow_html=True)
+with c4:
+    status = 'bullish' if dxy_price and dxy_price > 105 else 'bearish' if dxy_price and dxy_price < 100 else 'neutral'
+    st.markdown(render_macro_card('💵 美元指數', dxy_price, None, '', status), unsafe_allow_html=True)
+with c5:
+    status = 'bullish' if gold_change and gold_change > 0 else 'bearish'
+    st.markdown(render_macro_card('🥇 黃金', gold_price, None, '', status), unsafe_allow_html=True)
+with c6:
+    status = 'bullish' if btc_change and btc_change > 0 else 'bearish'
+    st.markdown(render_macro_card('₿ BTC', btc_price, None, '', status), unsafe_allow_html=True)
+
+# 第三排：AI科技
+st.markdown("#### 🤖 AI科技 & 關鍵指標")
+c1, c2, c3, c4, c5 = st.columns(5)
+with c1:
+    status = 'bullish' if nvda_change and nvda_change > 0 else 'bearish'
+    st.markdown(render_macro_card('🤖 NVDA', nvda_price, None, '', status), unsafe_allow_html=True)
+with c2:
+    status = 'bullish' if tsm_change and tsm_change > 0 else 'bearish'
+    st.markdown(render_macro_card('⚡ TSM 台積電', tsm_price, None, '', status), unsafe_allow_html=True)
+with c3:
+    status = 'bullish' if qqq_change and qqq_change > 0 else 'bearish'
+    st.markdown(render_macro_card('📊 QQQ 納指', qqq_price, None, '', status), unsafe_allow_html=True)
+with c4:
+    status = 'bearish' if hy_spread and hy_spread > 500 else 'bullish' if hy_spread and hy_spread < 300 else 'neutral'
+    st.markdown(render_macro_card('💳 HY利差(bp)', hy_spread, hy_prev, '', status), unsafe_allow_html=True)
+with c5:
+    status = 'bearish' if ig_spread and ig_spread > 150 else 'bullish' if ig_spread and ig_spread < 100 else 'neutral'
+    st.markdown(render_macro_card('💳 IG利差(bp)', ig_spread, ig_prev, '', status), unsafe_allow_html=True)
+
+# 情境 Banner
+if vix_price:
+    if vix_price > 25:
+        mood, mood_color, suggestion = "⚠️ 市場恐慌", COLORS['bearish'], "持有現金、降低科技股曝險"
+    elif vix_price < 15:
+        mood, mood_color, suggestion = "✅ 市場穩定", COLORS['bullish'], "積極佈局，但留意本益比"
+    else:
+        mood, mood_color, suggestion = "📊 中性觀望", COLORS['neutral'], "區間操作，等待方向"
+else:
+    mood, mood_color, suggestion = "📊 載入中...", COLORS['neutral'], ""
+
+if tnxy:
+    if tnxy > 4.5:
+        rate_msg, rate_color = "⚠️ 升息壓力大", COLORS['bearish']
+    elif tnxy > 3.5:
+        rate_msg, rate_color = "📊 利率正常", COLORS['neutral']
+    else:
+        rate_msg, rate_color = "🔽 低利率環境", COLORS['bullish']
+else:
+    rate_msg, rate_color = "", COLORS['neutral']
+
+st.markdown(f"""
+<div style="background: linear-gradient(135deg, {COLORS['card']} 0%, #1a2332 100%); border-radius: 16px; padding: 24px; margin: 16px 0; border: 1px solid #30363D; text-align: center;">
+    <h2 style="color: {mood_color}; margin-bottom: 8px;">{mood}</h2>
+    <p style="color: {COLORS['text_secondary']}; font-size: 1rem;">
+        利率環境: <span style="color: {rate_color};">{rate_msg}</span>
+        &nbsp;|&nbsp;
+        建議: <span style="color: {COLORS['text']};">{suggestion}</span>
+    </p>
+</div>
+""", unsafe_allow_html=True)
+
+# ================================================
+# 📈 第二區塊：即時股票
+# ================================================
+st.markdown("---")
+st.markdown(f"### 📈 即時股票：{selected_stock[1]} ({selected_stock[0]})")
+
 df = get_stock_data(selected_stock[0], period)
 
 if df is not None and len(df) > 0:
-    # 取得最新價格
     current_price = df['Close'].iloc[-1]
     prev_price = df['Close'].iloc[-2] if len(df) > 1 else current_price
     change = current_price - prev_price
     change_pct = (change / prev_price) * 100
     
-    # 顯示價格
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric(
-            "現在價格",
-            f"${current_price:.2f}",
-            f"{change:+.2f} ({change_pct:+.2f}%)"
-        )
-    with col2:
-        high = df['High'].max()
-        st.metric("最高價", f"${high:.2f}")
-    with col3:
-        low = df['Low'].min()
-        st.metric("最低價", f"${low:.2f}")
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        st.metric("現在價格", f"${current_price:.2f}", f"{change:+.2f} ({change_pct:+.2f}%)")
+    with c2:
+        st.metric("最高價", f"${df['High'].max():.2f}")
+    with c3:
+        st.metric("最低價", f"${df['Low'].min():.2f}")
     
-    # ===== K線圖 =====
-    st.markdown("### 📊 K線圖")
-    
-    # 準備K線數據
-    candle = go.Candlestick(
-        x=df.index,
-        open=df['Open'],
-        high=df['High'],
-        low=df['Low'],
-        close=df['Close'],
-        name='K線'
-    )
-    
-    # 建立圖表
+    st.markdown("#### 📊 K線圖")
+    candle = go.Candlestick(x=df.index, open=df['Open'], high=df['High'], low=df['Low'], close=df['Close'], name='K線')
     fig = go.Figure(data=[candle])
     
-    # 加入均線
-    colors = {'MA5': 'blue', 'MA20': 'purple', 'MA60': 'orange'}
-    
     if "MA5" in indicators:
-        ma5 = calculate_ma(df, 5)
-        fig.add_trace(go.Scatter(x=df.index, y=ma5, name='MA5', line=dict(color='blue', width=1)))
-    
+        fig.add_trace(go.Scatter(x=df.index, y=calculate_ma(df, 5), name='MA5', line=dict(color='blue', width=1)))
     if "MA20" in indicators:
-        ma20 = calculate_ma(df, 20)
-        fig.add_trace(go.Scatter(x=df.index, y=ma20, name='MA20', line=dict(color='purple', width=2)))
-    
+        fig.add_trace(go.Scatter(x=df.index, y=calculate_ma(df, 20), name='MA20', line=dict(color='purple', width=2)))
     if "MA60" in indicators:
-        ma60 = calculate_ma(df, 60)
-        fig.add_trace(go.Scatter(x=df.index, y=ma60, name='MA60', line=dict(color='orange', width=2)))
+        fig.add_trace(go.Scatter(x=df.index, y=calculate_ma(df, 60), name='MA60', line=dict(color='orange', width=2)))
     
-    # 圖表設定
-    fig.update_layout(
-        xaxis_rangeslider_visible=False,
-        height=500,
-        template="plotly_dark",
-        title=f"{selected_stock[1]} K線圖",
-        yaxis_title="價格",
-        xaxis_title="日期"
-    )
-    
+    fig.update_layout(xaxis_rangeslider_visible=False, height=500, template="plotly_dark",
+                      title=f"{selected_stock[1]} K線圖", yaxis_title="價格", xaxis_title="日期")
     st.plotly_chart(fig, use_container_width=True)
     
-    # ===== RSI =====
     if "RSI" in indicators:
-        st.markdown("### 📉 RSI 指標")
-        
+        st.markdown("#### 📉 RSI 指標")
         rsi = calculate_rsi(df)
-        
         fig_rsi = go.Figure()
         fig_rsi.add_trace(go.Scatter(x=df.index, y=rsi, name='RSI', line=dict(color='yellow', width=2)))
-        
-        # RSI 參考線
         fig_rsi.add_hline(y=70, line_dash="dash", line_color="red", annotation_text="超買")
         fig_rsi.add_hline(y=30, line_dash="dash", line_color="green", annotation_text="超賣")
         fig_rsi.add_hline(y=50, line_dash="dot", line_color="gray")
-        
-        fig_rsi.update_layout(
-            height=250,
-            template="plotly_dark",
-            title="RSI (14)",
-            yaxis_title="RSI",
-            yaxis_range=[0, 100]
-        )
-        
+        fig_rsi.update_layout(height=250, template="plotly_dark", title="RSI (14)", yaxis_title="RSI", yaxis_range=[0, 100])
         st.plotly_chart(fig_rsi, use_container_width=True)
     
-    # ===== 成交量 =====
     if "Volume" in indicators:
-        st.markdown("### 📊 成交量")
-        
-        colors_vol = ['red' if df['Close'].iloc[i] >= df['Open'].iloc[i] else 'green' 
-                      for i in range(len(df))]
-        
-        fig_vol = go.Figure(data=[
-            go.Bar(x=df.index, y=df['Volume'], name='成交量', marker_color=colors_vol)
-        ])
-        
-        fig_vol.update_layout(
-            height=200,
-            template="plotly_dark",
-            title="成交量",
-            yaxis_title="成交量"
-        )
-        
+        st.markdown("#### 📊 成交量")
+        colors_vol = ['red' if df['Close'].iloc[i] >= df['Open'].iloc[i] else 'green' for i in range(len(df))]
+        fig_vol = go.Figure(data=[go.Bar(x=df.index, y=df['Volume'], name='成交量', marker_color=colors_vol)])
+        fig_vol.update_layout(height=200, template="plotly_dark", title="成交量", yaxis_title="成交量")
         st.plotly_chart(fig_vol, use_container_width=True)
     
-    # ===== 技術分析建議 =====
     st.markdown("---")
-    st.markdown("### 💡 技術分析建議")
+    st.markdown("#### 💡 技術分析建議")
     
-    # 計算MA關係
     ma5 = calculate_ma(df, 5).iloc[-1]
     ma20 = calculate_ma(df, 20).iloc[-1]
     ma60 = calculate_ma(df, 60).iloc[-1] if len(df) >= 60 else None
-    
     rsi_val = calculate_rsi(df).iloc[-1]
     
-    col1, col2 = st.columns(2)
-    
-    with col1:
+    c1, c2 = st.columns(2)
+    with c1:
         st.markdown("**均線狀態：**")
         if ma5 > ma20:
             st.success(f"✅ MA5 > MA20 → 短線偏多")
         else:
             st.warning(f"⚠️ MA5 < MA20 → 短線偏空")
-        
         if ma60 is not None:
             if ma20 > ma60:
                 st.success(f"✅ MA20 > MA60 → 中線偏多")
@@ -405,8 +482,7 @@ if df is not None and len(df) > 0:
                 st.warning(f"⚠️ MA20 < MA60 → 中線偏空")
         else:
             st.info("📊 數據不足60天，無法計算MA60")
-    
-    with col2:
+    with c2:
         st.markdown("**RSI 狀態：**")
         if rsi_val > 70:
             st.warning(f"⚠️ RSI = {rsi_val:.1f} → 超買區，可能回檔")
@@ -415,84 +491,46 @@ if df is not None and len(df) > 0:
         else:
             st.info(f"➡️ RSI = {rsi_val:.1f} → 區間整理")
     
-    # ===== 基本面數據 =====
     st.markdown("---")
-    st.markdown("### 📋 基本面數據 (資料來源：證交所)")
-    
+    st.markdown("#### 📋 基本面數據 (資料來源：證交所)")
     fundamentals = get_fundamental_data(selected_stock[0])
     
     if fundamentals:
-        # 取得財報季度
-        fiscal_q = fundamentals.get('財報季度', 'N/A')
-        
-        col0, col1, col2, col3, col4 = st.columns(5)
-        
-        with col0:
-            st.metric("財報季度", fiscal_q)
-        
-        with col1:
-            eps = fundamentals.get('EPS')
-            if eps and eps != 'N/A':
-                st.metric("EPS", f"${eps:.2f}")
-            else:
-                st.metric("EPS", "N/A")
-        
-        with col2:
-            pe = fundamentals.get('本益比')
-            if pe and pe != 'N/A':
-                st.metric("本益比 (P/E)", f"{pe:.2f}")
-            else:
-                st.metric("本益比 (P/E)", "N/A")
-        
-        with col3:
-            div_yield = fundamentals.get('殖利率')
+        c0, c1, c2, c3, c4 = st.columns(5)
+        with c0:
+            st.metric("財報季度", fundamentals.get('財報季度', 'N/A'))
+        eps = fundamentals.get('EPS')
+        with c1:
+            st.metric("EPS", f"${eps:.2f}" if eps and eps != 'N/A' else "N/A")
+        pe = fundamentals.get('本益比')
+        with c2:
+            st.metric("本益比 (P/E)", f"{pe:.2f}" if pe and pe != 'N/A' else "N/A")
+        div_yield = fundamentals.get('殖利率')
+        with c3:
             if div_yield and div_yield != 'N/A':
-                # 移除 % 符號
                 if isinstance(div_yield, str):
                     div_yield = div_yield.replace('%', '')
-                    try:
-                        div_yield = float(div_yield)
-                    except:
-                        div_yield = 'N/A'
+                    try: div_yield = float(div_yield)
+                    except: div_yield = 'N/A'
                 if div_yield != 'N/A':
                     st.metric("殖利率", f"{div_yield:.2f}%")
                 else:
                     st.metric("殖利率", "N/A")
             else:
                 st.metric("殖利率", "N/A")
-        
-        with col4:
+        with c4:
             pb = fundamentals.get('每股淨值')
-            if pb and pb != 'N/A':
-                st.metric("每股淨值", f"${pb:.2f}")
-            else:
-                st.metric("每股淨值", "N/A")
+            st.metric("每股淨值", f"${pb:.2f}" if pb and pb != 'N/A' else "N/A")
         
-        # 顯示更新日期
         update_note = fundamentals.get('備註', '')
         if update_note:
             st.caption(f"📅 {update_note}")
-            low52 = fundamentals.get('52週最低')
-            if low52:
-                st.metric("52週最低", f"${low52:.2f}")
         
-        # 產業資訊
         sector = fundamentals.get('產業')
         industry = fundamentals.get('產業類別')
         if sector or industry:
             st.markdown(f"**產業：** {sector} / {industry}")
         
-        # 配息歷史
-        div_history = fundamentals.get('配息歷史')
-        if div_history is not None and len(div_history) > 0:
-            st.markdown("### 💰 配息歷史 (近8次)")
-            div_df = pd.DataFrame({
-                '日期': [d.strftime('%Y-%m') for d in div_history.index],
-                '股息': div_history.values
-            })
-            st.dataframe(div_df, use_container_width=True, hide_index=True)
-        
-        # 市值
         market_cap = fundamentals.get('市值')
         if market_cap:
             if market_cap > 1e12:
@@ -502,15 +540,15 @@ if df is not None and len(df) > 0:
             else:
                 cap_str = f"${market_cap/1e6:.2f}M"
             st.markdown(f"**市值：** {cap_str}")
-
 else:
     st.error("無法取得股票數據，請稍後再試")
 
-# ===== 報價牆 =====
+# ================================================
+# 🏭 第三區塊：產業分析
+# ================================================
 st.markdown("---")
-st.markdown("### 📈 少爺的8檔股票")
+st.markdown("### 🏭 產業分析：少爺的8檔股票")
 
-# 取得所有股票報價
 prices_data = []
 for code, name in STOCKS.items():
     df_stock = get_stock_data(code, "5d")
@@ -518,33 +556,19 @@ for code, name in STOCKS.items():
         current = df_stock['Close'].iloc[-1]
         prev = df_stock['Close'].iloc[-2] if len(df_stock) > 1 else current
         change = ((current - prev) / prev) * 100
-        prices_data.append({
-            '代號': code,
-            '名稱': name,
-            '現價': current,
-            '漲跌幅': change
-        })
+        prices_data.append({'代號': code, '名稱': name, '現價': current, '漲跌幅': change})
 
 if prices_data:
-    df_prices = pd.DataFrame(prices_data)
-    
-    # 排序
-    df_prices = df_prices.sort_values('漲跌幅', ascending=False)
-    
-    # 顯示表格
+    df_prices = pd.DataFrame(prices_data).sort_values('漲跌幅', ascending=False)
     def color_change(val):
-        color = 'green' if val > 0 else 'red' if val < 0 else 'gray'
-        return f'color: {color}'
-    
-    st.dataframe(
-        df_prices.style.format({'現價': '${:.2f}', '漲跌幅': '{:+.2f}%'})
-                          .applymap(color_change, subset=['漲跌幅']),
-        use_container_width=True
-    )
+        return f'color: {"green" if val > 0 else "red" if val < 0 else "gray"}'
+    st.dataframe(df_prices.style.format({'現價': '${:.2f}', '漲跌幅': '{:+.2f}%'}).applymap(color_change, subset=['漲跌幅']), use_container_width=True)
 
-# ===== 美股報價 =====
+# ================================================
+# 🌍 第四區塊：龍龍操盤 - 美股
+# ================================================
 st.markdown("---")
-st.markdown("### 🌍 美股昨晚表現")
+st.markdown("### 🌍 龍龍操盤：美股昨晚表現")
 
 us_prices = []
 for code, name in US_STOCKS.items():
@@ -553,22 +577,11 @@ for code, name in US_STOCKS.items():
         current = df_us['Close'].iloc[-1]
         prev = df_us['Close'].iloc[-2] if len(df_us) > 1 else current
         change = ((current - prev) / prev) * 100
-        us_prices.append({
-            '代號': code,
-            '名稱': name,
-            '現價': current,
-            '漲跌幅': change
-        })
+        us_prices.append({'代號': code, '名稱': name, '現價': current, '漲跌幅': change})
 
 if us_prices:
-    df_us_prices = pd.DataFrame(us_prices)
-    df_us_prices = df_us_prices.sort_values('漲跌幅', ascending=False)
-    
-    st.dataframe(
-        df_us_prices.style.format({'現價': '${:.2f}', '漲跌幅': '{:+.2f}%'})
-                          .applymap(color_change, subset=['漲跌幅']),
-        use_container_width=True
-    )
+    df_us_prices = pd.DataFrame(us_prices).sort_values('漲跌幅', ascending=False)
+    st.dataframe(df_us_prices.style.format({'現價': '${:.2f}', '漲跌幅': '{:+.2f}%'}).applymap(color_change, subset=['漲跌幅']), use_container_width=True)
 
 # ===== 頁腳 =====
 st.markdown("---")
