@@ -307,6 +307,7 @@ cpi, cpi_prev = get_fred_latest('CPIAUCSL')
 cpi_yoy = ((cpi / cpi_prev) - 1) * 100 * 12 if cpi is not None and cpi_prev is not None and cpi_prev > 0 else None
 gdp, gdp_prev = get_fred_latest('GDP')
 tnxy, tnxy_change, tnxy_change_pct = get_ticker_price_change('^TNX')
+tnxy_prev = (tnxy - tnxy_change) if tnxy is not None and tnxy_change is not None else None
 vix_price, vix_change, vix_change_pct = get_ticker_price_change('^VIX')
 sp_price, sp_change, sp_change_pct = get_ticker_price_change('^GSPC')
 nasdaq_price, nasdaq_change, nasdaq_change_pct = get_ticker_price_change('^IXIC')
