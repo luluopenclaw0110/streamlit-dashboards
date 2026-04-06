@@ -105,11 +105,16 @@ def get_market_data(ticker, period='1mo'):
 def get_ticker_price_change(ticker):
     try:
         t = yf.Ticker(ticker)
-        price = t.info.get('regularMarketPrice') or t.info.get('currentPrice')
-        change = t.info.get('regularMarketChange') or t.info.get('change')
-        change_pct = t.info.get('regularMarketChangePercent') or 0
+        info = t.info
+        if info is None:
+            return None, None, None
+        price = info.get('regularMarketPrice') or info.get('currentPrice') or info.get('previousClose')
+        change = info.get('regularMarketChange') or info.get('change') or 0
+        change_pct = info.get('regularMarketChangePercent') or 0
+        if price is None:
+            return None, None, None
         return price, change, change_pct
-    except:
+    except Exception as e:
         return None, None, None
 
 def render_macro_card(title, latest_val, prev_val, unit='', status='neutral', bar_width=0.7):
