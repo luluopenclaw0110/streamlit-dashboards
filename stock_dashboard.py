@@ -284,9 +284,24 @@ def get_fundamental_data(code):
 # ===== 側邊欄 =====
 st.sidebar.title("📈 少爺的股票儀表板")
 st.sidebar.markdown("---")
-selected_stock = st.sidebar.selectbox("選擇股票", list(STOCKS.items()), format_func=lambda x: f"{x[1]} ({x[0]})")
-period = st.sidebar.selectbox("選擇時間範圍", ["1mo", "3mo", "6mo", "1y", "2y"], index=1, format_func=lambda x: {"1mo": "1個月", "3mo": "3個月", "6mo": "6個月", "1y": "1年", "2y": "2年"}[x])
-indicators = st.sidebar.multiselect("技術指標", ["MA5", "MA20", "MA60", "RSI", "Volume"], default=["MA20"])
+
+# 主導航分頁
+page_options = {
+    "🌐 宏觀局勢": "macro",
+    "📈 即時股票": "stock", 
+    "🏭 產業分析": "industry",
+    "🤖 龍龍操盤": "us_stock"
+}
+selected_page = st.sidebar.radio("📌 選擇功能", list(page_options.keys()), index=0)
+page_key = page_options[selected_page]
+
+st.sidebar.markdown("---")
+
+if page_key == "stock":
+    selected_stock = st.sidebar.selectbox("選擇股票", list(STOCKS.items()), format_func=lambda x: f"{x[1]} ({x[0]})")
+    period = st.sidebar.selectbox("選擇時間範圍", ["1mo", "3mo", "6mo", "1y", "2y"], index=1, format_func=lambda x: {"1mo": "1個月", "3mo": "3個月", "6mo": "6個月", "1y": "1年", "2y": "2年"}[x])
+    indicators = st.sidebar.multiselect("技術指標", ["MA5", "MA20", "MA60", "RSI", "Volume"], default=["MA20"])
+
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 📊 快速連結")
 st.sidebar.markdown("- [Yahoo 股市](https://tw.stock.yahoo.com/)")
@@ -298,8 +313,9 @@ st.title("🌐 少爺的股票儀表板（含宏觀經濟）")
 # ================================================
 # 🌐 第一區塊：宏觀局勢分析
 # ================================================
-st.markdown("---")
-st.markdown("### 🌐 宏觀局勢分析")
+if page_key == "macro" or page_key not in ["macro", "stock", "industry", "us_stock"]:
+    st.markdown("---")
+    st.markdown("### 🌐 宏觀局勢分析")
 
 fed_rate, fed_prev = get_fred_latest('FEDFUNDS')
 unemp_rate, unemp_prev = get_fred_latest('UNRATE')
@@ -307,7 +323,6 @@ cpi, cpi_prev = get_fred_latest('CPIAUCSL')
 cpi_yoy = ((cpi / cpi_prev) - 1) * 100 * 12 if cpi is not None and cpi_prev is not None and cpi_prev > 0 else None
 gdp, gdp_prev = get_fred_latest('GDP')
 tnxy, tnxy_change, tnxy_change_pct = get_ticker_price_change('^TNX')
-tnxy_prev = (tnxy - tnxy_change) if tnxy is not None and tnxy_change is not None else None
 vix_price, vix_change, vix_change_pct = get_ticker_price_change('^VIX')
 sp_price, sp_change, sp_change_pct = get_ticker_price_change('^GSPC')
 nasdaq_price, nasdaq_change, nasdaq_change_pct = get_ticker_price_change('^IXIC')
@@ -414,8 +429,9 @@ st.markdown(f"""
 # ================================================
 # 📈 第二區塊：即時股票
 # ================================================
-st.markdown("---")
-st.markdown(f"### 📈 即時股票：{selected_stock[1]} ({selected_stock[0]})")
+if page_key == "stock":
+    st.markdown("---")
+    st.markdown(f"### 📈 即時股票：{selected_stock[1]} ({selected_stock[0]})")
 
 df = get_stock_data(selected_stock[0], period)
 
@@ -552,8 +568,9 @@ else:
 # ================================================
 # 🏭 第三區塊：產業分析
 # ================================================
-st.markdown("---")
-st.markdown("### 🏭 產業分析：少爺的8檔股票")
+if page_key == "industry":
+    st.markdown("---")
+    st.markdown("### 🏭 產業分析：少爺的8檔股票")
 
 prices_data = []
 for code, name in STOCKS.items():
@@ -573,8 +590,9 @@ if prices_data:
 # ================================================
 # 🌍 第四區塊：龍龍操盤 - 美股
 # ================================================
-st.markdown("---")
-st.markdown("### 🌍 龍龍操盤：美股昨晚表現")
+if page_key == "us_stock":
+    st.markdown("---")
+    st.markdown("### 🌍 龍龍操盤：美股昨晚表現")
 
 us_prices = []
 for code, name in US_STOCKS.items():
