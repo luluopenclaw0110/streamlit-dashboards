@@ -1,0 +1,7 @@
+streamlit
+plotly
+yfinance
+pandas
+open-meteo
+pillow
+numpy
