@@ -353,7 +353,7 @@ with c4:
     st.markdown(render_macro_card('📊 GDP季增率', gdp_growth, None, '%', status), unsafe_allow_html=True)
 with c5:
     status = 'bearish' if tnxy and tnxy > 4.5 else 'neutral'
-    st.markdown(render_macro_card('💵 10年債殖利率', tnxy, tnxy_prev, '%', status), unsafe_allow_html=True)
+    st.markdown(render_macro_card('💵 10年債殖利率', tnxy, tnxy_change, '%', status), unsafe_allow_html=True)
 
 # 第二排：市場情緒
 st.markdown("#### 😰 市場情緒 & 資金流向")
