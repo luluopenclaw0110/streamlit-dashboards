@@ -318,6 +318,11 @@ page_key = page_options[selected_page]
 
 st.sidebar.markdown("---")
 
+# 初始化默認值（避免跨區塊引用錯誤）
+selected_stock = list(STOCKS.items())[0]
+period = "3mo"
+indicators = ["MA20"]
+
 if page_key == "stock":
     selected_stock = st.sidebar.selectbox("選擇股票", list(STOCKS.items()), format_func=lambda x: f"{x[1]} ({x[0]})")
     period = st.sidebar.selectbox("選擇時間範圍", ["1mo", "3mo", "6mo", "1y", "2y"], index=1, format_func=lambda x: {"1mo": "1個月", "3mo": "3個月", "6mo": "6個月", "1y": "1年", "2y": "2年"}[x])
