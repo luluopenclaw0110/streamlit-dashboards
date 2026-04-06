@@ -31,15 +31,36 @@ st.set_page_config(
     layout="wide"
 )
 
-# 自訂 CSS
+# 自訂 CSS - 強迫所有元素使用深色主題
 st.markdown("""
 <style>
-.stApp { background-color: #0D1117; }
-.css-1d391kg { background-color: #161B22; }
-div[data-testid="stMetricValue"] { color: #E6EDF3; font-size: 1.8rem; }
-div[data-testid="stMetricLabel"] { color: #8B949E; }
-.st-dx { background-color: #161B22; }
-.element-container { background-color: #161B22; }
+/* 全域背景 */
+.stApp, .main, body { background-color: #0D1117 !important; }
+
+/* 所有區塊/卡片背景 */
+[data-testid="stHorizontalBlock"],
+[data-testid="stVerticalBlock"],
+.css-1d391kg, .css-12wkwq4, .css-1at1ahb,
+.element-container, .st-dx, .st-bq, .st-d5, .st-cs, .st-cx {
+    background-color: #161B22 !important;
+}
+
+/* 側邊欄背景 */
+[data-testid="stSidebar"] { background-color: #161B22 !important; }
+.css-1vbkw4y { background-color: #161B22 !important; }
+
+/* 文字顏色 */
+.stMarkdown, h1, h2, h3, h4, p, span, label { color: #E6EDF3 !important; }
+
+/* Metric 顯示 */
+div[data-testid="stMetricValue"] { color: #E6EDF3 !important; font-size: 1.8rem; }
+div[data-testid="stMetricLabel"] { color: #8B949E !important; }
+
+/* DataFrame 表格 */
+[data-testid="stDataFrame"], .stDataFrame { background-color: #161B22 !important; }
+
+/* 清除 Streamlit 預設白背景 */
+.st-d6, .st-d7, .st-cj, .st-d4, .css-2trqyj { background-color: transparent !important; }
 </style>
 """, unsafe_allow_html=True)
 
