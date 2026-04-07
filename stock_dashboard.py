@@ -373,7 +373,7 @@ def main():
         st.caption(f"更新時間：{datetime.now().strftime('%H:%M:%S')}")
 
     st.markdown("<div style='height: 1.5rem'></div>", unsafe_allow_html=True)
-    tab_main, tab_search = st.tabs(["🏠 主頁", "🔍 個股查詢"])
+    tab_main, tab_search, tab_industry = st.tabs(["🏠 主頁", "🔍 個股查詢", "🏭 產業分析"])
 
     # =============================================
     # 🏠 Tab 1：主頁
@@ -702,7 +702,7 @@ def main():
                                 change = price - prev
                                 change_pct = (change / prev * 100) if prev != 0 else 0
                         else:
-                            time.sleep(0.3)
+                            # Fallback: 個別股票查詢（N/A 股票專用）
                             info = get_ticker_info(f"{code}.TW")
                             price = info.get('regularMarketPrice') or 0
                             change_pct = info.get('regularMarketChangePercent', 0) or 0
@@ -726,6 +726,241 @@ def main():
                         <div style="color: {color}; font-size: 0.9rem;">{change_str}</div>
                     </div>
                     """, unsafe_allow_html=True)
+
+    # =============================================
+    # 🏭 Tab 3：產業分析（含布林通道 + 趨勢圖）
+    # =============================================
+    with tab_industry:
+        st.markdown("<div style='height: 1rem'></div>", unsafe_allow_html=True)
+        st.title("🏭 產業龍頭專業分析")
+        st.caption("四大產業龍頭 - 專業技術分析 + 基本面 + 買賣建議")
+
+        # 四大產業完整清單
+        INDUSTRY_ALL = {
+            '半導體': {'2330': '台積電', '2454': '聯發科', '3034': '聯詠'},
+            '電子組裝': {'2317': '鴻海', '2382': '廣達', '2308': '台達電'},
+            '傳產-鋼鐵': {'2002': '中鋼', '2027': '燁輝', '2105': '正新'},
+            '傳產-塑化': {'1326': '台化', '1303': '南亞', '1301': '台塑'},
+        }
+
+        def get_recommendation(roe, profit_growth, pe_ratio):
+            score = 0
+            if roe > 20: score += 2
+            elif roe > 10: score += 1
+            if profit_growth > 20: score += 2
+            elif profit_growth > 0: score += 1
+            elif profit_growth < -20: score -= 2
+            if 10 < pe_ratio < 25: score += 1
+            elif pe_ratio > 40: score -= 1
+            if score >= 3: return "💚 建議買入", "green"
+            elif score >= 1: return "💙 持續觀察", "blue"
+            else: return "❤️ 建議觀望", "red"
+
+        # 產業選擇器
+        selected_industry = st.selectbox("選擇產業", list(INDUSTRY_ALL.keys()))
+        industry_stocks = INDUSTRY_ALL[selected_industry]
+
+        # 取得基本面數據（快取）
+        @st.cache_data(ttl=3600)
+        def get_industry_fundamental(code):
+            try:
+                t = yf.Ticker(f"{code}.TW")
+                info = t.info
+                return {
+                    '股價': info.get('currentPrice') or info.get('regularMarketPrice') or 0,
+                    '本益比': info.get('trailingPE') or 0,
+                    '殖利率': (info.get('dividendYield') or 0) * 100,
+                    'EPS': info.get('trailingEps') or 0,
+                    'ROE': (info.get('returnOnEquity') or 0) * 100,
+                    '營收': info.get('totalRevenue') or 0,
+                    '淨利': info.get('netIncome') or 0,
+                    '營收成長': (info.get('revenueGrowth') or 0) * 100,
+                    '獲利成長': (info.get('earningsGrowth') or 0) * 100,
+                }
+            except Exception:
+                return None
+
+        # 顯示產業營收排名
+        st.markdown("### 📊 產業營收排名")
+        ranking_data = []
+        for code, name in industry_stocks.items():
+            data = get_industry_fundamental(code)
+            if data:
+                ranking_data.append({
+                    '代號': code, '名稱': name,
+                    '營收(B)': round(data['營收'] / 1e9, 1) if data['營收'] else 0,
+                    '淨利(B)': round(data['淨利'] / 1e9, 2) if data['淨利'] else 0,
+                    'EPS': f"${data['EPS']:.2f}" if data['EPS'] else 'N/A',
+                    'ROE': f"{data['ROE']:.1f}%",
+                    '本益比': f"{data['本益比']:.1f}" if data['本益比'] else 'N/A',
+                })
+
+        if ranking_data:
+            df_rank = pd.DataFrame(ranking_data)
+            df_rank = df_rank.sort_values('營收(B)', ascending=False)
+            for i, row in df_rank.iterrows():
+                try:
+                    roe_val = float(str(row['ROE']).replace('%', ''))
+                    pe_val = float(str(row['本益比']).replace('N/A', '0'))
+                    rec, _ = get_recommendation(roe_val, 0, pe_val if pe_val else 0)
+                    df_rank.loc[i, '建議'] = rec
+                except Exception:
+                    df_rank.loc[i, '建議'] = '❤️ 建議觀望'
+            st.dataframe(df_rank, hide_index=True, use_container_width=True)
+
+        st.markdown("---")
+
+        # 選擇要分析的股票
+        analysis_stock = st.selectbox(
+            "選擇股票進行專業分析",
+            list(industry_stocks.items()),
+            format_func=lambda x: f"{x[1]} ({x[0]})"
+        )
+
+        # 取得 K 線歷史
+        df_ind = get_yf_history(f"{analysis_stock[0]}.TW", "3mo")
+        fundamental_ind = get_industry_fundamental(analysis_stock[0])
+
+        if df_ind is not None and not df_ind.empty and len(df_ind) > 0:
+            # 基本面資訊
+            st.markdown("### 📈 基本面資料")
+            if fundamental_ind:
+                f = fundamental_ind
+                c1, c2, c3, c4 = st.columns(4)
+                with c1: st.metric("股價", f"${f['股價']:,.2f}" if f['股價'] else "N/A")
+                with c2: st.metric("本益比", f"{f['本益比']:.1f}" if f['本益比'] else "N/A")
+                with c3: st.metric("ROE", f"{f['ROE']:.1f}%" if f['ROE'] else "N/A")
+                with c4:
+                    rec, _ = get_recommendation(f['ROE'], f['獲利成長'], f['本益比'])
+                    st.markdown(f"**{rec}**")
+                c5, c6, c7, c8 = st.columns(4)
+                with c5: st.metric("EPS", f"${f['EPS']:.2f}" if f['EPS'] else "N/A")
+                with c6: st.metric("殖利率", f"{f['殖利率']:.2f}%" if f['殖利率'] else "N/A")
+                with c7: st.metric("營收成長", f"{f['營收成長']:+.1f}%" if f['營收成長'] else "N/A")
+                with c8: st.metric("獲利成長", f"{f['獲利成長']:+.1f}%" if f['獲利成長'] else "N/A")
+
+            st.markdown("---")
+
+            # === K線圖 + MA + 布林通道 ===
+            st.markdown("### 📊 K線圖 + MA + 布林通道")
+
+            candle = go.Candlestick(
+                x=df_ind.index, open=df_ind['Open'], high=df_ind['High'],
+                low=df_ind['Low'], close=df_ind['Close'],
+                name='K線',
+                increasing_line_color=COLORS['up'], decreasing_line_color=COLORS['down'],
+                increasing_fillcolor=COLORS['up'], decreasing_fillcolor=COLORS['down']
+            )
+            fig_ind = go.Figure(data=[candle])
+
+            close_series = df_ind['Close']
+
+            # MA 均線
+            if len(df_ind) >= 5:
+                ma5 = calc_ma(close_series, 5)
+                fig_ind.add_trace(go.Scatter(x=df_ind.index, y=ma5, name='MA5', line=dict(color='#FFD700', width=1.5), legendgroup='ma'))
+            if len(df_ind) >= 20:
+                ma20 = calc_ma(close_series, 20)
+                fig_ind.add_trace(go.Scatter(x=df_ind.index, y=ma20, name='MA20', line=dict(color='#9B59B6', width=2), legendgroup='ma'))
+            if len(df_ind) >= 60:
+                ma60 = calc_ma(close_series, 60)
+                fig_ind.add_trace(go.Scatter(x=df_ind.index, y=ma60, name='MA60', line=dict(color='#FF6B35', width=2), legendgroup='ma'))
+
+            # 布林通道
+            if len(df_ind) >= 20:
+                boll_ma = calc_ma(close_series, 20)
+                boll_std = close_series.rolling(window=20).std()
+                boll_upper = boll_ma + 2 * boll_std
+                boll_lower = boll_ma - 2 * boll_std
+                fig_ind.add_trace(go.Scatter(x=df_ind.index, y=boll_upper, name='布林上軌', line=dict(color='gray', width=1, dash='dash'), legendgroup='boll'))
+                fig_ind.add_trace(go.Scatter(x=df_ind.index, y=boll_lower, name='布林下軌', line=dict(color='gray', width=1, dash='dash'), legendgroup='boll'))
+
+            fig_ind.update_layout(
+                xaxis_rangeslider_visible=False, height=450,
+                paper_bgcolor=COLORS['background'], plot_bgcolor=COLORS['background'],
+                font=dict(color=COLORS['text']), showlegend=True,
+                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+                margin=dict(l=60, r=20, t=40, b=40)
+            )
+            fig_ind.update_xaxes(gridcolor='#30363D', zerolinecolor='#30363D')
+            fig_ind.update_yaxes(gridcolor='#30363D', zerolinecolor='#30363D')
+            st.plotly_chart(fig_ind, use_container_width=True, key=f"industry_kline_{analysis_stock[0]}")
+
+            # RSI + KD
+            col_rsi, col_kd = st.columns(2)
+            with col_rsi:
+                st.markdown("#### RSI 指標")
+                if len(df_ind) >= 14:
+                    rsi_ind = calc_rsi(close_series)
+                    rsi_valid = rsi_ind.dropna()
+                    if not rsi_valid.empty:
+                        fig_rsi = go.Figure()
+                        fig_rsi.add_trace(go.Scatter(x=rsi_valid.index, y=rsi_valid.values, name='RSI', line=dict(color='#F1C40F', width=2)))
+                        fig_rsi.add_hline(y=70, line_dash="dash", line_color="#E74C3C", line_width=1)
+                        fig_rsi.add_hline(y=30, line_dash="dash", line_color="#27AE60", line_width=1)
+                        fig_rsi.add_hline(y=50, line_dash="dot", line_color="#7F8C8D", line_width=1)
+                        fig_rsi.update_layout(
+                            height=300, template="plotly_dark",
+                            paper_bgcolor=COLORS['background'], plot_bgcolor=COLORS['background'],
+                            font=dict(color=COLORS['text']),
+                            margin=dict(l=60, r=20, t=40, b=40),
+                            yaxis_range=[0, 100]
+                        )
+                        st.plotly_chart(fig_rsi, use_container_width=True, key=f"industry_rsi_{analysis_stock[0]}")
+            with col_kd:
+                st.markdown("#### KD 指標")
+                if len(df_ind) >= 9:
+                    k_ind, d_ind = calc_kd(df_ind['High'], df_ind['Low'], close_series)
+                    k_valid = k_ind.dropna()
+                    d_valid = d_ind.dropna()
+                    if not k_valid.empty:
+                        fig_kd = go.Figure()
+                        fig_kd.add_trace(go.Scatter(x=k_valid.index, y=k_valid.values, name='K', line=dict(color='#E74C3C', width=2)))
+                        fig_kd.add_trace(go.Scatter(x=d_valid.index, y=d_valid.values, name='D', line=dict(color='#3498DB', width=2)))
+                        fig_kd.update_layout(
+                            height=300, template="plotly_dark",
+                            paper_bgcolor=COLORS['background'], plot_bgcolor=COLORS['background'],
+                            font=dict(color=COLORS['text']),
+                            margin=dict(l=60, r=20, t=40, b=40)
+                        )
+                        st.plotly_chart(fig_kd, use_container_width=True, key=f"industry_kd_{analysis_stock[0]}")
+
+            # MACD
+            st.markdown("#### MACD 指標")
+            if len(df_ind) >= 26:
+                macd_line, signal_line, histogram = calc_macd(close_series)
+                macd_valid = macd_line.dropna()
+                signal_valid = signal_line.dropna()
+                hist_valid = histogram.dropna()
+                if not macd_valid.empty:
+                    bar_colors = ['#27AE60' if v >= 0 else '#E74C3C' for v in hist_valid.values]
+                    fig_macd = go.Figure()
+                    fig_macd.add_trace(go.Bar(x=hist_valid.index, y=hist_valid.values, name='柱狀', marker_color=bar_colors, marker=dict(opacity=0.6)))
+                    fig_macd.add_trace(go.Scatter(x=macd_valid.index, y=macd_valid.values, name='DIF', line=dict(color='#3498DB', width=2)))
+                    fig_macd.add_trace(go.Scatter(x=signal_valid.index, y=signal_valid.values, name='MACD', line=dict(color='#E74C3C', width=2)))
+                    fig_macd.update_layout(
+                        height=300, template="plotly_dark",
+                        paper_bgcolor=COLORS['background'], plot_bgcolor=COLORS['background'],
+                        font=dict(color=COLORS['text']),
+                        margin=dict(l=60, r=20, t=40, b=40)
+                    )
+                    st.plotly_chart(fig_macd, use_container_width=True, key=f"industry_macd_{analysis_stock[0]}")
+
+            # 成交量
+            st.markdown("#### 成交量")
+            colors_vol = [COLORS['up'] if df_ind['Close'].iloc[i] >= df_ind['Open'].iloc[i] else COLORS['down'] for i in range(len(df_ind))]
+            fig_vol_ind = go.Figure(data=[go.Bar(x=df_ind.index, y=df_ind['Volume'], name='成交量', marker_color=colors_vol, marker=dict(opacity=0.5))])
+            fig_vol_ind.update_layout(
+                height=250, template="plotly_dark",
+                paper_bgcolor=COLORS['background'], plot_bgcolor=COLORS['background'],
+                font=dict(color=COLORS['text']),
+                margin=dict(l=60, r=20, t=40, b=40)
+            )
+            st.plotly_chart(fig_vol_ind, use_container_width=True, key=f"industry_vol_{analysis_stock[0]}")
+        else:
+            st.error(f"⚠️ 無法取得 {analysis_stock[1]} 股價資料")
+
+        st.caption(f"🕐 資料更新時間：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
 if __name__ == "__main__":
     main()
