@@ -49,8 +49,11 @@ div[data-testid="stMetricLabel"] { color: #8B949E !important; }
 .st-d6, .st-d7, .st-cj, .st-d4, .css-2trqyj { background-color: transparent !important; }
 .stSelectbox > div > div, .stMultiSelect > div > div { background-color: #0D1117 !important; color: #E6EDF3 !important; }
 header[data-testid="stHeader"] { background-color: #0D1117 !important; }
-div[data-testid="stMainBlockContainer"] { padding-top: 0 !important; }
-section[data-testid="stMain"] > div { padding-top: 0 !important; }
+/* 修復標題重疊：給 main 區塊頂部留空間 */
+div[data-testid="stMainBlockContainer"] { padding-top: 2rem !important; padding-bottom: 8rem !important; }
+/* 技術指標選單：tag 右側留空間避免與 x 按鈕重疊 */
+.stMultiSelect [data-testid="stMultiSelect"] > div > div > div { flex-wrap: wrap; gap: 4px; }
+/* 修正：main block container 恢復適當 padding */
 </style>
 """, unsafe_allow_html=True)
 
@@ -80,14 +83,17 @@ def get_fred_latest(series_id):
             'api_key': FRED_API_KEY,
             'file_type': 'json',
             'limit': 4,
-            'sort_order': 'DESC'
+            'sort_order': 'desc'
         }
         r = requests.get(url, params=params, timeout=15)
         data = r.json()
+        # Handle FRED error response
+        if 'error_code' in data:
+            return None, None
         if 'observations' in data and len(data['observations']) >= 2:
             obs = data['observations']
             # Find two non-null values
-            non_null = [float(o['value']) for o in obs if o['value'] not in ('', 'None', '.')]
+            non_null = [float(o['value']) for o in obs if o['value'] not in ('', 'None', '.', None) and o['value'] is not None]
             if len(non_null) >= 2:
                 return non_null[0], non_null[1]
             elif len(non_null) == 1:
@@ -332,7 +338,7 @@ def main():
     if gdp and gdp_prev:
         gdp_growth = ((gdp / gdp_prev) - 1) * 100
 
-    left_col, right_col = st.columns([1, 2])
+    left_col, right_col = st.columns([1, 2.5])
 
     with left_col:
         st.markdown("##### 🏦 宏觀指標")
