@@ -549,10 +549,22 @@ if df is not None and len(df) > 0:
             st.metric("財報季度", fundamentals.get('財報季度', 'N/A'))
         eps = fundamentals.get('EPS')
         with c1:
-            st.metric("EPS", f"${eps:.2f}" if eps and eps != 'N/A' else "N/A")
+            if eps and eps != 'N/A':
+                try:
+                    st.metric("EPS", f"${float(eps):.2f}")
+                except (ValueError, TypeError):
+                    st.metric("EPS", str(eps))
+            else:
+                st.metric("EPS", "N/A")
         pe = fundamentals.get('本益比')
         with c2:
-            st.metric("本益比 (P/E)", f"{pe:.2f}" if pe and pe != 'N/A' else "N/A")
+            if pe and pe != 'N/A':
+                try:
+                    st.metric("本益比 (P/E)", f"{float(pe):.2f}")
+                except (ValueError, TypeError):
+                    st.metric("本益比 (P/E)", str(pe))
+            else:
+                st.metric("本益比 (P/E)", "N/A")
         div_yield = fundamentals.get('殖利率')
         with c3:
             if div_yield and div_yield != 'N/A':
@@ -568,7 +580,13 @@ if df is not None and len(df) > 0:
                 st.metric("殖利率", "N/A")
         with c4:
             pb = fundamentals.get('每股淨值')
-            st.metric("每股淨值", f"${pb:.2f}" if pb and pb != 'N/A' else "N/A")
+            if pb and pb != 'N/A':
+                try:
+                    st.metric("每股淨值", f"${float(pb):.2f}")
+                except (ValueError, TypeError):
+                    st.metric("每股淨值", str(pb))
+            else:
+                st.metric("每股淨值", "N/A")
         
         update_note = fundamentals.get('備註', '')
         if update_note:
