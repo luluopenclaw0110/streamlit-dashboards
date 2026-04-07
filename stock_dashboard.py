@@ -323,10 +323,9 @@ selected_stock = list(STOCKS.items())[0]
 period = "3mo"
 indicators = ["MA20"]
 
-if page_key == "stock":
-    selected_stock = st.sidebar.selectbox("選擇股票", list(STOCKS.items()), format_func=lambda x: f"{x[1]} ({x[0]})")
-    period = st.sidebar.selectbox("選擇時間範圍", ["1mo", "3mo", "6mo", "1y", "2y"], index=1, format_func=lambda x: {"1mo": "1個月", "3mo": "3個月", "6mo": "6個月", "1y": "1年", "2y": "2年"}[x])
-    indicators = st.sidebar.multiselect("技術指標", ["MA5", "MA20", "MA60", "RSI", "Volume"], default=["MA20"])
+selected_stock = st.sidebar.selectbox("選擇股票", list(STOCKS.items()), format_func=lambda x: f"{x[1]} ({x[0]})")
+period = st.sidebar.selectbox("選擇時間範圍", ["1mo", "3mo", "6mo", "1y", "2y"], index=1, format_func=lambda x: {"1mo": "1個月", "3mo": "3個月", "6mo": "6個月", "1y": "1年", "2y": "2年"}[x])
+indicators = st.sidebar.multiselect("技術指標", ["MA5", "MA20", "MA60", "RSI", "Volume"], default=["MA20"])
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 📊 快速連結")
@@ -339,7 +338,7 @@ st.title("🌐 少爺的股票儀表板（含宏觀經濟）")
 # ================================================
 # 🌐 第一區塊：宏觀局勢分析
 # ================================================
-if page_key == "macro" or page_key not in ["macro", "stock", "industry", "us_stock"]:
+if page_key == "macro" or page_key is None:
     st.markdown("---")
     st.markdown("### 🌐 宏觀局勢分析")
 
