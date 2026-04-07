@@ -86,22 +86,24 @@ STOCK_OPTIONS = [f"{code} {name}" for code, name in STOCKS.items()]
 
 # ===== FRED API =====
 @st.cache_data(ttl=3600)
-def get_fred_latest(series_id):
+def get_fred_latest(series_id, limit=14):
+    """取得 FRED 最新觀測值（limit 預設14確保有12個月前的CPI資料）"""
     try:
         url = 'https://api.stlouisfed.org/fred/series/observations'
         params = {
             'series_id': series_id,
             'api_key': FRED_API_KEY,
             'file_type': 'json',
-            'limit': 4,
+            'limit': limit,
             'sort_order': 'desc'
         }
         r = requests.get(url, params=params, timeout=15)
         data = r.json()
         if 'error_code' in data:
             return None, None
-        if 'observations' in data and len(data['observations']) >= 2:
+        if 'observations' in data:
             obs = data['observations']
+            # 收集所有非 null 值（FRED 用 "." 表示缺失值）
             non_null = [float(o['value']) for o in obs if o['value'] not in ('', 'None', '.', None) and o['value'] is not None]
             if len(non_null) >= 2:
                 return non_null[0], non_null[1]
@@ -454,21 +456,26 @@ def main():
         ALL_INDICATORS = ["MA5", "MA20", "MA60", "RSI", "KD", "MACD", "Volume"]
         indicators_options = ["全選"] + ALL_INDICATORS
 
+        def on_indicator_change():
+            """全選按鈕 callback：選「全選」= 全選，再點「全選」= 全取消"""
+            current = st.session_state.indicators
+            if "全選" in current:
+                # 選了全選 → 顯示所有指標（但 UI 不要重複顯示「全選」在標籤列）
+                st.session_state.indicators = ALL_INDICATORS
+            elif current:
+                # 有選但沒選全選 → 正常
+                pass
+            else:
+                # 全取消
+                st.session_state.indicators = []
+
         selected = st.multiselect(
             "📊 技術指標",
             indicators_options,
             default=st.session_state.indicators if st.session_state.indicators else ALL_INDICATORS,
-            key="indicators_multiselect"
+            key="indicators",
+            on_change=on_indicator_change
         )
-
-        # 全選邏輯：選「全選」= 全選，再點「全選」= 全取消
-        if selected:
-            if selected[0] == "全選":
-                st.session_state.indicators = ALL_INDICATORS
-            else:
-                st.session_state.indicators = selected
-        else:
-            st.session_state.indicators = []
 
         st.markdown("---")
         st.markdown("**📊 快速連結**")
@@ -513,13 +520,18 @@ def main():
         st.markdown("---")
         st.markdown("##### 🏦 宏觀指標")
 
-        fed_rate, _ = get_fred_latest('FEDFUNDS')
-        unemp, _ = get_fred_latest('UNRATE')
-        cpi, cpi_prev = get_fred_latest('CPIAUCSL')
-        gdp, gdp_prev = get_fred_latest('GDP')
+        fed_rate, _ = get_fred_latest('FEDFUNDS', limit=2)
+        unemp, _ = get_fred_latest('UNRATE', limit=2)
+        # CPI: 取14筆，確保有12個月前的資料（用於年增率計算）
+        cpi_obs = get_fred_latest('CPIAUCSL', limit=14)
+        gdp, gdp_prev = get_fred_latest('GDP', limit=2)
 
-        cpi_yoy = ((cpi / cpi_prev) - 1) * 100 * 12 if cpi and cpi_prev and cpi_prev > 0 else None
-        gdp_growth = ((gdp / gdp_prev) - 1) * 100 if gdp and gdp_prev else None
+        # CPI 年增率：當期 / 12個月前 - 1
+        if cpi_obs[0] and cpi_obs[1]:
+            cpi_yoy = ((cpi_obs[0] / cpi_obs[1]) - 1) * 100 if cpi_obs[1] > 0 else None
+        else:
+            cpi_yoy = None
+        gdp_growth = ((gdp / gdp_prev) - 1) * 100 if gdp and gdp_prev and gdp_prev > 0 else None
 
         mc1, mc2, mc3, mc4 = st.columns(4)
         with mc1: st.markdown(render_card('Fed利率', f"{fed_rate:.2f}%" if fed_rate else "N/A", None, None, 'bearish' if fed_rate and fed_rate > 5 else 'neutral', '🏦'), unsafe_allow_html=True)
@@ -912,14 +924,10 @@ def main():
         if ranking_data:
             df_rank = pd.DataFrame(ranking_data)
             df_rank = df_rank.sort_values('營收(B)', ascending=False)
-            for i, row in df_rank.iterrows():
-                try:
-                    roe_val = float(str(row['ROE']).replace('%', ''))
-                    pe_val = float(str(row['本益比']).replace('N/A', '0'))
-                    rec, _ = get_recommendation(roe_val, 0, pe_val if pe_val else 0)
-                    df_rank.loc[i, '建議'] = rec
-                except Exception:
-                    df_rank.loc[i, '建議'] = '❤️ 建議觀望'
+            # 產業排名：根據營收客觀排名（不是投資建議）
+            rank_map = {1: '🥇 第1名', 2: '🥈 第2名', 3: '🥉 第3名'}
+            for rank, (idx, _) in enumerate(df_rank.iterrows(), 1):
+                df_rank.loc[idx, '建議'] = rank_map.get(rank, f'第{rank}名')
             st.dataframe(df_rank, hide_index=True, use_container_width=True)
 
         st.markdown("---")
