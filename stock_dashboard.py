@@ -245,10 +245,10 @@ def get_market_mood(vix, tnxy):
     if vix is None:
         return "📊 載入中...", COLORS['neutral'], ""
     if vix > 25:
-        mood, color = "⚠️ 市場恐慌", COLORS['bearish']
+        mood, color = "⚠️ 市場恐慌", COLORS['up']
         suggestion = "持有現金、降低科技股曝險"
     elif vix < 15:
-        mood, color = "✅ 市場穩定", COLORS['bullish']
+        mood, color = "✅ 市場情緒穩定", COLORS['down']
         suggestion = "積極佈局，但留意本益比"
     else:
         mood, color = "📊 中性觀望", COLORS['neutral']
@@ -346,6 +346,7 @@ def main():
         st.markdown("---")
         st.caption(f"更新時間：{datetime.now().strftime('%H:%M:%S')}")
 
+    st.markdown("<div style='height: 1.5rem'></div>", unsafe_allow_html=True)
     tab_main, tab_search = st.tabs(["🏠 主頁", "🔍 個股查詢"])
 
     # =============================================
@@ -367,7 +368,7 @@ def main():
         tnxy_change_pct = tnxy_info.get('regularMarketChangePercent') or 0
 
         mood, mood_color, suggestion = get_market_mood(vix, tnxy)
-        vix_status = 'bearish' if vix and vix > 25 else 'bullish' if vix and vix < 15 else 'neutral'
+        vix_status = 'bullish' if vix and vix > 25 else 'bearish' if vix and vix < 15 else 'neutral'
 
         col1, col2, col3 = st.columns([1, 1, 2])
         with col1:
