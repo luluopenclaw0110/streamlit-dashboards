@@ -341,6 +341,91 @@ def load_fundamentals():
 
 FUNDAMENTALS, FUNDAMENTALS_UPDATE = load_fundamentals()
 
+# ===== 統一投資建議 =====
+def get_unified_recommendation(ma5_val, ma20_val, ma60_val, rsi_val, current_price, pe_ratio=20, roe=15, profit_growth=0):
+    """
+    統一的投資建議函數，整合技術面與基本面
+    返回: (建議文字, 顏色關鍵字, 分數, 信號列表)
+    """
+    score = 0
+    signals = []
+
+    # --- 技術面分析 (權重 60%) ---
+    if ma5_val and ma20_val:
+        if ma5_val > ma20_val:
+            score += 2
+            signals.append("MA5 > MA20 短線偏多")
+        else:
+            score -= 2
+            signals.append("MA5 < MA20 短線偏空")
+
+    if ma60_val and ma20_val:
+        if ma20_val > ma60_val:
+            score += 2
+            signals.append("MA20 > MA60 中線偏多")
+        else:
+            score -= 2
+            signals.append("MA20 < MA60 中線偏空")
+
+    if rsi_val:
+        if rsi_val > 70:
+            score -= 2
+            signals.append(f"RSI 超買({rsi_val:.1f})")
+        elif rsi_val < 30:
+            score += 2
+            signals.append(f"RSI 超賣({rsi_val:.1f})")
+        else:
+            signals.append(f"RSI 中性({rsi_val:.1f})")
+
+    # --- 基本面分析 (權重 40%) ---
+    if roe > 20:
+        score += 2
+        signals.append(f"ROE 優秀({roe:.1f}%)")
+    elif roe > 10:
+        score += 1
+        signals.append(f"ROE 良好({roe:.1f}%)")
+
+    if profit_growth > 20:
+        score += 2
+        signals.append(f"獲利成長佳({profit_growth:+.1f}%)")
+    elif profit_growth > 0:
+        score += 1
+        signals.append(f"獲利正成長({profit_growth:+.1f}%)")
+    elif profit_growth < -20:
+        score -= 2
+        signals.append(f"獲利衰退({profit_growth:+.1f}%)")
+
+    if 10 < pe_ratio < 25:
+        score += 1
+        signals.append(f"本益比合理({pe_ratio:.1f})")
+    elif pe_ratio > 40:
+        score -= 1
+        signals.append(f"本益比偏高({pe_ratio:.1f})")
+
+    # 統一判斷標準
+    if score >= 4:
+        return "💚 建議買入", "green", score, signals
+    elif score >= 1:
+        return "💙 持續觀察", "blue", score, signals
+    elif score <= -4:
+        return "❤️ 建議賣出", "red", score, signals
+    else:
+        return "➡️ 中性觀望", "neutral", score, signals
+
+def get_recommendation(roe, profit_growth, pe_ratio):
+    """產業分析專用：僅基本面判斷（保持向後相容）"""
+    score = 0
+    if roe > 20: score += 2
+    elif roe > 10: score += 1
+    if profit_growth > 20: score += 2
+    elif profit_growth > 0: score += 1
+    elif profit_growth < -20: score -= 2
+    if 10 < pe_ratio < 25: score += 1
+    elif pe_ratio > 40: score -= 1
+    if score >= 3: return "💚 建議買入", "green"
+    elif score >= 1: return "💙 持續觀察", "blue"
+    else: return "❤️ 建議觀望", "red"
+
 # ===== 主程式 =====
 def main():
     with st.sidebar:
@@ -784,91 +869,6 @@ def main():
             '傳產-鋼鐵': {'2002': '中鋼', '2027': '燁輝', '2105': '正新'},
             '傳產-塑化': {'1326': '台化', '1303': '南亞', '1301': '台塑'},
         }
-
-        # 問題4：統一投資建議判斷標準
-        def get_unified_recommendation(ma5_val, ma20_val, ma60_val, rsi_val, current_price, pe_ratio=20, roe=15, profit_growth=0):
-            """
-            統一的投資建議函數，整合技術面與基本面
-            返回: (建議文字, 顏色關鍵字, 分數)
-            """
-            score = 0
-            signals = []
-
-            # --- 技術面分析 (權重 60%) ---
-            if ma5_val and ma20_val:
-                if ma5_val > ma20_val:
-                    score += 2
-                    signals.append("MA5 > MA20 短線偏多")
-                else:
-                    score -= 2
-                    signals.append("MA5 < MA20 短線偏空")
-
-            if ma60_val and ma20_val:
-                if ma20_val > ma60_val:
-                    score += 2
-                    signals.append("MA20 > MA60 中線偏多")
-                else:
-                    score -= 2
-                    signals.append("MA20 < MA60 中線偏空")
-
-            if rsi_val:
-                if rsi_val > 70:
-                    score -= 2
-                    signals.append(f"RSI 超買({rsi_val:.1f})")
-                elif rsi_val < 30:
-                    score += 2
-                    signals.append(f"RSI 超賣({rsi_val:.1f})")
-                else:
-                    signals.append(f"RSI 中性({rsi_val:.1f})")
-
-            # --- 基本面分析 (權重 40%) ---
-            if roe > 20:
-                score += 2
-                signals.append(f"ROE 優秀({roe:.1f}%)")
-            elif roe > 10:
-                score += 1
-                signals.append(f"ROE 良好({roe:.1f}%)")
-
-            if profit_growth > 20:
-                score += 2
-                signals.append(f"獲利成長佳({profit_growth:+.1f}%)")
-            elif profit_growth > 0:
-                score += 1
-                signals.append(f"獲利正成長({profit_growth:+.1f}%)")
-            elif profit_growth < -20:
-                score -= 2
-                signals.append(f"獲利衰退({profit_growth:+.1f}%)")
-
-            if 10 < pe_ratio < 25:
-                score += 1
-                signals.append(f"本益比合理({pe_ratio:.1f})")
-            elif pe_ratio > 40:
-                score -= 1
-                signals.append(f"本益比偏高({pe_ratio:.1f})")
-
-            # 統一判斷標準
-            if score >= 4:
-                return "💚 建議買入", "green", score, signals
-            elif score >= 1:
-                return "💙 持續觀察", "blue", score, signals
-            elif score <= -4:
-                return "❤️ 建議賣出", "red", score, signals
-            else:
-                return "➡️ 中性觀望", "neutral", score, signals
-
-        def get_recommendation(roe, profit_growth, pe_ratio):
-            """產業分析專用：僅基本面判斷（保持向後相容）"""
-            score = 0
-            if roe > 20: score += 2
-            elif roe > 10: score += 1
-            if profit_growth > 20: score += 2
-            elif profit_growth > 0: score += 1
-            elif profit_growth < -20: score -= 2
-            if 10 < pe_ratio < 25: score += 1
-            elif pe_ratio > 40: score -= 1
-            if score >= 3: return "💚 建議買入", "green"
-            elif score >= 1: return "💙 持續觀察", "blue"
-            else: return "❤️ 建議觀望", "red"
 
         # 產業選擇器
         selected_industry = st.selectbox("選擇產業", list(INDUSTRY_ALL.keys()))
