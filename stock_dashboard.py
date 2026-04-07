@@ -45,7 +45,7 @@ div[data-testid="stMetricValue"] { color: #E6EDF3 !important; font-size: 1.8rem;
 div[data-testid="stMetricLabel"] { color: #8B949E !important; }
 [data-testid="stDataFrame"] { background-color: #161B22 !important; }
 .st-d6, .st-d7, .st-cj, .st-d4, .css-2trqyj { background-color: transparent !important; }
-.stSelectbox > div > div { background-color: #0D1117 !important; }
+.stSelectbox > div > div { background-color: #0D1117 !important; color: #E6EDF3 !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -251,7 +251,7 @@ def main():
         # 時間範圍
         period_map = {"1個月": "1mo", "3個月": "3mo", "6個月": "6mo", "1年": "1y"}
         period_labels = list(period_map.keys())
-        default_period_idx = 1  # 3個月
+        default_period_idx = 2  # 6個月
         selected_period_label = st.selectbox("📅 時間範圍", period_labels, index=default_period_idx)
         st.session_state.period = period_map[selected_period_label]
 
@@ -378,7 +378,8 @@ def main():
                 with cols[i % 4]:
                     st.markdown(f"""
                     <div style="background-color: {COLORS['card']}; border-radius: 10px; padding: 12px;
-                                border: 1px solid {COLORS['border']}; text-align: center; margin: 4px;">
+                                border: 1px solid {COLORS['border']}; text-align: center; margin: 4px; min-height: 100px;
+                                display: flex; flex-direction: column; justify-content: space-between;">
                         <div style="color: {COLORS['text_secondary']}; font-size: 0.75rem;">{row['代號']} {row['名稱']}</div>
                         <div style="color: {COLORS['text']}; font-size: 1.2rem; font-weight: bold; margin: 4px 0;">{row['價格']}</div>
                         <div style="color: {color}; font-size: 0.85rem;">{arrow} {row['漲跌幅']}</div>
@@ -513,7 +514,6 @@ def main():
             fig.update_layout(
                 xaxis_rangeslider_visible=False,
                 height=600,
-                template="plotly_dark",
                 paper_bgcolor=COLORS['background'],
                 plot_bgcolor=COLORS['background'],
                 font=dict(color=COLORS['text']),
@@ -521,8 +521,10 @@ def main():
                 legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
                 margin=dict(l=60, r=20, t=40, b=40)
             )
-            fig.update_xaxes(gridcolor='#30363D', zerolinecolor='#30363D')
-            fig.update_yaxes(gridcolor='#30363D', zerolinecolor='#30363D')
+            fig.update_xaxes(gridcolor='#30363D', zerolinecolor='#30363D', showgrid=True, row=1, col=1)
+            fig.update_xaxes(gridcolor='#30363D', zerolinecolor='#30363D', showgrid=True, row=2, col=1)
+            fig.update_yaxes(gridcolor='#30363D', zerolinecolor='#30363D', showgrid=True, row=1, col=1)
+            fig.update_yaxes(gridcolor='#30363D', zerolinecolor='#30363D', showgrid=True, row=2, col=1)
 
             st.plotly_chart(fig, use_container_width=True)
 
