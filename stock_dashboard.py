@@ -250,7 +250,7 @@ def render_card(title, value, change=None, change_pct=None, status='neutral', ic
 
     change_str = ''
     if change is not None and change_pct is not None:
-        arrow = '▲' if change >= 0 else '▼'
+        arrow = '▲' if change_pct >= 0 else '▼'
         change_str = f"{arrow} {abs(change_pct):.2f}%"
 
     card = f"""
