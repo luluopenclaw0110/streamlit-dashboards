@@ -586,6 +586,7 @@ def main():
                             info = get_ticker_info(f"{code}.TW")
                             price = info.get('regularMarketPrice') or 0
                             change_pct = info.get('regularMarketChangePercent', 0) or 0
+                            time.sleep(0.3)  # 避免 Yahoo Finance 限流
                     except Exception:
                         price = 0
                         change_pct = 0
