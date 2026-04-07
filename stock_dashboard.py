@@ -54,7 +54,13 @@ div[data-testid="stMetricValue"] { color: #E6EDF3 !important; font-size: 1.8rem;
 div[data-testid="stMetricLabel"] { color: #8B949E !important; }
 [data-testid="stDataFrame"] { background-color: #161B22 !important; }
 .st-d6, .st-d7, .st-cj, .st-d4, .css-2trqyj { background-color: transparent !important; }
-.stSelectbox > div > div, .stMultiSelect > div > div { background-color: #0D1117 !important; color: #E6EDF3 !important; }
+/* ===== 問題1：修復 selectbox/multiselect 背景透明 ===== */
+.stSelectbox > div > div, .stMultiSelect > div > div { background-color: #2d333b !important; color: #E6EDF3 !important; border: 1px solid #444c56 !important; border-radius: 6px !important; }
+.stSelectbox [data-baseweb="select"], .stMultiSelect [data-baseweb="select"] { background-color: #2d333b !important; }
+[data-baseweb="popover"], [data-baseweb="menu"] { background-color: #2d333b !important; border: 1px solid #444c56 !important; border-radius: 6px !important; }
+[data-baseweb="option"] { background-color: #2d333b !important; color: #E6EDF3 !important; }
+[data-baseweb="option"]:hover { background-color: #444c56 !important; }
+[data-baseweb="tag"] { background-color: #388bfd !important; color: #ffffff !important; }
 header[data-testid="stHeader"] { background-color: #0D1117 !important; }
 .stMultiSelect [data-testid="stMultiSelect"] > div > div > div { flex-wrap: wrap; gap: 4px; }
 .element-container { margin-left: 4px; margin-right: 4px; }
@@ -359,11 +365,22 @@ def main():
         selected_period_label = st.selectbox("📅 時間範圍", period_labels, index=2)
         st.session_state.period = period_map[selected_period_label]
 
-        st.session_state.indicators = st.multiselect(
-            "📊 技術指標",
-            ["MA5", "MA20", "MA60", "RSI", "KD", "MACD", "Volume"],
-            default=["MA5", "MA20", "RSI", "KD", "Volume"]
-        )
+        # 問題2：加入全選按鈕
+        ALL_INDICATORS = ["MA5", "MA20", "MA60", "RSI", "KD", "MACD", "Volume"]
+        col_sel_all, col_indicators = st.columns([1, 4])
+        with col_sel_all:
+            if st.button("✅ 全選", use_container_width=True, key="select_all_btn"):
+                st.session_state.indicators = ALL_INDICATORS
+        with col_indicators:
+            st.session_state.indicators = st.multiselect(
+                "📊 技術指標",
+                ALL_INDICATORS,
+                default=st.session_state.indicators if st.session_state.indicators else ALL_INDICATORS,
+                key="indicators_multiselect"
+            )
+        # 如果刪除全選按鈕，需要重新初始化 indicators
+        if not st.session_state.indicators:
+            st.session_state.indicators = ALL_INDICATORS
 
         st.markdown("---")
         st.markdown("**📊 快速連結**")
@@ -570,21 +587,21 @@ def main():
                     legendgroup='vol'
                 ), row=num_rows, col=1)
 
-            # 統一更新所有 axes
+            # 統一更新所有 axes（問題3：Y軸字體調大）
             fig.update_layout(
-                xaxis_rangeslider_visible=False, 
+                xaxis_rangeslider_visible=False,
                 height=200 + (num_rows * 180),
-                paper_bgcolor=COLORS['background'], 
-                plot_bgcolor=COLORS['background'], 
-                font=dict(color=COLORS['text']), 
-                showlegend=True, 
+                paper_bgcolor=COLORS['background'],
+                plot_bgcolor=COLORS['background'],
+                font=dict(color=COLORS['text'], size=14),
+                showlegend=True,
                 legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
                 margin=dict(l=60, r=20, t=40, b=40)
             )
-            
+
             for r in range(1, num_rows + 1):
-                fig.update_xaxes(gridcolor='#30363D', zerolinecolor='#30363D', showgrid=True, row=r, col=1)
-                fig.update_yaxes(gridcolor='#30363D', zerolinecolor='#30363D', showgrid=True, row=r, col=1)
+                fig.update_xaxes(gridcolor='#30363D', zerolinecolor='#30363D', showgrid=True, row=r, col=1, tickfont=dict(size=13, color=COLORS['text']))
+                fig.update_yaxes(gridcolor='#30363D', zerolinecolor='#30363D', showgrid=True, row=r, col=1, tickfont=dict(size=13, color=COLORS['text']))
 
             # 加入 unique key 避免 DuplicateElementId
             st.plotly_chart(fig, use_container_width=True, key=f"kline_main_{code}")
@@ -636,7 +653,7 @@ def main():
             if fundamentals.get('備註'): st.caption(f"📅 {fundamentals.get('備註')}")
             st.caption(f"📊 資料來源：證交所 ({FUNDAMENTALS_UPDATE})")
 
-            # 龍龍觀點
+            # 龍龍觀點（問題4：使用統一的投資建議邏輯）
             st.markdown("##### 🐉 龍龍觀點")
             ma5_val = calc_ma(close_series, 5).iloc[-1] if len(df) >= 5 else None
             ma20_val = calc_ma(close_series, 20).iloc[-1] if len(df) >= 20 else None
@@ -644,6 +661,30 @@ def main():
             rsi_series = calc_rsi(close_series)
             rsi_val = float(rsi_series.iloc[-1]) if len(df) >= 14 else None
 
+            # 取得基本面數據用於統一判斷
+            fund = FUNDAMENTALS.get(code, {})
+            pe_val = 20
+            roe_val = 15
+            try:
+                pe_str = fund.get('本益比', '20')
+                if pe_str not in ('N/A', None, ''):
+                    pe_val = float(str(pe_str).replace('%', ''))
+            except:
+                pe_val = 20
+            try:
+                roe_str = fund.get('ROE', '15')
+                if roe_str not in ('N/A', None, ''):
+                    roe_val = float(str(roe_str).replace('%', ''))
+            except:
+                roe_val = 15
+
+            # 使用統一建議函數
+            recommendation, rec_color, score, signals = get_unified_recommendation(
+                ma5_val, ma20_val, ma60_val, rsi_val,
+                current_price, pe_val, roe_val, 0
+            )
+
+            # 顯示各項技術信號
             opinions = []
             if ma5_val and ma20_val:
                 opinions.append(("✅ MA5 > MA20 → 短線偏多", "bullish") if ma5_val > ma20_val else ("⚠️ MA5 < MA20 → 短線偏空", "bearish"))
@@ -654,15 +695,13 @@ def main():
                 elif rsi_val < 30: opinions.append((f"✅ RSI = {rsi_val:.1f} → 超賣區，留意反彈", "bullish"))
                 else: opinions.append((f"➡️ RSI = {rsi_val:.1f} → 區間整理", "neutral"))
 
-            bullish_cnt = sum(1 for _, s in opinions if s == 'bullish')
-            bearish_cnt = sum(1 for _, s in opinions if s == 'bearish')
-            if bullish_cnt > bearish_cnt: overall = ("📈 短線偏多看待", COLORS['bullish'])
-            elif bearish_cnt > bullish_cnt: overall = ("📉 短線偏空看待", COLORS['bearish'])
-            else: overall = ("➡️ 中性觀望", COLORS['neutral'])
-
             for text, status in opinions:
                 st.markdown(f"<span style='color:{COLORS.get(status, COLORS['text'])}'>{text}</span>", unsafe_allow_html=True)
-            st.markdown(f"**🐉 龍龍綜合判斷：<span style='color:{overall[1]}'>{overall[0]}</span>**", unsafe_allow_html=True)
+
+            # 顯示統一的投資建議（與產業分析一致的邏輯）
+            color_map = {'green': COLORS['bullish'], 'blue': COLORS['neutral'], 'red': COLORS['bearish'], 'neutral': COLORS['neutral']}
+            final_color = color_map.get(rec_color, COLORS['neutral'])
+            st.markdown(f"**🐉 龍龍綜合判斷：<span style='color:{final_color}'>{recommendation}</span>** (技術分數: {score:+d})", unsafe_allow_html=True)
         else:
             st.error(f"⚠️ 無法取得 {code} 數據")
 
@@ -743,7 +782,79 @@ def main():
             '傳產-塑化': {'1326': '台化', '1303': '南亞', '1301': '台塑'},
         }
 
+        # 問題4：統一投資建議判斷標準
+        def get_unified_recommendation(ma5_val, ma20_val, ma60_val, rsi_val, current_price, pe_ratio=20, roe=15, profit_growth=0):
+            """
+            統一的投資建議函數，整合技術面與基本面
+            返回: (建議文字, 顏色關鍵字, 分數)
+            """
+            score = 0
+            signals = []
+
+            # --- 技術面分析 (權重 60%) ---
+            if ma5_val and ma20_val:
+                if ma5_val > ma20_val:
+                    score += 2
+                    signals.append("MA5 > MA20 短線偏多")
+                else:
+                    score -= 2
+                    signals.append("MA5 < MA20 短線偏空")
+
+            if ma60_val and ma20_val:
+                if ma20_val > ma60_val:
+                    score += 2
+                    signals.append("MA20 > MA60 中線偏多")
+                else:
+                    score -= 2
+                    signals.append("MA20 < MA60 中線偏空")
+
+            if rsi_val:
+                if rsi_val > 70:
+                    score -= 2
+                    signals.append(f"RSI 超買({rsi_val:.1f})")
+                elif rsi_val < 30:
+                    score += 2
+                    signals.append(f"RSI 超賣({rsi_val:.1f})")
+                else:
+                    signals.append(f"RSI 中性({rsi_val:.1f})")
+
+            # --- 基本面分析 (權重 40%) ---
+            if roe > 20:
+                score += 2
+                signals.append(f"ROE 優秀({roe:.1f}%)")
+            elif roe > 10:
+                score += 1
+                signals.append(f"ROE 良好({roe:.1f}%)")
+
+            if profit_growth > 20:
+                score += 2
+                signals.append(f"獲利成長佳({profit_growth:+.1f}%)")
+            elif profit_growth > 0:
+                score += 1
+                signals.append(f"獲利正成長({profit_growth:+.1f}%)")
+            elif profit_growth < -20:
+                score -= 2
+                signals.append(f"獲利衰退({profit_growth:+.1f}%)")
+
+            if 10 < pe_ratio < 25:
+                score += 1
+                signals.append(f"本益比合理({pe_ratio:.1f})")
+            elif pe_ratio > 40:
+                score -= 1
+                signals.append(f"本益比偏高({pe_ratio:.1f})")
+
+            # 統一判斷標準
+            if score >= 4:
+                return "💚 建議買入", "green", score, signals
+            elif score >= 1:
+                return "💙 持續觀察", "blue", score, signals
+            elif score <= -4:
+                return "❤️ 建議賣出", "red", score, signals
+            else:
+                return "➡️ 中性觀望", "neutral", score, signals
+
         def get_recommendation(roe, profit_growth, pe_ratio):
+            """產業分析專用：僅基本面判斷（保持向後相容）"""
             score = 0
             if roe > 20: score += 2
             elif roe > 10: score += 1
@@ -878,12 +989,12 @@ def main():
             fig_ind.update_layout(
                 xaxis_rangeslider_visible=False, height=450,
                 paper_bgcolor=COLORS['background'], plot_bgcolor=COLORS['background'],
-                font=dict(color=COLORS['text']), showlegend=True,
+                font=dict(color=COLORS['text'], size=14), showlegend=True,
                 legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
                 margin=dict(l=60, r=20, t=40, b=40)
             )
-            fig_ind.update_xaxes(gridcolor='#30363D', zerolinecolor='#30363D')
-            fig_ind.update_yaxes(gridcolor='#30363D', zerolinecolor='#30363D')
+            fig_ind.update_xaxes(gridcolor='#30363D', zerolinecolor='#30363D', tickfont=dict(size=13, color=COLORS['text']))
+            fig_ind.update_yaxes(gridcolor='#30363D', zerolinecolor='#30363D', tickfont=dict(size=13, color=COLORS['text']))
             st.plotly_chart(fig_ind, use_container_width=True, key=f"industry_kline_{analysis_stock[0]}")
 
             # RSI + KD
@@ -902,10 +1013,12 @@ def main():
                         fig_rsi.update_layout(
                             height=300, template="plotly_dark",
                             paper_bgcolor=COLORS['background'], plot_bgcolor=COLORS['background'],
-                            font=dict(color=COLORS['text']),
+                            font=dict(color=COLORS['text'], size=14),
                             margin=dict(l=60, r=20, t=40, b=40),
                             yaxis_range=[0, 100]
                         )
+                        fig_rsi.update_xaxes(tickfont=dict(size=13, color=COLORS['text']))
+                        fig_rsi.update_yaxes(tickfont=dict(size=13, color=COLORS['text']))
                         st.plotly_chart(fig_rsi, use_container_width=True, key=f"industry_rsi_{analysis_stock[0]}")
             with col_kd:
                 st.markdown("#### KD 指標")
@@ -920,9 +1033,11 @@ def main():
                         fig_kd.update_layout(
                             height=300, template="plotly_dark",
                             paper_bgcolor=COLORS['background'], plot_bgcolor=COLORS['background'],
-                            font=dict(color=COLORS['text']),
+                            font=dict(color=COLORS['text'], size=14),
                             margin=dict(l=60, r=20, t=40, b=40)
                         )
+                        fig_kd.update_xaxes(tickfont=dict(size=13, color=COLORS['text']))
+                        fig_kd.update_yaxes(tickfont=dict(size=13, color=COLORS['text']))
                         st.plotly_chart(fig_kd, use_container_width=True, key=f"industry_kd_{analysis_stock[0]}")
 
             # MACD
@@ -941,9 +1056,11 @@ def main():
                     fig_macd.update_layout(
                         height=300, template="plotly_dark",
                         paper_bgcolor=COLORS['background'], plot_bgcolor=COLORS['background'],
-                        font=dict(color=COLORS['text']),
+                        font=dict(color=COLORS['text'], size=14),
                         margin=dict(l=60, r=20, t=40, b=40)
                     )
+                    fig_macd.update_xaxes(tickfont=dict(size=13, color=COLORS['text']))
+                    fig_macd.update_yaxes(tickfont=dict(size=13, color=COLORS['text']))
                     st.plotly_chart(fig_macd, use_container_width=True, key=f"industry_macd_{analysis_stock[0]}")
 
             # 成交量
@@ -953,9 +1070,11 @@ def main():
             fig_vol_ind.update_layout(
                 height=250, template="plotly_dark",
                 paper_bgcolor=COLORS['background'], plot_bgcolor=COLORS['background'],
-                font=dict(color=COLORS['text']),
+                font=dict(color=COLORS['text'], size=14),
                 margin=dict(l=60, r=20, t=40, b=40)
             )
+            fig_vol_ind.update_xaxes(tickfont=dict(size=13, color=COLORS['text']))
+            fig_vol_ind.update_yaxes(tickfont=dict(size=13, color=COLORS['text']))
             st.plotly_chart(fig_vol_ind, use_container_width=True, key=f"industry_vol_{analysis_stock[0]}")
         else:
             st.error(f"⚠️ 無法取得 {analysis_stock[1]} 股價資料")
