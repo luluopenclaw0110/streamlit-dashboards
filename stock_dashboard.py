@@ -106,12 +106,30 @@ def get_fred_latest(series_id):
 # ===== Yahoo Finance =====
 @st.cache_data(ttl=60)
 def get_ticker_info(ticker):
+    """使用 Ticker().info 並加入 fallback 到 download()"""
     try:
         t = yf.Ticker(ticker)
         info = t.info
-        return info if info else {}
+        if info and (info.get('regularMarketPrice') or info.get('currentPrice')):
+            return info
     except Exception:
-        return {}
+        pass
+    # Fallback: 用 yf.download 取得報價
+    try:
+        df = yf.download(ticker, period='5d', interval='1d', progress=False, timeout=10)
+        if df is not None and not df.empty:
+            close = df['Close'].iloc[-1]
+            prev_close = df['Close'].iloc[-2] if len(df) > 1 else close
+            change = close - prev_close
+            change_pct = (change / prev_close * 100) if prev_close != 0 else 0
+            return {
+                'regularMarketPrice': float(close),
+                'regularMarketChange': float(change),
+                'regularMarketChangePercent': float(change_pct)
+            }
+    except Exception:
+        pass
+    return {}
 
 @st.cache_data(ttl=120)
 def get_yf_history(ticker, period='3mo'):
@@ -369,22 +387,18 @@ def main():
         # 一次取得所有報價
         stock_rows = []
         for code, name in STOCKS.items():
-            try:
-                t = yf.Ticker(f"{code}.TW")
-                info = t.info
-                price = info.get('regularMarketPrice') or info.get('currentPrice')
-                change = info.get('regularMarketChange') or 0
-                change_pct = info.get('regularMarketChangePercent') or 0
-                if price:
-                    stock_rows.append({
-                        '代號': code, '名稱': name,
-                        '價格': f"{price:.2f}",
-                        '漲跌': f"{change:+.2f}",
-                        '漲跌幅': f"{change_pct:+.2f}%",
-                        'is_up': change >= 0
-                    })
-            except Exception:
-                continue
+            info = get_ticker_info(f"{code}.TW")
+            price = info.get('regularMarketPrice') or info.get('currentPrice')
+            change = info.get('regularMarketChange') or 0
+            change_pct = info.get('regularMarketChangePercent') or 0
+            if price:
+                stock_rows.append({
+                    '代號': code, '名稱': name,
+                    '價格': f"{price:.2f}",
+                    '漲跌': f"{change:+.2f}",
+                    '漲跌幅': f"{change_pct:+.2f}%",
+                    'is_up': change >= 0
+                })
 
         if stock_rows:
             cols = st.columns(4)
@@ -649,27 +663,25 @@ def main():
     us_cols = st.columns(len(US_STOCKS))
     for i, ticker in enumerate(US_STOCKS):
         with us_cols[i]:
-            try:
-                t = yf.Ticker(ticker)
-                info = t.info
-                price = info.get('regularMarketPrice') or info.get('currentPrice')
-                change = info.get('regularMarketChange') or 0
-                change_pct = info.get('regularMarketChangePercent') or 0
+            info = get_ticker_info(ticker)
+            price = info.get('regularMarketPrice') or info.get('currentPrice')
+            change = info.get('regularMarketChange') or 0
+            change_pct = info.get('regularMarketChangePercent') or 0
 
-                if price:
-                    name = {'NVDA': 'NVIDIA', 'QQQ': 'QQQ納指', 'TSM': 'TSM台積電'}.get(ticker, ticker)
-                    color = COLORS['bullish'] if change >= 0 else COLORS['bearish']
-                    arrow = '▲' if change >= 0 else '▼'
+            if price:
+                name = {'NVDA': 'NVIDIA', 'QQQ': 'QQQ納指', 'TSM': 'TSM台積電'}.get(ticker, ticker)
+                color = COLORS['bullish'] if change >= 0 else COLORS['bearish']
+                arrow = '▲' if change >= 0 else '▼'
 
-                    st.markdown(f"""
-                    <div style="background-color: {COLORS['card']}; border-radius: 12px; padding: 16px;
-                                border: 1px solid {COLORS['border']}; text-align: center;">
-                        <div style="color: {COLORS['text_secondary']}; font-size: 0.8rem;">{ticker} {name}</div>
-                        <div style="color: {COLORS['text']}; font-size: 1.4rem; font-weight: bold; margin: 6px 0;">{price:.2f}</div>
-                        <div style="color: {color}; font-size: 0.9rem;">{arrow} {change_pct:+.2f}%</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-            except Exception:
+                st.markdown(f"""
+                <div style="background-color: {COLORS['card']}; border-radius: 12px; padding: 16px;
+                            border: 1px solid {COLORS['border']}; text-align: center;">
+                    <div style="color: {COLORS['text_secondary']}; font-size: 0.8rem;">{ticker} {name}</div>
+                    <div style="color: {COLORS['text']}; font-size: 1.4rem; font-weight: bold; margin: 6px 0;">{price:.2f}</div>
+                    <div style="color: {color}; font-size: 0.9rem;">{arrow} {change_pct:+.2f}%</div>
+                </div>
+                """, unsafe_allow_html=True)
+            else:
                 st.markdown(f"""
                 <div style="background-color: {COLORS['card']}; border-radius: 12px; padding: 16px;
                             border: 1px solid {COLORS['border']}; text-align: center;">
