@@ -68,8 +68,9 @@ if 'indicators' not in st.session_state:
 # ===== 常量 =====
 FRED_API_KEY = 'edaa5b7562ebd132c42effa0193e5772'
 STOCKS = {
-    '2330': '台積電', '2317': '鴻海', '3532': '台勝科', '1503': '士電',
-    '2484': '敦陽', '2885': '元大金', '5880': '合庫金', '2603': '長榮'
+    '1503': '士電', '1605': '華新', '1717': '長興', '1802': '台玻',
+    '2317': '鴻海', '2330': '台積電', '2887': '台新新光金', '3532': '台勝科',
+    '4716': '大立', '5543': '均豪', '6613': '朋億', '6667': '信紘科'
 }
 US_STOCKS = ['NVDA', 'QQQ', 'TSM']
 
@@ -364,7 +365,7 @@ def main():
             st.markdown(render_card('GDP季增率', val, None, None, status, '📊'), unsafe_allow_html=True)
 
     with right_col:
-        st.markdown("##### 💰 龍龍的8檔股票")
+        st.markdown("##### 💰 龍龍的12檔股票")
         # 一次取得所有報價
         stock_rows = []
         for code, name in STOCKS.items():
