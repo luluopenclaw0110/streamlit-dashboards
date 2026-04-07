@@ -778,11 +778,14 @@ def main():
             except:
                 roe_val = 15
 
-            # 使用統一建議函數
-            recommendation, rec_color, score, signals = get_unified_recommendation(
-                ma5_val, ma20_val, ma60_val, rsi_val,
-                current_price, pe_val, roe_val, 0
-            )
+            # 使用與產業分析一致的建議函數
+            try:
+                profit_growth_str = fund.get('獲利成長', '0')
+                profit_growth_val = float(str(profit_growth_str).replace('%', '')) if profit_growth_str not in ('N/A', None, '') else 0
+            except:
+                profit_growth_val = 0
+            recommendation, rec_color = get_recommendation(roe_val, profit_growth_val, pe_val)
+            score = 0
 
             # 顯示各項技術信號
             opinions = []
@@ -880,6 +883,7 @@ def main():
             '電子組裝': {'2317': '鴻海', '2382': '廣達', '2308': '台達電'},
             '傳產-鋼鐵': {'2002': '中鋼', '2027': '燁輝', '2105': '正新'},
             '傳產-塑化': {'1326': '台化', '1303': '南亞', '1301': '台塑'},
+            '金融': {'2887': '台新金', '2886': '兆豐金', '2884': '玉山金', '2891': '中信金', '2883': '開發金'},
         }
 
         # 產業選擇器
