@@ -918,16 +918,19 @@ def main():
                     '淨利(B)': round(data['淨利'] / 1e9, 2) if data['淨利'] else 0,
                     'EPS': f"${data['EPS']:.2f}" if data['EPS'] else 'N/A',
                     'ROE': f"{data['ROE']:.1f}%",
+                    'ROE_raw': data['ROE'] or 0,
                     '本益比': f"{data['本益比']:.1f}" if data['本益比'] else 'N/A',
+                    '本益比_raw': data['本益比'] or 0,
+                    '獲利成長_raw': data['獲利成長'] or 0,
                 })
 
         if ranking_data:
             df_rank = pd.DataFrame(ranking_data)
             df_rank = df_rank.sort_values('營收(B)', ascending=False)
-            # 產業排名：根據營收客觀排名（不是投資建議）
-            rank_map = {1: '🥇 第1名', 2: '🥈 第2名', 3: '🥉 第3名'}
-            for rank, (idx, _) in enumerate(df_rank.iterrows(), 1):
-                df_rank.loc[idx, '建議'] = rank_map.get(rank, f'第{rank}名')
+            # 產業排名：使用統一的投資建議（與主頁、產業分析一致）
+            for idx, row in df_rank.iterrows():
+                rec, _ = get_recommendation(row['ROE_raw'], row['獲利成長_raw'], row['本益比_raw'])
+                df_rank.loc[idx, '建議'] = rec
             st.dataframe(df_rank, hide_index=True, use_container_width=True)
 
         st.markdown("---")
