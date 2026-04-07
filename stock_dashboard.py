@@ -365,22 +365,25 @@ def main():
         selected_period_label = st.selectbox("📅 時間範圍", period_labels, index=2)
         st.session_state.period = period_map[selected_period_label]
 
-        # 問題2：加入全選按鈕
+        # 技術指標（加入「全選」選項在 multiselect 裡）
         ALL_INDICATORS = ["MA5", "MA20", "MA60", "RSI", "KD", "MACD", "Volume"]
-        col_sel_all, col_indicators = st.columns([1, 4])
-        with col_sel_all:
-            if st.button("✅ 全選", use_container_width=True, key="select_all_btn"):
+        indicators_options = ["全選"] + ALL_INDICATORS
+
+        selected = st.multiselect(
+            "📊 技術指標",
+            indicators_options,
+            default=st.session_state.indicators if st.session_state.indicators else ALL_INDICATORS,
+            key="indicators_multiselect"
+        )
+
+        # 全選邏輯：選「全選」= 全選，再點「全選」= 全取消
+        if selected:
+            if selected[0] == "全選":
                 st.session_state.indicators = ALL_INDICATORS
-        with col_indicators:
-            st.session_state.indicators = st.multiselect(
-                "📊 技術指標",
-                ALL_INDICATORS,
-                default=st.session_state.indicators if st.session_state.indicators else ALL_INDICATORS,
-                key="indicators_multiselect"
-            )
-        # 如果刪除全選按鈕，需要重新初始化 indicators
-        if not st.session_state.indicators:
-            st.session_state.indicators = ALL_INDICATORS
+            else:
+                st.session_state.indicators = selected
+        else:
+            st.session_state.indicators = []
 
         st.markdown("---")
         st.markdown("**📊 快速連結**")
