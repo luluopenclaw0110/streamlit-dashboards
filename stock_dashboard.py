@@ -13,6 +13,7 @@ from datetime import datetime
 import json
 import requests
 import os
+import time
 
 # ===== 配色系統 =====
 COLORS = {
@@ -29,7 +30,7 @@ COLORS = {
 }
 
 st.set_page_config(
-    page_title="龍龍的6檔股票",
+    page_title="龍龍的12檔股票",
     page_icon="📈",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -71,8 +72,9 @@ if 'indicators' not in st.session_state:
 # ===== 常量 =====
 FRED_API_KEY = 'edaa5b7562ebd132c42effa0193e5772'
 STOCKS = {
-    '1503': '士電', '2317': '鴻海', '2330': '台積電',
-    '3532': '台勝科', '4716': '大立', '5543': '均豪'
+    '1503': '士電', '1605': '華新', '1717': '長興', '1802': '台玻',
+    '2317': '鴻海', '2330': '台積電', '2887': '台新新光金',
+    '3532': '台勝科', '4716': '大立', '5543': '均豪', '6613': '朋億', '6667': '信紘科'
 }
 STOCK_OPTIONS = [f"{code} {name}" for code, name in STOCKS.items()]
 
@@ -106,15 +108,21 @@ def get_fred_latest(series_id):
 # ===== Yahoo Finance =====
 @st.cache_data(ttl=60)
 def get_ticker_info(ticker):
+    """get_ticker_info with retry, 15s timeout, and TWSE fallback"""
+    # 1. Try Yahoo Finance with retry
+    for attempt in range(3):
+        try:
+            t = yf.Ticker(ticker)
+            info = t.info
+            if info and (info.get('regularMarketPrice') or info.get('currentPrice')):
+                return info
+        except Exception:
+            pass
+        if attempt < 2:
+            time.sleep(0.3)
+    # 2. Try yf.download as fallback
     try:
-        t = yf.Ticker(ticker)
-        info = t.info
-        if info and (info.get('regularMarketPrice') or info.get('currentPrice')):
-            return info
-    except Exception:
-        pass
-    try:
-        df = yf.download(ticker, period='5d', interval='1d', progress=False, timeout=10)
+        df = yf.download(ticker, period='5d', interval='1d', progress=False, timeout=15)
         if df is not None and not df.empty:
             close = df['Close'].iloc[-1]
             prev_close = df['Close'].iloc[-2] if len(df) > 1 else close
@@ -127,7 +135,32 @@ def get_ticker_info(ticker):
             }
     except Exception:
         pass
+    # 3. TWSE fallback (for codes like 4716, 5543)
+    code = ticker.replace('.TW', '').replace('^', '')
+    twse_result = _get_twse_realtime(code)
+    if twse_result:
+        return twse_result
     return {}
+
+def _get_twse_realtime(code):
+    """從 TWSE 取得即時股價"""
+    try:
+        url = f"https://www.twse.com.tw/rwd/zh/afterTrading/STOCK_DAY?&date=&stockNo={code}&response=json"
+        headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)'}
+        r = requests.get(url, headers=headers, timeout=15)
+        # TWSE doesn't have real-time; try alternative endpoint
+        url2 = f"https://www.twse.com.tw/rwd/zh/realTime/getQuote?exch=TSE&str={code}&delay=0"
+        r2 = requests.get(url2, headers=headers, timeout=15)
+        if r2.status_code == 200:
+            data = r2.json()
+            if data.get('rtCode') == '0000':
+                fields = data.get('rtData', {}).get('quote', {})
+                price = fields.get('z') or fields.get('c')
+                if price and price not in ('-', '', 'N/A'):
+                    return {'regularMarketPrice': float(price), 'regularMarketChange': 0.0, 'regularMarketChangePercent': 0.0}
+    except Exception:
+        pass
+    return None
 
 @st.cache_data(ttl=120)
 def get_yf_history(ticker, period='3mo'):
@@ -319,6 +352,7 @@ def main():
     # 🏠 Tab 1：主頁
     # =============================================
     with tab_main:
+        st.markdown("<div style='height: 1rem'></div>", unsafe_allow_html=True)
         st.title("🌐 龍龍股票儀表板")
         st.caption(f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} (GMT+8)")
 
@@ -513,13 +547,14 @@ def main():
             st.error(f"⚠️ 無法取得 {code} 數據")
 
     # =============================================
-    # 🔍 Tab 2：個股查詢 → 改為顯示 6 檔持股報價
+    # 🔍 Tab 2：個股查詢 → 顯示 12 檔持股報價
     # =============================================
     with tab_search:
+        st.markdown("<div style='height: 1rem'></div>", unsafe_allow_html=True)
         st.title("🔍 持股報價")
         st.caption("即時股價資訊（資料來源：Yahoo Finance）")
 
-        twse_codes = ['1503', '2317', '2330', '3532', '4716', '5543']
+        twse_codes = list(STOCKS.keys())  # 12 檔
         yf_tickers = [f"{c}.TW" for c in twse_codes]
 
         # 一次下載所有 YAHOO 資料
@@ -528,9 +563,11 @@ def main():
         except Exception:
             all_yf = pd.DataFrame()
 
-        # 2 列 x 3 排顯示
-        for row_codes in [twse_codes[i:i+3] for i in range(0, len(twse_codes), 3)]:
-            row_cols = st.columns(3)
+        # 4 列 x 3 排顯示（響應式）
+        cols_per_row = 3
+        for row_start in range(0, len(twse_codes), cols_per_row):
+            row_codes = twse_codes[row_start:row_start + cols_per_row]
+            row_cols = st.columns(cols_per_row)
             for idx, code in enumerate(row_codes):
                 with row_cols[idx]:
                     name = STOCKS.get(code, code)
@@ -545,6 +582,7 @@ def main():
                                 change = price - prev
                                 change_pct = (change / prev * 100) if prev != 0 else 0
                         else:
+                            time.sleep(0.3)
                             info = get_ticker_info(f"{code}.TW")
                             price = info.get('regularMarketPrice') or 0
                             change_pct = info.get('regularMarketChangePercent', 0) or 0
