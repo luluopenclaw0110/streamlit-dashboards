@@ -569,9 +569,14 @@ def main():
                 except: pass
                 st.metric("本益比 (P/E)", pe_str, help="股價盈餘比")
             with b_col3:
-                dy_str = f"{str(div_yield).replace('%',''):.2f}%" if div_yield not in (None, 'N/A', '') else "N/A"
-                try: dy_str = f"{float(str(div_yield).replace('%','')):.2f}%"
-                except: pass
+                try:
+                    if div_yield not in (None, 'N/A', ''):
+                        dy_val = float(str(div_yield).replace('%',''))
+                        dy_str = f"{dy_val:.2f}%"
+                    else:
+                        dy_str = "N/A"
+                except:
+                    dy_str = "N/A"
                 st.metric("殖利率", dy_str, help="股息殖利率")
             with b_col4:
                 st.metric("財報季度", str(quarter), help="最新財報季度")
