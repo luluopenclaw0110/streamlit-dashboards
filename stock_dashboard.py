@@ -290,29 +290,19 @@ def load_fundamentals():
 FUNDAMENTALS, FUNDAMENTALS_UPDATE = load_fundamentals()
 
 # ===== 主程式 =====
+# ===== 主程式 =====
 def main():
-    # === 側邊欄：股票選擇器 ===
+    # === 側邊欄：時間範圍控制 ===
     with st.sidebar:
-        st.title("📈 龍龍的6檔股票")
+        st.title("📈 龍龍股票儀表板")
         st.markdown("---")
 
-        # 股票選擇
-        stock_options = [f"{code} {name}" for code, name in STOCKS.items()]
-        selected = st.selectbox(
-            "📌 選擇股票",
-            stock_options,
-            index=stock_options.index('2330 台積電') if '2330 台積電' in stock_options else 0
-        )
-        st.session_state.selected_stock = selected.split(' ')[0]
-
-        # 時間範圍
         period_map = {"1個月": "1mo", "3個月": "3mo", "6個月": "6mo", "1年": "1y"}
         period_labels = list(period_map.keys())
-        default_period_idx = 2  # 6個月
+        default_period_idx = 2
         selected_period_label = st.selectbox("📅 時間範圍", period_labels, index=default_period_idx)
         st.session_state.period = period_map[selected_period_label]
 
-        # 技術指標
         st.session_state.indicators = st.multiselect(
             "📊 技術指標",
             ["MA5", "MA20", "MA60", "RSI", "KD", "Volume"],
@@ -326,396 +316,306 @@ def main():
         st.markdown("---")
         st.caption(f"更新時間：{datetime.now().strftime('%H:%M:%S')}")
 
-    # === 主頁 Header ===
-    st.title(f"🌐 龍龍的6檔股票")
-    st.caption(f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} (GMT+8)")
+    # === 分頁架構 ===
+    tab_main, tab_search = st.tabs(["🏠 主頁", "🔍 個股查詢"])
 
-    # === 第一區塊：市場情緒 Banner ===
-    st.markdown("#### 📊 龍龍市場情緒")
-    vix_info = get_ticker_info('^VIX')
-    tnxy_info = get_ticker_info('^TNX')
+    # =============================================
+    # 🏠 Tab 1：主頁（市場情緒 + 宏觀指標 + 2330 K線）
+    # =============================================
+    with tab_main:
+        st.title("🌐 龍龍股票儀表板")
+        st.caption(f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} (GMT+8)")
 
-    vix = vix_info.get('regularMarketPrice') or vix_info.get('currentPrice')
-    vix_change = vix_info.get('regularMarketChange') or 0
-    vix_change_pct = vix_info.get('regularMarketChangePercent') or 0
+        # 市場情緒
+        st.markdown("#### 📊 龍龍市場情緒")
+        vix_info = get_ticker_info('^VIX')
+        tnxy_info = get_ticker_info('^TNX')
 
-    tnxy = tnxy_info.get('regularMarketPrice') or tnxy_info.get('currentPrice')
-    tnxy_change_pct = tnxy_info.get('regularMarketChangePercent') or 0
+        vix = vix_info.get('regularMarketPrice') or vix_info.get('currentPrice')
+        vix_change_pct = vix_info.get('regularMarketChangePercent') or 0
+        tnxy = tnxy_info.get('regularMarketPrice') or tnxy_info.get('currentPrice')
+        tnxy_change_pct = tnxy_info.get('regularMarketChangePercent') or 0
 
-    mood, mood_color, suggestion = get_market_mood(vix, tnxy)
+        mood, mood_color, suggestion = get_market_mood(vix, tnxy)
+        vix_status = 'bearish' if vix and vix > 25 else 'bullish' if vix and vix < 15 else 'neutral'
 
-    vix_status = 'bearish' if vix and vix > 25 else 'bullish' if vix and vix < 15 else 'neutral'
-    col1, col2, col3 = st.columns([1, 1, 2])
-    with col1:
-        vix_val = f"{vix:.2f}" if vix else "N/A"
-        vix_arrow = '▲' if vix_change_pct and vix_change_pct > 0 else '▼'
-        st.markdown(render_card('😰 VIX 恐慌指數', vix_val, vix_arrow, vix_change_pct, vix_status, '😰'), unsafe_allow_html=True)
-    with col2:
-        tnxy_val = f"{tnxy:.2f}%" if tnxy else "N/A"
-        tnxy_status = 'bearish' if tnxy and tnxy > 4.5 else 'neutral'
-        st.markdown(render_card('💵 10年債殖利率', tnxy_val, None, tnxy_change_pct, tnxy_status, '💵'), unsafe_allow_html=True)
-    with col3:
-        st.markdown(f"""
-        <div style="background: linear-gradient(135deg, {COLORS['card']} 0%, #1a2332 100%);
-                    border-radius: 16px; padding: 20px; border: 1px solid {COLORS['border']}; height: 100%;">
-            <h2 style="color: {mood_color}; margin: 0;">{mood}</h2>
-            <p style="color: {COLORS['text_secondary']}; margin: 8px 0 0 0; font-size: 0.9rem;">{suggestion}</p>
-        </div>
-        """, unsafe_allow_html=True)
+        col1, col2, col3 = st.columns([1, 1, 2])
+        with col1:
+            st.markdown(render_card('😰 VIX 恐慌指數', f"{vix:.2f}" if vix else "N/A", '▲' if vix_change_pct > 0 else '▼', vix_change_pct, vix_status, '😰'), unsafe_allow_html=True)
+        with col2:
+            st.markdown(render_card('💵 10年債殖利率', f"{tnxy:.2f}%" if tnxy else "N/A", None, tnxy_change_pct, 'bearish' if tnxy and tnxy > 4.5 else 'neutral', '💵'), unsafe_allow_html=True)
+        with col3:
+            st.markdown(f"<div style='background: linear-gradient(135deg, {COLORS['card']} 0%, #1a2332 100%); border-radius: 16px; padding: 20px; border: 1px solid {COLORS['border']}; height: 100%;'><h2 style='color: {mood_color}; margin: 0;'>{mood}</h2><p style='color: {COLORS['text_secondary']}; margin: 8px 0 0 0; font-size: 0.9rem;'>{suggestion}</p></div>", unsafe_allow_html=True)
 
-    # === 第二區塊：宏觀指標 + 8檔股票（左右佈局）===
-    st.markdown("---")
-
-    # Fed 利率、失業率、CPI 用快取
-    fed_rate, fed_prev = get_fred_latest('FEDFUNDS')
-    unemp, unemp_prev = get_fred_latest('UNRATE')
-    cpi, cpi_prev = get_fred_latest('CPIAUCSL')
-    gdp, gdp_prev = get_fred_latest('GDP')
-
-    cpi_yoy = None
-    if cpi and cpi_prev and cpi_prev > 0:
-        cpi_yoy = ((cpi / cpi_prev) - 1) * 100 * 12
-
-    gdp_growth = None
-    if gdp and gdp_prev:
-        gdp_growth = ((gdp / gdp_prev) - 1) * 100
-
-    left_col, right_col = st.columns([1, 2.5])
-
-    with left_col:
+        # 宏觀指標
+        st.markdown("---")
         st.markdown("##### 🏦 宏觀指標")
-        mc1, mc2 = st.columns(2)
-        with mc1:
-            status = 'bearish' if fed_rate and fed_rate > 5 else 'neutral'
-            val = f"{fed_rate:.2f}%" if fed_rate else "N/A"
-            prev_str = f"{fed_prev:.2f}%" if fed_prev else "N/A"
-            st.markdown(render_card('Fed利率', val, None, None, status, '🏦'), unsafe_allow_html=True)
-        with mc2:
-            status = 'bearish' if unemp and unemp > 5 else 'bullish'
-            val = f"{unemp:.2f}%" if unemp else "N/A"
-            st.markdown(render_card('失業率', val, None, None, status, '👷'), unsafe_allow_html=True)
 
-        mc3, mc4 = st.columns(2)
-        with mc3:
-            status = 'bearish' if cpi_yoy and cpi_yoy > 3 else 'neutral'
-            val = f"{cpi_yoy:.1f}%" if cpi_yoy else "N/A"
-            st.markdown(render_card('CPI通膨(年)', val, None, None, status, '📈'), unsafe_allow_html=True)
-        with mc4:
-            status = 'bullish' if gdp_growth and gdp_growth > 2 else 'neutral'
-            val = f"{gdp_growth:.1f}%" if gdp_growth else "N/A"
-            st.markdown(render_card('GDP季增率', val, None, None, status, '📊'), unsafe_allow_html=True)
+        fed_rate, _ = get_fred_latest('FEDFUNDS')
+        unemp, _ = get_fred_latest('UNRATE')
+        cpi, cpi_prev = get_fred_latest('CPIAUCSL')
+        gdp, gdp_prev = get_fred_latest('GDP')
 
-    with right_col:
-        st.markdown("##### 💰 龍龍的12檔股票")
-        # 一次取得所有報價
-        stock_rows = []
-        for code, name in STOCKS.items():
-            info = get_ticker_info(f"{code}.TW")
-            price = info.get('regularMarketPrice') or info.get('currentPrice')
-            change = info.get('regularMarketChange') or 0
-            change_pct = info.get('regularMarketChangePercent') or 0
-            if price:
-                stock_rows.append({
-                    '代號': code, '名稱': name,
-                    '價格': f"{price:.2f}",
-                    '漲跌': f"{change:+.2f}",
-                    '漲跌幅': f"{change_pct:+.2f}%",
-                    'is_up': change >= 0
-                })
+        cpi_yoy = ((cpi / cpi_prev) - 1) * 100 * 12 if cpi and cpi_prev and cpi_prev > 0 else None
+        gdp_growth = ((gdp / gdp_prev) - 1) * 100 if gdp and gdp_prev else None
 
-        if stock_rows:
-            cols = st.columns(4)
-            for i, row in enumerate(stock_rows):
-                color = COLORS['bullish'] if row['is_up'] else COLORS['bearish']
-                arrow = '▲' if row['is_up'] else '▼'
-                with cols[i % 4]:
-                    st.markdown(f"""
-                    <div style="background-color: {COLORS['card']}; border-radius: 10px; padding: 12px;
-                                border: 1px solid {COLORS['border']}; text-align: center; margin: 4px; min-height: 100px;
-                                display: flex; flex-direction: column; justify-content: space-between;">
-                        <div style="color: {COLORS['text_secondary']}; font-size: 0.75rem;">{row['代號']} {row['名稱']}</div>
-                        <div style="color: {COLORS['text']}; font-size: 1.2rem; font-weight: bold; margin: 4px 0;">{row['價格']}</div>
-                        <div style="color: {color}; font-size: 0.85rem;">{arrow} {row['漲跌幅']}</div>
-                    </div>
-                    """, unsafe_allow_html=True)
+        mc1, mc2, mc3, mc4 = st.columns(4)
+        with mc1: st.markdown(render_card('Fed利率', f"{fed_rate:.2f}%" if fed_rate else "N/A", None, None, 'bearish' if fed_rate and fed_rate > 5 else 'neutral', '🏦'), unsafe_allow_html=True)
+        with mc2: st.markdown(render_card('失業率', f"{unemp:.2f}%" if unemp else "N/A", None, None, 'bearish' if unemp and unemp > 5 else 'bullish', '👷'), unsafe_allow_html=True)
+        with mc3: st.markdown(render_card('CPI通膨(年)', f"{cpi_yoy:.1f}%" if cpi_yoy else "N/A", None, None, 'bearish' if cpi_yoy and cpi_yoy > 3 else 'neutral', '📈'), unsafe_allow_html=True)
+        with mc4: st.markdown(render_card('GDP季增率', f"{gdp_growth:.1f}%" if gdp_growth else "N/A", None, None, 'bullish' if gdp_growth and gdp_growth > 2 else 'neutral', '📊'), unsafe_allow_html=True)
 
-    # === 第三區塊：K線圖 + 技術指標 ===
-    st.markdown("---")
-    st.markdown(f"##### 📈 {STOCKS.get(st.session_state.selected_stock, st.session_state.selected_stock)} K線圖")
+        # 2330 K線圖
+        st.markdown("---")
+        st.markdown("##### 📈 台積電 (2330) K線圖")
 
-    code = st.session_state.selected_stock
-    period = st.session_state.period
+        code = '2330'
+        period = st.session_state.period
+        df = get_twse_data(code)
+        if df is None or df.empty:
+            df = get_yf_history(f"{code}.TW", period)
 
-    # 嘗試 TWSE，若失敗用 yfinance
-    df = get_twse_data(code)
-    if df is None or df.empty:
-        df = get_yf_history(f"{code}.TW", period)
-
-    if df is not None and not df.empty:
-        # 過濾日期範圍
-        try:
-            if 'Date' in df.columns or df.index.name == 'Date':
+        if df is not None and not df.empty:
+            try:
+                if isinstance(df.index, pd.DatetimeIndex):
+                    now = datetime.now()
+                    days_map = {'1mo': 30, '3mo': 90, '6mo': 180, '1y': 365}
+                    start_date = now - pd.Timedelta(days=days_map.get(period, 90))
+                    df = df[df.index >= start_date]
+            except Exception:
                 pass
-            elif isinstance(df.index, pd.DatetimeIndex):
-                now = datetime.now()
-                if period == '1mo':
-                    start_date = now - pd.Timedelta(days=30)
-                elif period == '3mo':
-                    start_date = now - pd.Timedelta(days=90)
-                elif period == '6mo':
-                    start_date = now - pd.Timedelta(days=180)
-                elif period == '1y':
-                    start_date = now - pd.Timedelta(days=365)
-                else:
-                    start_date = now - pd.Timedelta(days=90)
-                df = df[df.index >= start_date]
-        except Exception:
-            pass
 
-        current_price = float(df['Close'].iloc[-1])
-        prev_price = float(df['Close'].iloc[-2]) if len(df) > 1 else current_price
-        change = current_price - prev_price
-        change_pct = (change / prev_price) * 100 if prev_price != 0 else 0
+            current_price = float(df['Close'].iloc[-1])
+            prev_price = float(df['Close'].iloc[-2]) if len(df) > 1 else current_price
+            change = current_price - prev_price
+            change_pct = (change / prev_price) * 100 if prev_price != 0 else 0
 
-        # 價格 summary
-        p_col1, p_col2, p_col3 = st.columns(3)
-        with p_col1:
-            color = COLORS['bullish'] if change >= 0 else COLORS['bearish']
-            st.markdown(f"""
-            <div style="background-color: {COLORS['card']}; border-radius: 12px; padding: 16px; border: 1px solid {COLORS['border']}; text-align: center;">
-                <div style="color: {COLORS['text_secondary']}; font-size: 0.85rem;">目前價格</div>
-                <div style="color: {COLORS['text']}; font-size: 1.8rem; font-weight: bold;">{current_price:.2f}</div>
-                <div style="color: {color}; font-size: 0.9rem;">▲ {change_pct:+.2f}%</div>
-            </div>
-            """, unsafe_allow_html=True)
-        with p_col2:
-            high = df['High'].max()
-            st.markdown(f"""
-            <div style="background-color: {COLORS['card']}; border-radius: 12px; padding: 16px; border: 1px solid {COLORS['border']}; text-align: center;">
-                <div style="color: {COLORS['text_secondary']}; font-size: 0.85rem;">期間最高</div>
-                <div style="color: {COLORS['bullish']}; font-size: 1.8rem; font-weight: bold;">{high:.2f}</div>
-            </div>
-            """, unsafe_allow_html=True)
-        with p_col3:
-            low = df['Low'].min()
-            st.markdown(f"""
-            <div style="background-color: {COLORS['card']}; border-radius: 12px; padding: 16px; border: 1px solid {COLORS['border']}; text-align: center;">
-                <div style="color: {COLORS['text_secondary']}; font-size: 0.85rem;">期間最低</div>
-                <div style="color: {COLORS['bearish']}; font-size: 1.8rem; font-weight: bold;">{low:.2f}</div>
-            </div>
-            """, unsafe_allow_html=True)
+            p_col1, p_col2, p_col3 = st.columns(3)
+            with p_col1:
+                color = COLORS['bullish'] if change >= 0 else COLORS['bearish']
+                st.markdown(f"<div style='background-color: {COLORS['card']}; border-radius: 12px; padding: 16px; border: 1px solid {COLORS['border']}; text-align: center;'><div style='color: {COLORS['text_secondary']}; font-size: 0.85rem;'>目前價格</div><div style='color: {COLORS['text']}; font-size: 1.8rem; font-weight: bold;'>{current_price:.2f}</div><div style='color: {color}; font-size: 0.9rem;'>▲ {change_pct:+.2f}%</div></div>", unsafe_allow_html=True)
+            with p_col2:
+                st.markdown(f"<div style='background-color: {COLORS['card']}; border-radius: 12px; padding: 16px; border: 1px solid {COLORS['border']}; text-align: center;'><div style='color: {COLORS['text_secondary']}; font-size: 0.85rem;'>期間最高</div><div style='color: {COLORS['bullish']}; font-size: 1.8rem; font-weight: bold;'>{df['High'].max():.2f}</div></div>", unsafe_allow_html=True)
+            with p_col3:
+                st.markdown(f"<div style='background-color: {COLORS['card']}; border-radius: 12px; padding: 16px; border: 1px solid {COLORS['border']}; text-align: center;'><div style='color: {COLORS['text_secondary']}; font-size: 0.85rem;'>期間最低</div><div style='color: {COLORS['bearish']}; font-size: 1.8rem; font-weight: bold;'>{df['Low'].min():.2f}</div></div>", unsafe_allow_html=True)
 
-        # === K線圖 ===
-        indicators = st.session_state.indicators
+            # K線圖
+            indicators = st.session_state.indicators
+            fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.05, row_heights=[0.65, 0.35], subplot_titles=('', ''))
 
-        if len(df) > 0:
-            fig = make_subplots(
-                rows=2, cols=1, shared_xaxes=True,
-                vertical_spacing=0.05,
-                row_heights=[0.65, 0.35],
-                subplot_titles=('', '')
-            )
+            fig.add_trace(go.Candlestick(x=df.index, open=df['Open'], high=df['High'], low=df['Low'], close=df['Close'], name='K線', increasing_line_color=COLORS['up'], decreasing_line_color=COLORS['down']), row=1, col=1)
 
-            # K線 - 台股格式：上漲紅，下跌綠
-            fig.add_trace(
-                go.Candlestick(
-                    x=df.index,
-                    open=df['Open'], high=df['High'],
-                    low=df['Low'], close=df['Close'],
-                    name='K線', increasing_line_color=COLORS['up'],
-                    decreasing_line_color=COLORS['down']
-                ),
-                row=1, col=1
-            )
-
-            # MA 線
             close_series = df['Close']
             if "MA5" in indicators and len(df) >= 5:
-                fig.add_trace(go.Scatter(x=df.index, y=calc_ma(close_series, 5), name='MA5',
-                                          line=dict(color='blue', width=1)), row=1, col=1)
+                fig.add_trace(go.Scatter(x=df.index, y=calc_ma(close_series, 5), name='MA5', line=dict(color='blue', width=1)), row=1, col=1)
             if "MA20" in indicators and len(df) >= 20:
-                fig.add_trace(go.Scatter(x=df.index, y=calc_ma(close_series, 20), name='MA20',
-                                          line=dict(color='purple', width=2)), row=1, col=1)
+                fig.add_trace(go.Scatter(x=df.index, y=calc_ma(close_series, 20), name='MA20', line=dict(color='purple', width=2)), row=1, col=1)
             if "MA60" in indicators and len(df) >= 60:
-                fig.add_trace(go.Scatter(x=df.index, y=calc_ma(close_series, 60), name='MA60',
-                                          line=dict(color='orange', width=2)), row=1, col=1)
+                fig.add_trace(go.Scatter(x=df.index, y=calc_ma(close_series, 60), name='MA60', line=dict(color='orange', width=2)), row=1, col=1)
 
-            # RSI
             if "RSI" in indicators and len(df) >= 14:
                 rsi = calc_rsi(close_series)
-                fig.add_trace(go.Scatter(x=df.index, y=rsi, name='RSI',
-                                          line=dict(color='yellow', width=2)), row=2, col=1)
+                fig.add_trace(go.Scatter(x=df.index, y=rsi, name='RSI', line=dict(color='yellow', width=2)), row=2, col=1)
                 fig.add_hline(y=70, line_dash="dash", line_color="red", row=2, col=1)
                 fig.add_hline(y=30, line_dash="dash", line_color="green", row=2, col=1)
                 fig.add_hline(y=50, line_dash="dot", line_color="gray", row=2, col=1)
 
-            # KD
             if "KD" in indicators and len(df) >= 9:
                 k, d = calc_kd(df['High'], df['Low'], close_series)
-                fig.add_trace(go.Scatter(x=df.index, y=k, name='K',
-                                          line=dict(color='red', width=2)), row=2, col=1)
-                fig.add_trace(go.Scatter(x=df.index, y=d, name='D',
-                                          line=dict(color='blue', width=2)), row=2, col=1)
+                fig.add_trace(go.Scatter(x=df.index, y=k, name='K', line=dict(color='red', width=2)), row=2, col=1)
+                fig.add_trace(go.Scatter(x=df.index, y=d, name='D', line=dict(color='blue', width=2)), row=2, col=1)
 
-            # 成交量
             if "Volume" in indicators:
-                colors_vol = [COLORS['bullish'] if df['Close'].iloc[i] >= df['Open'].iloc[i]
-                              else COLORS['bearish'] for i in range(len(df))]
-                fig.add_trace(go.Bar(x=df.index, y=df['Volume'], name='成交量',
-                                      marker_color=colors_vol, marker=dict(opacity=0.7)), row=2, col=1)
+                colors_vol = [COLORS['bullish'] if df['Close'].iloc[i] >= df['Open'].iloc[i] else COLORS['bearish'] for i in range(len(df))]
+                fig.add_trace(go.Bar(x=df.index, y=df['Volume'], name='成交量', marker_color=colors_vol, marker=dict(opacity=0.7)), row=2, col=1)
 
-            fig.update_layout(
-                xaxis_rangeslider_visible=False,
-                height=600,
-                paper_bgcolor=COLORS['background'],
-                plot_bgcolor=COLORS['background'],
-                font=dict(color=COLORS['text']),
-                showlegend=True,
-                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-                margin=dict(l=60, r=20, t=40, b=40)
-            )
-            fig.update_xaxes(gridcolor='#30363D', zerolinecolor='#30363D', showgrid=True, row=1, col=1)
-            fig.update_xaxes(gridcolor='#30363D', zerolinecolor='#30363D', showgrid=True, row=2, col=1)
-            fig.update_yaxes(gridcolor='#30363D', zerolinecolor='#30363D', showgrid=True, row=1, col=1)
-            fig.update_yaxes(gridcolor='#30363D', zerolinecolor='#30363D', showgrid=True, row=2, col=1)
+            fig.update_layout(xaxis_rangeslider_visible=False, height=600, paper_bgcolor=COLORS['background'], plot_bgcolor=COLORS['background'], font=dict(color=COLORS['text']), showlegend=True, legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1), margin=dict(l=60, r=20, t=40, b=40))
+            for r in [1, 2]:
+                fig.update_xaxes(gridcolor='#30363D', zerolinecolor='#30363D', showgrid=True, row=r, col=1)
+                fig.update_yaxes(gridcolor='#30363D', zerolinecolor='#30363D', showgrid=True, row=r, col=1)
 
             st.plotly_chart(fig, use_container_width=True)
 
-            # === 第四區塊：基本面 + 龍龍觀點 ===
+            # 基本面
             st.markdown("---")
             st.markdown("##### 📉 基本面數據")
-
             fundamentals = FUNDAMENTALS.get(code, {})
-            eps = fundamentals.get('EPS')
-            pe = fundamentals.get('本益比')
-            div_yield = fundamentals.get('殖利率')
-            div = fundamentals.get('股息')
-            bv = fundamentals.get('每股淨值')
-            sector = fundamentals.get('產業')
-            quarter = fundamentals.get('財報季度', 'N/A')
-            note = fundamentals.get('備註', '')
-
             b_col1, b_col2, b_col3, b_col4 = st.columns(4)
             with b_col1:
-                eps_str = f"{float(eps):.2f}" if eps not in (None, 'N/A', '') else "N/A"
-                try: eps_str = f"{float(str(eps).replace('%','')):.2f}"
-                except: pass
-                st.metric("EPS", eps_str, help="每股盈餘")
+                try: eps_str = f"{float(str(fundamentals.get('EPS', 'N/A')).replace('%','')):.2f}"
+                except: eps_str = "N/A"
+                st.metric("EPS", eps_str)
             with b_col2:
-                pe_str = f"{float(pe):.2f}" if pe not in (None, 'N/A', '') else "N/A"
-                try: pe_str = f"{float(str(pe).replace('%','')):.2f}"
-                except: pass
-                st.metric("本益比 (P/E)", pe_str, help="股價盈餘比")
+                try: pe_str = f"{float(str(fundamentals.get('本益比', 'N/A')).replace('%','')):.2f}"
+                except: pe_str = "N/A"
+                st.metric("本益比 (P/E)", pe_str)
             with b_col3:
                 try:
-                    if div_yield not in (None, 'N/A', ''):
-                        dy_val = float(str(div_yield).replace('%',''))
-                        dy_str = f"{dy_val:.2f}%"
-                    else:
-                        dy_str = "N/A"
-                except:
-                    dy_str = "N/A"
-                st.metric("殖利率", dy_str, help="股息殖利率")
+                    dy = fundamentals.get('殖利率', 'N/A')
+                    dy_str = f"{float(str(dy).replace('%','')):.2f}%" if dy not in (None, 'N/A', '') else "N/A"
+                except: dy_str = "N/A"
+                st.metric("殖利率", dy_str)
             with b_col4:
-                st.metric("財報季度", str(quarter), help="最新財報季度")
+                st.metric("財報季度", str(fundamentals.get('財報季度', 'N/A')))
 
-            if sector:
-                st.markdown(f"**產業：** {sector}")
-            if note:
-                st.caption(f"📅 {note}")
+            if fundamentals.get('產業'): st.markdown(f"**產業：** {fundamentals.get('產業')}")
+            if fundamentals.get('備註'): st.caption(f"📅 {fundamentals.get('備註')}")
             st.caption(f"📊 資料來源：證交所 ({FUNDAMENTALS_UPDATE})")
 
-            # === 龍龍觀點 ===
+            # 龍龍觀點
             st.markdown("##### 🐉 龍龍觀點")
-
             ma5_val = calc_ma(close_series, 5).iloc[-1] if len(df) >= 5 else None
             ma20_val = calc_ma(close_series, 20).iloc[-1] if len(df) >= 20 else None
             ma60_val = calc_ma(close_series, 60).iloc[-1] if len(df) >= 60 else None
             rsi_val = calc_rsi(close_series).iloc[-1] if len(df) >= 14 else None
 
             opinions = []
-
-            # 均線觀點
             if ma5_val and ma20_val:
-                if ma5_val > ma20_val:
-                    opinions.append(("✅ MA5 > MA20 → 短線偏多", "bullish"))
-                else:
-                    opinions.append(("⚠️ MA5 < MA20 → 短線偏空", "bearish"))
-
+                opinions.append(("✅ MA5 > MA20 → 短線偏多", "bullish") if ma5_val > ma20_val else ("⚠️ MA5 < MA20 → 短線偏空", "bearish"))
             if ma60_val and ma20_val:
-                if ma20_val > ma60_val:
-                    opinions.append(("✅ MA20 > MA60 → 中線偏多", "bullish"))
-                else:
-                    opinions.append(("⚠️ MA20 < MA60 → 中線偏空", "bearish"))
-
-            # RSI 觀點
+                opinions.append(("✅ MA20 > MA60 → 中線偏多", "bullish") if ma20_val > ma60_val else ("⚠️ MA20 < MA60 → 中線偏空", "bearish"))
             if rsi_val:
-                if rsi_val > 70:
-                    opinions.append((f"⚠️ RSI = {rsi_val:.1f} → 超買區，小心回檔", "bearish"))
-                elif rsi_val < 30:
-                    opinions.append((f"✅ RSI = {rsi_val:.1f} → 超賣區，留意反彈", "bullish"))
-                else:
-                    opinions.append((f"➡️ RSI = {rsi_val:.1f} → 區間整理", "neutral"))
+                if rsi_val > 70: opinions.append((f"⚠️ RSI = {rsi_val:.1f} → 超買區，小心回檔", "bearish"))
+                elif rsi_val < 30: opinions.append((f"✅ RSI = {rsi_val:.1f} → 超賣區，留意反彈", "bullish"))
+                else: opinions.append((f"➡️ RSI = {rsi_val:.1f} → 區間整理", "neutral"))
 
-            # 綜合建議
-            bullish_count = sum(1 for _, s in opinions if s == 'bullish')
-            bearish_count = sum(1 for _, s in opinions if s == 'bearish')
-            neutral_count = sum(1 for _, s in opinions if s == 'neutral')
-
-            if bullish_count > bearish_count:
-                overall = ("📈 短線偏多看待", COLORS['bullish'])
-            elif bearish_count > bullish_count:
-                overall = ("📉 短線偏空看待", COLORS['bearish'])
-            else:
-                overall = ("➡️ 中性觀望", COLORS['neutral'])
+            bullish_cnt = sum(1 for _, s in opinions if s == 'bullish')
+            bearish_cnt = sum(1 for _, s in opinions if s == 'bearish')
+            if bullish_cnt > bearish_cnt: overall = ("📈 短線偏多看待", COLORS['bullish'])
+            elif bearish_cnt > bullish_cnt: overall = ("📉 短線偏空看待", COLORS['bearish'])
+            else: overall = ("➡️ 中性觀望", COLORS['neutral'])
 
             for text, status in opinions:
-                color = COLORS.get(status, COLORS['text'])
-                st.markdown(f"<span style='color:{color}'>{text}</span>", unsafe_allow_html=True)
+                st.markdown(f"<span style='color:{COLORS.get(status, COLORS['text'])}'>{text}</span>", unsafe_allow_html=True)
+            st.markdown(f"**🐉 龍龍綜合判斷：<span style='color:{overall[1]}'>{overall[0]}</span>**", unsafe_allow_html=True)
+        else:
+            st.error("⚠️ 無法取得 2330 數據")
 
-            st.markdown(f"**🐉 龍龍綜合判斷：<span style='color:{overall[1]}'>{overall[0]}</span>**",
-                       unsafe_allow_html=True)
+    # =============================================
+    # 🔍 Tab 2：個股查詢（懶加載）
+    # =============================================
+    with tab_search:
+        st.title("🔍 個股查詢")
+        st.caption("輸入股票代碼，一鍵查詢股價、K線與基本面")
 
-    else:
-        st.error("⚠️ 無法取得股票數據，請稍後再試或更換股票")
+        if 'search_code' not in st.session_state: st.session_state.search_code = ''
+        if 'search_result' not in st.session_state: st.session_state.search_result = None
+        if 'search_loaded' not in st.session_state: st.session_state.search_loaded = False
 
-    # === 第五區塊：美股表現 ===
-    st.markdown("---")
-    st.markdown("##### 🇺🇸 美股昨晚表現")
+        col_input, col_btn = st.columns([2, 1])
+        with col_input:
+            search_code = st.text_input("📌 輸入股票代碼", value=st.session_state.search_code, placeholder="例如：2330、2317、3532", help="輸入台股代碼（不需加 .TW）")
+        with col_btn:
+            st.write("")
+            search_clicked = st.button("🔍 查詢", use_container_width=True)
 
-    us_cols = st.columns(len(US_STOCKS))
-    for i, ticker in enumerate(US_STOCKS):
-        with us_cols[i]:
-            info = get_ticker_info(ticker)
-            price = info.get('regularMarketPrice') or info.get('currentPrice')
-            change = info.get('regularMarketChange') or 0
-            change_pct = info.get('regularMarketChangePercent') or 0
+        if search_clicked and search_code:
+            st.session_state.search_code = search_code
+            st.session_state.search_loaded = False
+            with st.spinner(f"🔄 查詢中... {search_code}"):
+                df = get_twse_data(search_code)
+                if df is None or df.empty:
+                    df = get_yf_history(f"{search_code}.TW", st.session_state.period)
+                st.session_state.search_result = df
+                st.session_state.search_loaded = True
+        elif not st.session_state.search_loaded:
+            st.info("👆 請在上方輸入股票代碼，點擊「查詢」按鈕")
+            st.stop()
 
-            if price:
-                name = {'NVDA': 'NVIDIA', 'QQQ': 'QQQ納指', 'TSM': 'TSM台積電'}.get(ticker, ticker)
-                color = COLORS['bullish'] if change >= 0 else COLORS['bearish']
-                arrow = '▲' if change >= 0 else '▼'
+        if st.session_state.search_loaded and st.session_state.search_result is not None:
+            df = st.session_state.search_result
+            code = st.session_state.search_code
+            period = st.session_state.period
 
-                st.markdown(f"""
-                <div style="background-color: {COLORS['card']}; border-radius: 12px; padding: 16px;
-                            border: 1px solid {COLORS['border']}; text-align: center;">
-                    <div style="color: {COLORS['text_secondary']}; font-size: 0.8rem;">{ticker} {name}</div>
-                    <div style="color: {COLORS['text']}; font-size: 1.4rem; font-weight: bold; margin: 6px 0;">{price:.2f}</div>
-                    <div style="color: {color}; font-size: 0.9rem;">{arrow} {change_pct:+.2f}%</div>
-                </div>
-                """, unsafe_allow_html=True)
+            try:
+                if isinstance(df.index, pd.DatetimeIndex):
+                    now = datetime.now()
+                    days_map = {'1mo': 30, '3mo': 90, '6mo': 180, '1y': 365}
+                    start_date = now - pd.Timedelta(days=days_map.get(period, 90))
+                    df = df[df.index >= start_date]
+            except Exception:
+                pass
+
+            if df is None or df.empty:
+                st.error(f"⚠️ 無法取得 {code} 數據，請確認代碼是否正確")
             else:
-                st.markdown(f"""
-                <div style="background-color: {COLORS['card']}; border-radius: 12px; padding: 16px;
-                            border: 1px solid {COLORS['border']}; text-align: center;">
-                    <div style="color: {COLORS['text_secondary']}; font-size: 0.8rem;">{ticker}</div>
-                    <div style="color: {COLORS['text']}; font-size: 1.2rem; margin: 6px 0;">N/A</div>
-                </div>
-                """, unsafe_allow_html=True)
+                current_price = float(df['Close'].iloc[-1])
+                prev_price = float(df['Close'].iloc[-2]) if len(df) > 1 else current_price
+                change = current_price - prev_price
+                change_pct = (change / prev_price) * 100 if prev_price != 0 else 0
 
-    # === 頁腳 ===
-    st.markdown("---")
-    st.markdown(f"*📊 資料更新時間：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | 本報告僅供參考，不構成投資建議*")
+                st.markdown(f"##### 📈 {code} 股價走势")
+                p_col1, p_col2, p_col3 = st.columns(3)
+                with p_col1:
+                    color = COLORS['bullish'] if change >= 0 else COLORS['bearish']
+                    st.markdown(f"<div style='background-color: {COLORS['card']}; border-radius: 12px; padding: 16px; border: 1px solid {COLORS['border']}; text-align: center;'><div style='color: {COLORS['text_secondary']}; font-size: 0.85rem;'>目前價格</div><div style='color: {COLORS['text']}; font-size: 1.8rem; font-weight: bold;'>{current_price:.2f}</div><div style='color: {color}; font-size: 0.9rem;'>▲ {change_pct:+.2f}%</div></div>", unsafe_allow_html=True)
+                with p_col2:
+                    st.markdown(f"<div style='background-color: {COLORS['card']}; border-radius: 12px; padding: 16px; border: 1px solid {COLORS['border']}; text-align: center;'><div style='color: {COLORS['text_secondary']}; font-size: 0.85rem;'>期間最高</div><div style='color: {COLORS['bullish']}; font-size: 1.8rem; font-weight: bold;'>{df['High'].max():.2f}</div></div>", unsafe_allow_html=True)
+                with p_col3:
+                    st.markdown(f"<div style='background-color: {COLORS['card']}; border-radius: 12px; padding: 16px; border: 1px solid {COLORS['border']}; text-align: center;'><div style='color: {COLORS['text_secondary']}; font-size: 0.85rem;'>期間最低</div><div style='color: {COLORS['bearish']}; font-size: 1.8rem; font-weight: bold;'>{df['Low'].min():.2f}</div></div>", unsafe_allow_html=True)
+
+                indicators = st.session_state.indicators
+                fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.05, row_heights=[0.65, 0.35], subplot_titles=('', ''))
+
+                fig.add_trace(go.Candlestick(x=df.index, open=df['Open'], high=df['High'], low=df['Low'], close=df['Close'], name='K線', increasing_line_color=COLORS['up'], decreasing_line_color=COLORS['down']), row=1, col=1)
+
+                close_series = df['Close']
+                if "MA5" in indicators and len(df) >= 5:
+                    fig.add_trace(go.Scatter(x=df.index, y=calc_ma(close_series, 5), name='MA5', line=dict(color='blue', width=1)), row=1, col=1)
+                if "MA20" in indicators and len(df) >= 20:
+                    fig.add_trace(go.Scatter(x=df.index, y=calc_ma(close_series, 20), name='MA20', line=dict(color='purple', width=2)), row=1, col=1)
+                if "MA60" in indicators and len(df) >= 60:
+                    fig.add_trace(go.Scatter(x=df.index, y=calc_ma(close_series, 60), name='MA60', line=dict(color='orange', width=2)), row=1, col=1)
+
+                if "RSI" in indicators and len(df) >= 14:
+                    rsi = calc_rsi(close_series)
+                    fig.add_trace(go.Scatter(x=df.index, y=rsi, name='RSI', line=dict(color='yellow', width=2)), row=2, col=1)
+                    fig.add_hline(y=70, line_dash="dash", line_color="red", row=2, col=1)
+                    fig.add_hline(y=30, line_dash="dash", line_color="green", row=2, col=1)
+                    fig.add_hline(y=50, line_dash="dot", line_color="gray", row=2, col=1)
+
+                if "KD" in indicators and len(df) >= 9:
+                    k, d = calc_kd(df['High'], df['Low'], close_series)
+                    fig.add_trace(go.Scatter(x=df.index, y=k, name='K', line=dict(color='red', width=2)), row=2, col=1)
+                    fig.add_trace(go.Scatter(x=df.index, y=d, name='D', line=dict(color='blue', width=2)), row=2, col=1)
+
+                if "Volume" in indicators:
+                    colors_vol = [COLORS['bullish'] if df['Close'].iloc[i] >= df['Open'].iloc[i] else COLORS['bearish'] for i in range(len(df))]
+                    fig.add_trace(go.Bar(x=df.index, y=df['Volume'], name='成交量', marker_color=colors_vol, marker=dict(opacity=0.7)), row=2, col=1)
+
+                fig.update_layout(xaxis_rangeslider_visible=False, height=600, paper_bgcolor=COLORS['background'], plot_bgcolor=COLORS['background'], font=dict(color=COLORS['text']), showlegend=True, legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1), margin=dict(l=60, r=20, t=40, b=40))
+                for r in [1, 2]:
+                    fig.update_xaxes(gridcolor='#30363D', zerolinecolor='#30363D', showgrid=True, row=r, col=1)
+                    fig.update_yaxes(gridcolor='#30363D', zerolinecolor='#30363D', showgrid=True, row=r, col=1)
+
+                st.plotly_chart(fig, use_container_width=True)
+
+                st.markdown("---")
+                st.markdown(f"##### 📉 {code} 基本面數據")
+                fundamentals = FUNDAMENTALS.get(code, {})
+                b_col1, b_col2, b_col3, b_col4 = st.columns(4)
+                with b_col1:
+                    try: eps_str = f"{float(str(fundamentals.get('EPS', 'N/A')).replace('%','')):.2f}"
+                    except: eps_str = "N/A"
+                    st.metric("EPS", eps_str)
+                with b_col2:
+                    try: pe_str = f"{float(str(fundamentals.get('本益比', 'N/A')).replace('%','')):.2f}"
+                    except: pe_str = "N/A"
+                    st.metric("本益比 (P/E)", pe_str)
+                with b_col3:
+                    try:
+                        dy = fundamentals.get('殖利率', 'N/A')
+                        dy_str = f"{float(str(dy).replace('%','')):.2f}%" if dy not in (None, 'N/A', '') else "N/A"
+                    except: dy_str = "N/A"
+                    st.metric("殖利率", dy_str)
+                with b_col4:
+                    st.metric("財報季度", str(fundamentals.get('財報季度', 'N/A')))
+
+                if fundamentals.get('產業'): st.markdown(f"**產業：** {fundamentals.get('產業')}")
+                if fundamentals.get('備註'): st.caption(f"📅 {fundamentals.get('備註')}")
+
+        elif st.session_state.search_result is None and search_code:
+            st.error(f"⚠️ 無法取得 {search_code} 數據，請確認代碼是否正確")
 
 if __name__ == "__main__":
     main()
