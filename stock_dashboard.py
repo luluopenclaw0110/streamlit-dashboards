@@ -223,22 +223,48 @@ def get_twse_data(code, days=120):
 
 # ===== 技術指標 =====
 def calc_ma(series, days):
+    if len(series) < days:
+        return pd.Series([None] * len(series), index=series.index)
     return series.rolling(window=days).mean()
 
 def calc_rsi(series, days=14):
+    if len(series) < days + 1:
+        return pd.Series([None] * len(series), index=series.index)
     delta = series.diff()
     gain = delta.where(delta > 0, 0).rolling(window=days).mean()
     loss = (-delta.where(delta < 0, 0)).rolling(window=days).mean()
+    # 避免除以零
+    loss = loss.replace(0, 0.0001)
     rs = gain / loss
     return 100 - (100 / (1 + rs))
 
 def calc_kd(high, low, close, n=9):
+    if len(high) < n:
+        k = pd.Series([None] * len(high), index=high.index)
+        d = pd.Series([None] * len(high), index=high.index)
+        return k, d
     lowest_low = low.rolling(window=n).min()
     highest_high = high.rolling(window=n).max()
-    rsv = (close - lowest_low) / (highest_high - lowest_low) * 100
+    # 避免除以零
+    denominator = highest_high - lowest_low
+    denominator = denominator.replace(0, 0.0001)
+    rsv = (close - lowest_low) / denominator * 100
     k = rsv.ewm(alpha=1/3).mean()
     d = k.ewm(alpha=1/3).mean()
     return k, d
+
+def calc_macd(series, fast=12, slow=26, signal=9):
+    """計算 MACD"""
+    if len(series) < slow:
+        return pd.Series([None] * len(series), index=series.index), \
+               pd.Series([None] * len(series), index=series.index), \
+               pd.Series([None] * len(series), index=series.index)
+    ema_fast = series.ewm(span=fast, adjust=False).mean()
+    ema_slow = series.ewm(span=slow, adjust=False).mean()
+    macd_line = ema_fast - ema_slow
+    signal_line = macd_line.ewm(span=signal, adjust=False).mean()
+    histogram = macd_line - signal_line
+    return macd_line, signal_line, histogram
 
 # ===== 宏觀情緒判斷 =====
 def get_market_mood(vix, tnxy):
@@ -335,8 +361,8 @@ def main():
 
         st.session_state.indicators = st.multiselect(
             "📊 技術指標",
-            ["MA5", "MA20", "MA60", "RSI", "KD", "Volume"],
-            default=["MA20", "RSI", "Volume"]
+            ["MA5", "MA20", "MA60", "RSI", "KD", "MACD", "Volume"],
+            default=["MA5", "MA20", "RSI", "KD", "Volume"]
         )
 
         st.markdown("---")
@@ -434,36 +460,129 @@ def main():
                 st.markdown(f"<div style='background-color: {COLORS['card']}; border-radius: 12px; padding: 16px; border: 1px solid {COLORS['border']}; text-align: center;'><div style='color: {COLORS['text_secondary']}; font-size: 0.85rem;'>期間最低</div><div style='color: {COLORS['bearish']}; font-size: 1.8rem; font-weight: bold;'>{df['Low'].min():.2f}</div></div>", unsafe_allow_html=True)
 
             indicators = st.session_state.indicators
-            fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.05, row_heights=[0.65, 0.35], subplot_titles=('', ''))
+            
+            # 根據選擇的指標動態調整 subplot 行數
+            num_rows = 2  # 基礎: K線(1) + 指標(1)
+            if "MACD" in indicators:
+                num_rows = 3  # K線(1) + RSI/KD(1) + MACD(1)
+            
+            row_heights = [0.55] + [0.45 / (num_rows - 1)] * (num_rows - 1)
+            fig = make_subplots(
+                rows=num_rows, cols=1, 
+                shared_xaxes=True, 
+                vertical_spacing=0.06, 
+                row_heights=row_heights,
+                subplot_titles=([''] * num_rows)
+            )
 
-            fig.add_trace(go.Candlestick(x=df.index, open=df['Open'], high=df['High'], low=df['Low'], close=df['Close'], name='K線', increasing_line_color=COLORS['up'], decreasing_line_color=COLORS['down']), row=1, col=1)
+            # === Row 1: K線蠟燭圖 + MA 均線 ===
+            fig.add_trace(go.Candlestick(
+                x=df.index, 
+                open=df['Open'], 
+                high=df['High'], 
+                low=df['Low'], 
+                close=df['Close'], 
+                name='K線', 
+                increasing_line_color=COLORS['up'], 
+                decreasing_line_color=COLORS['down'],
+                increasing_fillcolor=COLORS['up'],
+                decreasing_fillcolor=COLORS['down']
+            ), row=1, col=1)
 
             close_series = df['Close']
             if "MA5" in indicators and len(df) >= 5:
-                fig.add_trace(go.Scatter(x=df.index, y=calc_ma(close_series, 5), name='MA5', line=dict(color='blue', width=1)), row=1, col=1)
+                ma5 = calc_ma(close_series, 5)
+                fig.add_trace(go.Scatter(x=df.index, y=ma5, name='MA5', line=dict(color='#FFD700', width=1.5), legendgroup='ma'), row=1, col=1)
             if "MA20" in indicators and len(df) >= 20:
-                fig.add_trace(go.Scatter(x=df.index, y=calc_ma(close_series, 20), name='MA20', line=dict(color='purple', width=2)), row=1, col=1)
+                ma20 = calc_ma(close_series, 20)
+                fig.add_trace(go.Scatter(x=df.index, y=ma20, name='MA20', line=dict(color='#9B59B6', width=2), legendgroup='ma'), row=1, col=1)
             if "MA60" in indicators and len(df) >= 60:
-                fig.add_trace(go.Scatter(x=df.index, y=calc_ma(close_series, 60), name='MA60', line=dict(color='orange', width=2)), row=1, col=1)
+                ma60 = calc_ma(close_series, 60)
+                fig.add_trace(go.Scatter(x=df.index, y=ma60, name='MA60', line=dict(color='#FF6B35', width=2), legendgroup='ma'), row=1, col=1)
 
-            if "RSI" in indicators and len(df) >= 14:
-                rsi = calc_rsi(close_series)
-                fig.add_trace(go.Scatter(x=df.index, y=rsi, name='RSI', line=dict(color='yellow', width=2)), row=2, col=1)
-                fig.add_hline(y=70, line_dash="dash", line_color="red", row=2, col=1)
-                fig.add_hline(y=30, line_dash="dash", line_color="green", row=2, col=1)
-                fig.add_hline(y=50, line_dash="dot", line_color="gray", row=2, col=1)
+            # === Row 2: RSI / KD 指標 ===
+            if ("RSI" in indicators or "KD" in indicators) and len(df) >= max(14 if "RSI" in indicators else 0, 9 if "KD" in indicators else 0):
+                if "RSI" in indicators and len(df) >= 14:
+                    rsi = calc_rsi(close_series)
+                    rsi_values = rsi.dropna()
+                    if not rsi_values.empty:
+                        fig.add_trace(go.Scatter(
+                            x=rsi_values.index, 
+                            y=rsi_values.values, 
+                            name='RSI', 
+                            line=dict(color='#F1C40F', width=2),
+                            legendgroup='rsi'
+                        ), row=2, col=1)
+                        fig.add_hline(y=70, line_dash="dash", line_color="#E74C3C", line_width=1, row=2, col=1)
+                        fig.add_hline(y=30, line_dash="dash", line_color="#27AE60", line_width=1, row=2, col=1)
+                        fig.add_hline(y=50, line_dash="dot", line_color="#7F8C8D", line_width=1, row=2, col=1)
 
-            if "KD" in indicators and len(df) >= 9:
-                k, d = calc_kd(df['High'], df['Low'], close_series)
-                fig.add_trace(go.Scatter(x=df.index, y=k, name='K', line=dict(color='red', width=2)), row=2, col=1)
-                fig.add_trace(go.Scatter(x=df.index, y=d, name='D', line=dict(color='blue', width=2)), row=2, col=1)
+                if "KD" in indicators and len(df) >= 9:
+                    k, d = calc_kd(df['High'], df['Low'], close_series)
+                    k_valid = k.dropna()
+                    d_valid = d.dropna()
+                    if not k_valid.empty:
+                        fig.add_trace(go.Scatter(x=k_valid.index, y=k_valid.values, name='K', line=dict(color='#E74C3C', width=2), legendgroup='kd'), row=2, col=1)
+                        fig.add_trace(go.Scatter(x=d_valid.index, y=d_valid.values, name='D', line=dict(color='#3498DB', width=2), legendgroup='kd'), row=2, col=1)
 
+            # === Row 3: MACD 指標 (新增) ===
+            if "MACD" in indicators and len(df) >= 26:
+                macd_line, signal_line, histogram = calc_macd(close_series)
+                macd_valid = macd_line.dropna()
+                signal_valid = signal_line.dropna()
+                hist_valid = histogram.dropna()
+                
+                if not macd_valid.empty:
+                    # MACD 柱狀圖 (紅色=負，綠色=正)
+                    bar_colors = ['#27AE60' if v >= 0 else '#E74C3C' for v in hist_valid.values]
+                    fig.add_trace(go.Bar(
+                        x=hist_valid.index, 
+                        y=hist_valid.values, 
+                        name='MACD Hist', 
+                        marker_color=bar_colors,
+                        marker=dict(opacity=0.6),
+                        legendgroup='macd'
+                    ), row=3, col=1)
+                    fig.add_trace(go.Scatter(
+                        x=macd_valid.index, 
+                        y=macd_valid.values, 
+                        name='DIF', 
+                        line=dict(color='#3498DB', width=2),
+                        legendgroup='macd'
+                    ), row=3, col=1)
+                    fig.add_trace(go.Scatter(
+                        x=signal_valid.index, 
+                        y=signal_valid.values, 
+                        name='MACD', 
+                        line=dict(color='#E74C3C', width=2),
+                        legendgroup='macd'
+                    ), row=3, col=1)
+
+            # === 成交量 (放在最後一個 row) ===
             if "Volume" in indicators:
                 colors_vol = [COLORS['bullish'] if df['Close'].iloc[i] >= df['Open'].iloc[i] else COLORS['bearish'] for i in range(len(df))]
-                fig.add_trace(go.Bar(x=df.index, y=df['Volume'], name='成交量', marker_color=colors_vol, marker=dict(opacity=0.7)), row=2, col=1)
+                fig.add_trace(go.Bar(
+                    x=df.index, 
+                    y=df['Volume'], 
+                    name='成交量', 
+                    marker_color=colors_vol, 
+                    marker=dict(opacity=0.5),
+                    legendgroup='vol'
+                ), row=num_rows, col=1)
 
-            fig.update_layout(xaxis_rangeslider_visible=False, height=600, paper_bgcolor=COLORS['background'], plot_bgcolor=COLORS['background'], font=dict(color=COLORS['text']), showlegend=True, legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1), margin=dict(l=60, r=20, t=40, b=40))
-            for r in [1, 2]:
+            # 統一更新所有 axes
+            fig.update_layout(
+                xaxis_rangeslider_visible=False, 
+                height=200 + (num_rows * 180),
+                paper_bgcolor=COLORS['background'], 
+                plot_bgcolor=COLORS['background'], 
+                font=dict(color=COLORS['text']), 
+                showlegend=True, 
+                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+                margin=dict(l=60, r=20, t=40, b=40)
+            )
+            
+            for r in range(1, num_rows + 1):
                 fig.update_xaxes(gridcolor='#30363D', zerolinecolor='#30363D', showgrid=True, row=r, col=1)
                 fig.update_yaxes(gridcolor='#30363D', zerolinecolor='#30363D', showgrid=True, row=r, col=1)
 
