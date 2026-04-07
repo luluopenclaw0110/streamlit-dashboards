@@ -30,7 +30,9 @@ COLORS = {
 st.set_page_config(
     page_title="少爺的股票儀表板",
     page_icon="📈",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="collapsed",
+    menu_items=dict()
 )
 
 # 深色主題 CSS
@@ -45,7 +47,10 @@ div[data-testid="stMetricValue"] { color: #E6EDF3 !important; font-size: 1.8rem;
 div[data-testid="stMetricLabel"] { color: #8B949E !important; }
 [data-testid="stDataFrame"] { background-color: #161B22 !important; }
 .st-d6, .st-d7, .st-cj, .st-d4, .css-2trqyj { background-color: transparent !important; }
-.stSelectbox > div > div { background-color: #0D1117 !important; color: #E6EDF3 !important; }
+.stSelectbox > div > div, .stMultiSelect > div > div { background-color: #0D1117 !important; color: #E6EDF3 !important; }
+header[data-testid="stHeader"] { background-color: #0D1117 !important; }
+div[data-testid="stMainBlockContainer"] { padding-top: 0 !important; }
+section[data-testid="stMain"] > div { padding-top: 0 !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -74,15 +79,19 @@ def get_fred_latest(series_id):
             'series_id': series_id,
             'api_key': FRED_API_KEY,
             'file_type': 'json',
-            'limit': 2,
+            'limit': 4,
             'sort_order': 'DESC'
         }
         r = requests.get(url, params=params, timeout=15)
         data = r.json()
         if 'observations' in data and len(data['observations']) >= 2:
-            latest = float(data['observations'][0]['value'])
-            previous = float(data['observations'][1]['value'])
-            return latest, previous
+            obs = data['observations']
+            # Find two non-null values
+            non_null = [float(o['value']) for o in obs if o['value'] not in ('', 'None', '.')]
+            if len(non_null) >= 2:
+                return non_null[0], non_null[1]
+            elif len(non_null) == 1:
+                return non_null[0], None
         return None, None
     except Exception as e:
         return None, None
@@ -210,7 +219,7 @@ def render_card(title, value, change=None, change_pct=None, status='neutral', ic
     <div style="background-color: {COLORS['card']}; border-radius: 12px; padding: 16px;
                 border: 1px solid {COLORS['border']}; margin: 6px;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span style="color: {COLORS['text_secondary']}; font-size: 0.8rem;">{icon} {title}</span>
+            <span style="color: {COLORS['text_secondary']}; font-size: 1rem; font-weight: bold;">{icon} {title}</span>
             <span style="color: {status_color}; font-size: 0.9rem;">●</span>
         </div>
         <div style="color: {COLORS['text']}; font-size: 1.4rem; font-weight: bold; margin: 8px 0;">{value}</div>
