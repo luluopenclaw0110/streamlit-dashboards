@@ -15,12 +15,15 @@ import requests
 import os
 
 # ===== 配色系統 =====
+# 台股格式：上漲(紅)、下跌(綠)
 COLORS = {
     'background': '#0D1117',
     'card': '#161B22',
-    'bullish': '#3FB950',
+    'up': '#F85149',      # 台股上漲：紅
+    'down': '#3FB950',    # 台股下跌：綠
+    'bullish': '#F85149', # 別名（台股上漲）
+    'bearish': '#3FB950', # 別名（台股下跌）
     'neutral': '#D29922',
-    'bearish': '#F85149',
     'text': '#E6EDF3',
     'text_secondary': '#8B949E',
     'border': '#30363D',
@@ -43,17 +46,22 @@ st.markdown("""
 .css-1d391kg, .css-12wkwq4, .css-1at1ahb, .element-container { background-color: #161B22 !important; }
 [data-testid="stSidebar"] { background-color: #161B22 !important; }
 .stMarkdown, h1, h2, h3, h4, p, span, label { color: #E6EDF3 !important; }
+/* 主標題與頁面邊緣保持距離 */
+[data-testid="stMainBlockContainer"] { padding-top: 2rem !important; padding-bottom: 8rem !important; padding-left: 1.5rem !important; padding-right: 1.5rem !important; }
+/* 每個 section 標題不要切齊邊緣 */
+.stMarkdown h3, .stMarkdown h4 { margin-left: 0.5rem !important; margin-right: 0.5rem !important; }
+/* 側邊欄與主體之間留白 */
+.css-1lcbmhc.e1fqkh3o3 { padding-left: 1rem; }
 div[data-testid="stMetricValue"] { color: #E6EDF3 !important; font-size: 1.8rem; }
 div[data-testid="stMetricLabel"] { color: #8B949E !important; }
 [data-testid="stDataFrame"] { background-color: #161B22 !important; }
 .st-d6, .st-d7, .st-cj, .st-d4, .css-2trqyj { background-color: transparent !important; }
 .stSelectbox > div > div, .stMultiSelect > div > div { background-color: #0D1117 !important; color: #E6EDF3 !important; }
 header[data-testid="stHeader"] { background-color: #0D1117 !important; }
-/* 修復標題重疊：給 main 區塊頂部留空間 */
-div[data-testid="stMainBlockContainer"] { padding-top: 2rem !important; padding-bottom: 8rem !important; }
 /* 技術指標選單：tag 右側留空間避免與 x 按鈕重疊 */
 .stMultiSelect [data-testid="stMultiSelect"] > div > div > div { flex-wrap: wrap; gap: 4px; }
-/* 修正：main block container 恢復適當 padding */
+/* 每個 stMarkdown 標題卡片給左右留白 */
+.element-container { margin-left: 4px; margin-right: 4px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -226,26 +234,42 @@ def get_market_mood(vix, tnxy):
 
 # ===== 卡片元件 =====
 def render_card(title, value, change=None, change_pct=None, status='neutral', icon=''):
+    # 燈號大小：根據狀態顯示不同尺寸的圓圈燈
     if status == 'bullish':
-        status_color = COLORS['bullish']
-        arrow = '▲'
+        status_color = COLORS['up']    # 台股上漲：紅
+        status_bg = '#F8514920'        # 淡淡的紅色背景
+        status_icon = '●'
     elif status == 'bearish':
-        status_color = COLORS['bearish']
-        arrow = '▼'
+        status_color = COLORS['down']  # 台股下跌：綠
+        status_bg = '#3FB95020'        # 淡淡的綠色背景
+        status_icon = '●'
     else:
         status_color = COLORS['neutral']
-        arrow = '◆'
+        status_bg = '#D2992220'
+        status_icon = '●'
 
     change_str = ''
     if change is not None and change_pct is not None:
+        arrow = '▲' if change >= 0 else '▼'
         change_str = f"{arrow} {abs(change_pct):.2f}%"
 
     card = f"""
     <div style="background-color: {COLORS['card']}; border-radius: 12px; padding: 16px;
                 border: 1px solid {COLORS['border']}; margin: 6px;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span style="color: {COLORS['text_secondary']}; font-size: 1rem; font-weight: bold;">{icon} {title}</span>
-            <span style="color: {status_color}; font-size: 0.9rem;">●</span>
+            <span style="color: {COLORS['text_secondary']}; font-size: 0.95rem; font-weight: bold;">{icon} {title}</span>
+            <span style="
+                color: {status_color};
+                background: {status_bg};
+                font-size: 1.1rem;
+                width: 24px;
+                height: 24px;
+                border-radius: 50%;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                ">{status_icon}</span>
         </div>
         <div style="color: {COLORS['text']}; font-size: 1.4rem; font-weight: bold; margin: 8px 0;">{value}</div>
         <div style="color: {status_color}; font-size: 0.8rem;">{change_str}</div>
@@ -493,14 +517,14 @@ def main():
                 subplot_titles=('', '')
             )
 
-            # K線
+            # K線 - 台股格式：上漲紅，下跌綠
             fig.add_trace(
                 go.Candlestick(
                     x=df.index,
                     open=df['Open'], high=df['High'],
                     low=df['Low'], close=df['Close'],
-                    name='K線', increasing_line_color=COLORS['bullish'],
-                    decreasing_line_color=COLORS['bearish']
+                    name='K線', increasing_line_color=COLORS['up'],
+                    decreasing_line_color=COLORS['down']
                 ),
                 row=1, col=1
             )
