@@ -31,7 +31,7 @@ COLORS = {
 
 # 頁面設定
 st.set_page_config(
-    page_title="少爺的股票儀表板",
+    page_title="龍龍的6檔股票",
     page_icon="📈",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -76,9 +76,8 @@ if 'indicators' not in st.session_state:
 # ===== 常量 =====
 FRED_API_KEY = 'edaa5b7562ebd132c42effa0193e5772'
 STOCKS = {
-    '1503': '士電', '1605': '華新', '1717': '長興', '1802': '台玻',
-    '2317': '鴻海', '2330': '台積電', '2887': '台新新光金', '3532': '台勝科',
-    '4716': '大立', '5543': '均豪', '6613': '朋億', '6667': '信紘科'
+    '1503': '士電', '2317': '鴻海', '2330': '台積電',
+    '3532': '台勝科', '4716': '大立', '5543': '均豪'
 }
 US_STOCKS = ['NVDA', 'QQQ', 'TSM']
 
@@ -294,7 +293,7 @@ FUNDAMENTALS, FUNDAMENTALS_UPDATE = load_fundamentals()
 def main():
     # === 側邊欄：股票選擇器 ===
     with st.sidebar:
-        st.title("📈 股票儀表板")
+        st.title("📈 龍龍的6檔股票")
         st.markdown("---")
 
         # 股票選擇
@@ -328,7 +327,7 @@ def main():
         st.caption(f"更新時間：{datetime.now().strftime('%H:%M:%S')}")
 
     # === 主頁 Header ===
-    st.title(f"🌐 少爺的股票儀表板")
+    st.title(f"🌐 龍龍的6檔股票")
     st.caption(f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} (GMT+8)")
 
     # === 第一區塊：市場情緒 Banner ===
