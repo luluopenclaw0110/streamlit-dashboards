@@ -116,35 +116,41 @@ def get_fred_latest(series_id, limit=14):
 # ===== Yahoo Finance =====
 @st.cache_data(ttl=60)
 def get_ticker_info(ticker):
-    """get_ticker_info with retry, 15s timeout, and TWSE fallback"""
-    # 1. Try Yahoo Finance with retry
-    for attempt in range(3):
+    """get_ticker_info with retry, 15s timeout, TW/TWO suffix fallback, and TWSE fallback"""
+    # 取出純代碼
+    code = ticker.replace('.TW', '').replace('.TWO', '').replace('^', '')
+
+    # 嘗試 TW 和 TWO 尾碼（TPEd 上櫃股票要用 .TWO）
+    for suffix in ['.TW', '.TWO']:
+        ticker_try = f"{code}{suffix}"
+        # 1. Try Yahoo Finance with retry
+        for attempt in range(3):
+            try:
+                t = yf.Ticker(ticker_try)
+                info = t.info
+                if info and (info.get('regularMarketPrice') or info.get('currentPrice')):
+                    return info
+            except Exception:
+                pass
+            if attempt < 2:
+                time.sleep(0.3)
+        # 2. Try yf.download as fallback
         try:
-            t = yf.Ticker(ticker)
-            info = t.info
-            if info and (info.get('regularMarketPrice') or info.get('currentPrice')):
-                return info
+            df = yf.download(ticker_try, period='5d', interval='1d', progress=False, timeout=15)
+            if df is not None and not df.empty:
+                close = df['Close'].iloc[-1]
+                prev_close = df['Close'].iloc[-2] if len(df) > 1 else close
+                change = close - prev_close
+                change_pct = (change / prev_close * 100) if prev_close != 0 else 0
+                return {
+                    'regularMarketPrice': float(close),
+                    'regularMarketChange': float(change),
+                    'regularMarketChangePercent': float(change_pct)
+                }
         except Exception:
             pass
-        if attempt < 2:
-            time.sleep(0.3)
-    # 2. Try yf.download as fallback
-    try:
-        df = yf.download(ticker, period='5d', interval='1d', progress=False, timeout=15)
-        if df is not None and not df.empty:
-            close = df['Close'].iloc[-1]
-            prev_close = df['Close'].iloc[-2] if len(df) > 1 else close
-            change = close - prev_close
-            change_pct = (change / prev_close * 100) if prev_close != 0 else 0
-            return {
-                'regularMarketPrice': float(close),
-                'regularMarketChange': float(change),
-                'regularMarketChangePercent': float(change_pct)
-            }
-    except Exception:
-        pass
+
     # 3. TWSE fallback (for codes like 4716, 5543)
-    code = ticker.replace('.TW', '').replace('^', '')
     twse_result = _get_twse_realtime(code)
     if twse_result:
         return twse_result
@@ -172,12 +178,17 @@ def _get_twse_realtime(code):
 
 @st.cache_data(ttl=120)
 def get_yf_history(ticker, period='3mo'):
-    try:
-        t = yf.Ticker(ticker)
-        df = t.history(period=period)
-        return df if df is not None and not df.empty else None
-    except Exception:
-        return None
+    code = ticker.replace('.TW', '').replace('.TWO', '')
+    for suffix in ['.TW', '.TWO']:
+        ticker_try = f"{code}{suffix}"
+        try:
+            t = yf.Ticker(ticker_try)
+            df = t.history(period=period)
+            if df is not None and not df.empty:
+                return df
+        except Exception:
+            pass
+    return None
 
 # ===== TWSE 資料 =====
 @st.cache_data(ttl=300)
@@ -844,8 +855,8 @@ def main():
                                 change = price - prev
                                 change_pct = (change / prev * 100) if prev != 0 else 0
                         else:
-                            # Fallback: 個別股票查詢（N/A 股票專用）
-                            info = get_ticker_info(f"{code}.TW")
+                            # Fallback: 個別股票查詢（自動嘗試 .TW → .TWO）
+                            info = get_ticker_info(code)
                             price = info.get('regularMarketPrice') or 0
                             change_pct = info.get('regularMarketChangePercent', 0) or 0
                             time.sleep(0.3)  # 避免 Yahoo Finance 限流
