@@ -80,7 +80,7 @@ FRED_API_KEY = 'edaa5b7562ebd132c42effa0193e5772'
 STOCKS = {
     '1503': '士電', '1605': '華新', '1717': '長興', '1802': '台玻',
     '2317': '鴻海', '2330': '台積電', '2887': '台新新光金',
-    '3532': '台勝科', '4716': '大立', '5543': '均豪', '6613': '朋億', '6667': '信紘科'
+    '3532': '台勝科', '4716': '大立', '5443': '均豪', '6613': '朋億', '6667': '信紘科'
 }
 STOCK_OPTIONS = [f"{code} {name}" for code, name in STOCKS.items()]
 
@@ -150,7 +150,7 @@ def get_ticker_info(ticker):
         except Exception:
             pass
 
-    # 3. TWSE fallback (for codes like 4716, 5543)
+    # 3. TWSE fallback (for codes like 4716, 5443)
     twse_result = _get_twse_realtime(code)
     if twse_result:
         return twse_result
