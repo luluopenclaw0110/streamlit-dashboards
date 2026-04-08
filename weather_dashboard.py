@@ -8,6 +8,7 @@ import streamlit as st
 import plotly.graph_objects as go
 import subprocess
 import json
+import time
 import requests
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
@@ -508,13 +509,35 @@ DEFAULT_LOCATION = '台中南屯'
 
 
 # ===== API 函式 =====
-def get_weather_data(lat, lon):
+def get_weather_data(lat, lon, retries=3, delay=2):
     url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,wind_speed_10m,weather_code,apparent_temperature&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia/Taipei&forecast_days=3"
-    try:
-        result = subprocess.run(['curl', '-s', url], capture_output=True, text=True, timeout=10)
-        return json.loads(result.stdout)
-    except Exception as e:
-        return None
+    for attempt in range(retries):
+        try:
+            result = subprocess.run(['curl', '-s', '--max-time', '15', url], capture_output=True, text=True, timeout=20)
+            raw = result.stdout.strip()
+            if not raw:
+                if attempt < retries - 1:
+                    time.sleep(delay)
+                    continue
+                return None
+            data = json.loads(raw)
+            if 'hourly' not in data or 'daily' not in data:
+                if attempt < retries - 1:
+                    time.sleep(delay)
+                    continue
+                return None
+            return data
+        except json.JSONDecodeError:
+            if attempt < retries - 1:
+                time.sleep(delay)
+                continue
+            return None
+        except Exception as e:
+            if attempt < retries - 1:
+                time.sleep(delay)
+                continue
+            return None
+    return None
 
 def get_taiwan_aqi(city_name):
     try:
@@ -724,9 +747,12 @@ def main():
             lat, lon = ALL_LOCATIONS[selected_location]['lat'], ALL_LOCATIONS[selected_location]['lon']
             aqi_data = get_waqi_aqi(lat, lon)
 
-    if data:
+    if data and 'hourly' in data and 'daily' in data:
         hourly = data['hourly']
         daily = data['daily']
+    else:
+        st.error("⚠️ 無法取得天氣資料（API 瞬斷或超時），請稍後再試。")
+        st.stop()
 
         # ── 今日概覽 ──
         today_max    = daily['temperature_2m_max'][0]
