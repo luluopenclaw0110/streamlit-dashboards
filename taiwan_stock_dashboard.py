@@ -61,13 +61,16 @@ def get_stock_data(code, period='20d'):
     try:
         stock = yf.Ticker(code)
         hist = stock.history(period=period)
+        # 過濾 NaN，確保有有效收盤價
+        if hist is not None and not hist.empty:
+            hist = hist.dropna(subset=['Close'])
         return hist
     except:
         return None
 
 def calc_score(hist):
     """計算總分（基於 5 日均線評分）"""
-    if hist.empty or len(hist) < 5:
+    if hist is None or hist.empty or len(hist) < 5:
         return 0, {}
     
     close = hist['Close'].dropna()
@@ -118,9 +121,14 @@ for i, (code, name) in enumerate(STOCKS):
     hist = get_stock_data(code)
     if hist is not None and not hist.empty:
         score, details = calc_score(hist)
-        price = hist['Close'].iloc[-1]
-        change = hist['Close'].iloc[-1] - hist['Close'].iloc[-2] if len(hist) >= 2 else 0
-        change_pct = (change / hist['Close'].iloc[-2]) * 100 if len(hist) >= 2 and hist['Close'].iloc[-2] != 0 else 0
+        # 安全處理可能的 NaN
+        close = hist['Close'].dropna()
+        if close.empty:
+            continue
+        price = close.iloc[-1]
+        prev_close = close.iloc[-2] if len(close) >= 2 else price
+        change = price - prev_close
+        change_pct = (change / prev_close) * 100 if prev_close != 0 else 0
         
         results.append({
             '代碼': code.replace('.TW', ''),
@@ -145,18 +153,18 @@ if results:
     
     st.markdown("## 🏆 推薦排名")
     
-    # Top 5 卡片
+    # Top 5 卡片（响应式）
     cols = st.columns(5)
     for idx, row in df.head(5).iterrows():
         with cols[idx]:
             color = COLORS['up'] if row['漲跌'] > 0 else COLORS['down']
             st.markdown(f"""
-            <div style="background: {COLORS['card']}; border: 1px solid {COLORS['border']}; border-radius: 8px; padding: 1rem; text-align: center;">
-                <h4 style="color: {COLORS['text']}; margin: 0;">{row['名稱']}</h4>
-                <p style="color: {color}; font-size: 1.5rem; margin: 0.5rem 0;">{row['現價']:.0f}</p>
-                <p style="color: {color}; margin: 0;">{row['漲跌']:+.0f} ({row['漲跌%']:+.1f}%)</p>
-                <p style="color: {COLORS['text_secondary']}; margin: 0.5rem 0 0;">{row['代碼']}</p>
-                <p style="color: {COLORS['bullish']}; font-size: 1.2rem; margin: 0;">⭐ {row['總分']} 分</p>
+            <div style="background: {COLORS['card']}; border: 1px solid {COLORS['border']}; border-radius: 8px; padding: 0.75rem; text-align: center; width: 100%; overflow: hidden;">
+                <h5 style="color: {COLORS['text']}; margin: 0; font-size: 1rem;">{row['名稱']}</h5>
+                <p style="color: {color}; font-size: 1.25rem; margin: 0.25rem 0;">{int(row['現價'])}</p>
+                <p style="color: {color}; margin: 0; font-size: 0.85rem;">{int(row['漲跌'])} ({row['漲跌%']:+.1f}%)</p>
+                <p style="color: {COLORS['text_secondary']}; margin: 0.25rem 0 0; font-size: 0.75rem;">{row['代碼']}</p>
+                <p style="color: {COLORS['bullish']}; font-size: 1rem; margin: 0;">⭐ {row['總分']}分</p>
             </div>
             """, unsafe_allow_html=True)
     
@@ -174,13 +182,13 @@ if results:
                 st.markdown(f"**{row['名稱']}** `{row['代碼']}`")
             with col3:
                 color = COLORS['up'] if row['漲跌'] > 0 else COLORS['down']
-                st.markdown(f"<span style='color: {color}; font-size: 1.2rem;'>{row['現價']:.0f}</span>", unsafe_allow_html=True)
+                st.markdown(f"<span style='color: {color}; font-size: 1.1rem;'>{int(row['現價'])}</span>", unsafe_allow_html=True)
             with col4:
-                st.markdown(f"<span style='color: {color};'> {row['漲跌']:+.0f} ({row['漲跌%']:+.1f}%)</span>", unsafe_allow_html=True)
+                color = COLORS['up'] if row['漲跌'] > 0 else COLORS['down']
+                st.markdown(f"<span style='color: {color};> {int(row['漲跌'])} ({row['漲跌%']:+.1f}%)</span>", unsafe_allow_html=True)
             with col5:
                 indicators = f"{row['MA5']} | {row['Volume']}"
-                st.markdown(f"<span style='color: {COLORS['text_secondary']};'>{indicators}</span>", unsafe_allow_html=True)
+                st.markdown(f"<span style='color: {COLORS['text_secondary']}; font-size: 0.85rem;'>{indicators}</span>", unsafe_allow_html=True)
             st.markdown("---")
-
 else:
     st.error("無法取得股票資料，請稍後再試")
