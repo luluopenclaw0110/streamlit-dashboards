@@ -287,14 +287,6 @@ st.markdown("""
         height: 100%;
         border-radius: 50px;
         background: linear-gradient(to right,
-            #00e400 0%, #00e400 16.6%,
-            #ffff00 16.6%, #ff7e00 33.3%,
-            #ff0000 33.3%, #ff7e00 50%,
-            #8000ff 50%, #8h00ff 66.6%,
-            #805000 66.6%, #ff0000 83.3%,
-            #7e0023 83.3%, #7e0023 100%
-        );
-        background: linear-gradient(to right,
             #00e400 0%, #00e400 20%,
             #ffff00 20%, #ff7e00 40%,
             #ff0000 40%, #ff7e00 60%,
@@ -723,11 +715,58 @@ def main():
     # ── 頂部抬頭 ──
     st.markdown(f"""
     <div class="hero-title">
-        <h1>🌦️ {selected_location} 天氣預報</h1>
+        <h1>🌦️ 天氣概覽</h1>
         <div class="subtitle">⏰ 報告時間：{now_str} &nbsp;|&nbsp; V{VERSION} ✨</div>
     </div>
     """, unsafe_allow_html=True)
 
+    # ── 雙城市 Hero 卡片（新竹寶山 ⭐ + 台中南屯 ⭐）─
+    PRIMARY_CITIES = ['新竹寶山', '台中南屯']
+    hero_cols = st.columns(2)
+    hero_data_list = []
+    
+    for idx, city_name in enumerate(PRIMARY_CITIES):
+        city_data = get_weather_data(
+            ALL_LOCATIONS[city_name]['lat'],
+            ALL_LOCATIONS[city_name]['lon']
+        )
+        hero_data_list.append((city_name, city_data))
+    
+    for idx, (city_name, city_data) in enumerate(hero_data_list):
+        with hero_cols[idx]:
+            if city_data and 'hourly' in city_data and 'daily' in city_data:
+                daily = city_data['daily']
+                hourly = city_data['hourly']
+                today_max = daily['temperature_2m_max'][0]
+                today_min = daily['temperature_2m_min'][0]
+                today_code = hourly['weather_code'][0]
+                today_icon = get_weather_icon(today_code)
+                today_desc = get_weather_desc(today_code)
+                today_feels = hourly['apparent_temperature'][0]
+                
+                st.markdown(f"""
+                <div class="weather-hero fade-in" style="padding:1.5rem;">
+                    <div style="font-size:0.9rem;color:var(--text-muted);margin-bottom:0.5rem;">⭐ {city_name}</div>
+                    <div class="big-emoji" style="font-size:4rem;">{today_icon}</div>
+                    <div class="temp-display" style="font-size:3rem;">{today_max:.0f}°</div>
+                    <div class="desc-text">{today_desc}</div>
+                    <div class="temp-range">體感 {today_feels:.0f}° · {today_min:.0f}°</div>
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                st.markdown(f"""
+                <div class="weather-hero fade-in" style="padding:1.5rem;">
+                    <div style="font-size:0.9rem;color:var(--text-muted);margin-bottom:0.5rem;">⭐ {city_name}</div>
+                    <div class="big-emoji" style="font-size:4rem;">🌡️</div>
+                    <div class="temp-display" style="font-size:3rem;">--</div>
+                    <div class="desc-text">無法取得資料</div>
+                </div>
+                """, unsafe_allow_html=True)
+
+    # ── 當前選擇城市資料 ──
+    st.markdown("---")
+    st.markdown(f"### 📍 {selected_location} 詳細天氣")
+    
     # ── 取得資料 ──
     data = get_weather_data(
         ALL_LOCATIONS[selected_location]['lat'],
