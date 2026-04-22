@@ -499,6 +499,54 @@ TAIWAN_AQI_STATIONS = {
 }
 DEFAULT_LOCATION = '台中南屯'
 
+# ===== 動態天氣主題 =====
+def get_weather_theme(code):
+    """根據天氣代碼返回主題配色"""
+    themes = {
+        'sunny': {  # 晴朗 0,1
+            'bg_start': '#1e3a5f', 'bg_mid': '#2563eb', 'bg_end': '#0f172a',
+            'accent': '#fbbf24', 'text': '#ffffff'
+        },
+        'cloudy': {  # 多雲 2,3
+            'bg_start': '#334155', 'bg_mid': '#475569', 'bg_end': '#1e293b',
+            'accent': '#94a3b8', 'text': '#e2e8f0'
+        },
+        'rainy': {  # 雨天 51,53,55,61,63,65,80,81,82
+            'bg_start': '#1e293b', 'bg_mid': '#334155', 'bg_end': '#0f172a',
+            'accent': '#38bdf8', 'text': '#e0f2fe'
+        },
+        'stormy': {  # 雷雨 95,96,99
+            'bg_start': '#0f0a1a', 'bg_mid': '#1e1033', 'bg_end': '#0a0612',
+            'accent': '#fbbf24', 'text': '#fef3c7'
+        },
+        'snowy': {  # 雪天 71,73,75
+            'bg_start': '#1e293b', 'bg_mid': '#64748b', 'bg_end': '#f8fafc',
+            'accent': '#e2e8f0', 'text': '#1e293b'
+        },
+        'foggy': {  # 霧 45,48
+            'bg_start': '#374151', 'bg_mid': '#6b7280', 'bg_end': '#1f2937',
+            'accent': '#d1d5db', 'text': '#f3f4f6'
+        },
+        'default': {  # 預設
+            'bg_start': '#0f0c29', 'bg_mid': '#302b63', 'bg_end': '#24243e',
+            'accent': '#6C63FF', 'text': '#ffffff'
+        }
+    }
+    if code in [0, 1]:
+        return themes['sunny']
+    elif code in [2, 3]:
+        return themes['cloudy']
+    elif code in [51, 53, 55, 61, 63, 65, 80, 81, 82]:
+        return themes['rainy']
+    elif code in [95, 96, 99]:
+        return themes['stormy']
+    elif code in [71, 73, 75]:
+        return themes['snowy']
+    elif code in [45, 48]:
+        return themes['foggy']
+    else:
+        return themes['default']
+
 
 # ===== API 函式 =====
 def get_weather_data(lat, lon, retries=3, delay=2):
@@ -726,6 +774,42 @@ def main():
         st.caption("- 環保署 / WAQI（AQI）")
 
     is_domestic = selected_location in TAIWAN_LOCATIONS
+
+    # ── 動態主題注入 ──
+    # 根據選擇城市的天氣動態調整主題
+    main_data = get_weather_data(
+        ALL_LOCATIONS[selected_location]['lat'],
+        ALL_LOCATIONS[selected_location]['lon']
+    )
+    main_theme_code = 0
+    if main_data and 'hourly' in main_data:
+        main_theme_code = main_data['hourly']['weather_code'][0]
+    theme = get_weather_theme(main_theme_code)
+    
+    # 注入動態 CSS
+    st.markdown(f"""
+    <style>
+        :root {{
+            --bg-start: {theme['bg_start']};
+            --bg-mid: {theme['bg_mid']};
+            --bg-end: {theme['bg_end']};
+            --accent: {theme['accent']};
+            --text-primary: {theme['text']};
+        }}
+        .stApp {{
+            background: linear-gradient(135deg, {theme['bg_start']} 0%, {theme['bg_mid']} 50%, {theme['bg_end']} 100%) !important;
+        }}
+        .hero-title h1 {{
+            background: linear-gradient(135deg, {theme['accent']}, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }}
+        .weather-hero {{
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 12px 48px rgba(0,0,0,0.4), 0 0 60px {theme['accent']}22;
+        }}
+    </style>
+    """, unsafe_allow_html=True)
 
     # ── 頂部抬頭 ──
     st.markdown(f"""
