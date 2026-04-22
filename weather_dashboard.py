@@ -24,7 +24,7 @@ st.set_page_config(
 st.markdown("""
 <style>
     /* ── 全域字型與背景 ── */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
 
     :root {
         --bg-start: #0f0c29;
@@ -39,7 +39,7 @@ st.markdown("""
 
     html, body, .stApp {
         background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-mid) 50%, var(--bg-end) 100%) !important;
-        font-family: 'Inter', 'PingFang TC', sans-serif !important;
+        font-family: 'Inter', 'Noto Sans TC', 'PingFang TC', sans-serif !important;
         color: var(--text-primary) !important;
         min-height: 100vh;
     }
@@ -55,6 +55,7 @@ st.markdown("""
         background: linear-gradient(135deg, #a78bfa, #38bdf8, #f472b6);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        text-shadow: 0 2px 10px rgba(167, 139, 250, 0.3); /* fallback */
         margin: 0;
         letter-spacing: -0.5px;
     }
@@ -214,6 +215,14 @@ st.markdown("""
     @media (max-width: 900px) {
         .info-grid { grid-template-columns: repeat(2, 1fr); }
         .forecast-row { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    }
+    /* tablet 響應式斷點 */
+    @media (max-width: 768px) {
+        .hero-title h1 { font-size: 1.8rem; }
+        .weather-hero { padding: 1rem; }
+        .weather-hero .big-emoji { font-size: 3rem; }
+        .weather-hero .temp-display { font-size: 2.5rem; }
+        .info-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
     }
     @media (max-width: 600px) {
         .info-grid { grid-template-columns: repeat(2, 1fr); }
