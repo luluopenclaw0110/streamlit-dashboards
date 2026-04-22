@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>台股每日推薦報告</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0D1171; color: #E6EDF3; padding: 20px; }
+.container { max-width: 1200px; margin: 0 auto; }
+header { text-align: center; padding: 30px 0; }
+h1 { font-size: 2.5rem; margin-bottom: 10px; }
+.subtitle { color: #8B949E; font-size: 1.1rem; }
+.market { display: flex; gap: 20px; justify-content: center; margin: 20px 0; }
+.market-card { background: #161B22; border: 1px solid #30363D; border-radius: 8px; padding: 20px; text-align: center; min-width: 200px; }
+.market-card h3 { color: #8B949E; font-size: 0.9rem; margin-bottom: 10px; }
+.market-card .price { font-size: 2rem; font-weight: bold; }
+.market-card .change { font-size: 1.1rem; margin-top: 5px; }
+.top5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin: 30px 0; }
+.top-card { background: #161B22; border: 1px solid #30363D; border-radius: 8px; padding: 20px; text-align: center; }
+.top-card .rank { background: #F85149; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-weight: bold; }
+.top-card .name { font-size: 1.2rem; font-weight: bold; margin-bottom: 5px; }
+.top-card .code { color: #8B949E; font-size: 0.9rem; }
+.top-card .price { font-size: 1.8rem; margin: 10px 0; }
+.top-card .score { background: #F85149; color: white; border-radius: 20px; padding: 5px 15px; display: inline-block; font-weight: bold; }
+table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+th, td { padding: 12px; text-align: left; border-bottom: 1px solid #30363D; }
+th { background: #161B22; color: #8B949E; }
+tr:hover { background: #161B22; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; }
+.badge-up { background: rgba(248, 81, 73, 0.2); color: #F85149; }
+.badge-down { background: rgba(63, 185, 80, 0.2); color: #3FB950; }
+.badge-neutral { background: rgba(210, 153, 34, 0.2); color: #D29922; }
+footer { text-align: center; padding: 30px; color: #8B949E; font-size: 0.9rem; }
+@media (max-width: 768px) { 
+    .top5 { grid-template-columns: repeat(2, 1fr); }
+    .market { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+    <h1>📈 台股每日推薦報告</h1>
+    <p class="subtitle">技術分析 | 每日推薦 | 更新時間: 2026-04-22 10:16:46</p>
+</header>
+<div class="market">
+    <div class="market-card">
+        <h3>加權指數</h3>
+        <div class="price">37,932</div>
+        <div class="change" style="color: #F85149">+327 (+0.9%)</div>
+    </div></div><h2 style="text-align:center; margin: 30px 0;">🏅 TOP 5 推薦</h2><div class="top5">
+    <div class="top-card">
+        <div class="rank">1</div>
+        <div class="name">鴻海</div>
+        <div class="code">2317</div>
+        <div class="price" style="color: #F85149">220</div>
+        <div style="color: #F85149">+9.50 (+4.5%)</div>
+        <div class="score">⭐ 6 分</div>
+    </div>
+    <div class="top-card">
+        <div class="rank">2</div>
+        <div class="name">台積電</div>
+        <div class="code">2330</div>
+        <div class="price" style="color: #F85149">2,060</div>
+        <div style="color: #F85149">+10.00 (+0.5%)</div>
+        <div class="score">⭐ 5 分</div>
+    </div>
+    <div class="top-card">
+        <div class="rank">3</div>
+        <div class="name">研華</div>
+        <div class="code">2451</div>
+        <div class="price" style="color: #3FB950">264</div>
+        <div style="color: #3FB950">-2.00 (-0.8%)</div>
+        <div class="score">⭐ 5 分</div>
+    </div>
+    <div class="top-card">
+        <div class="rank">4</div>
+        <div class="name">中信金</div>
+        <div class="code">2891</div>
+        <div class="price" style="color: #F85149">54</div>
+        <div style="color: #F85149">+0.60 (+1.1%)</div>
+        <div class="score">⭐ 5 分</div>
+    </div>
+    <div class="top-card">
+        <div class="rank">5</div>
+        <div class="name">國泰金</div>
+        <div class="code">2882</div>
+        <div class="price" style="color: #3FB950">75</div>
+        <div style="color: #3FB950">-0.10 (-0.1%)</div>
+        <div class="score">⭐ 5 分</div>
+    </div></div><h2 style="margin: 30px 0;">📋 完整排名</h2><table><thead><tr><th>排名</th><th>代碼</th><th>名稱</th><th>現價</th><th>漲跌</th><th>總分</th><th>MA5</th><th>RSI</th><th>KD</th></tr></thead><tbody><tr>
+    <td>#1</td>
+    <td>2317</td>
+    <td><strong>鴻海</strong></td>
+    <td style="color: #F85149">220</td>
+    <td style="color: #F85149">+9.50 (+4.5%)</td>
+    <td><span class="badge badge-up">⭐ 6</span></td>
+    <td>✅</td>
+    <td>83.0 超買</td>
+    <td>- </td>
+</tr><tr>
+    <td>#2</td>
+    <td>2330</td>
+    <td><strong>台積電</strong></td>
+    <td style="color: #F85149">2,060</td>
+    <td style="color: #F85149">+10.00 (+0.5%)</td>
+    <td><span class="badge badge-up">⭐ 5</span></td>
+    <td>✅</td>
+    <td>78.3 超買</td>
+    <td>- </td>
+</tr><tr>
+    <td>#3</td>
+    <td>2451</td>
+    <td><strong>研華</strong></td>
+    <td style="color: #3FB950">264</td>
+    <td style="color: #3FB950">-2.00 (-0.8%)</td>
+    <td><span class="badge badge-up">⭐ 5</span></td>
+    <td>✅</td>
+    <td>78.4 超買</td>
+    <td>- </td>
+</tr><tr>
+    <td>#4</td>
+    <td>2891</td>
+    <td><strong>中信金</strong></td>
+    <td style="color: #F85149">54</td>
+    <td style="color: #F85149">+0.60 (+1.1%)</td>
+    <td><span class="badge badge-up">⭐ 5</span></td>
+    <td>✅</td>
+    <td>61.0 正常</td>
+    <td>- </td>
+</tr><tr>
+    <td>#5</td>
+    <td>2882</td>
+    <td><strong>國泰金</strong></td>
+    <td style="color: #3FB950">75</td>
+    <td style="color: #3FB950">-0.10 (-0.1%)</td>
+    <td><span class="badge badge-up">⭐ 5</span></td>
+    <td>✅</td>
+    <td>75.8 超買</td>
+    <td>- </td>
+</tr><tr>
+    <td>#6</td>
+    <td>2474</td>
+    <td><strong>世紀</strong></td>
+    <td style="color: #3FB950">208</td>
+    <td style="color: #3FB950">-2.00 (-1.0%)</td>
+    <td><span class="badge badge-up">⭐ 5</span></td>
+    <td>✅</td>
+    <td>69.6 正常</td>
+    <td>- </td>
+</tr><tr>
+    <td>#7</td>
+    <td>2881</td>
+    <td><strong>元大金</strong></td>
+    <td style="color: #F85149">88</td>
+    <td style="color: #F85149">+0.10 (+0.1%)</td>
+    <td><span class="badge badge-up">⭐ 5</span></td>
+    <td>✅</td>
+    <td>60.2 正常</td>
+    <td>- </td>
+</tr><tr>
+    <td>#8</td>
+    <td>2377</td>
+    <td><strong>聯米</strong></td>
+    <td style="color: #F85149">95</td>
+    <td style="color: #F85149">+1.20 (+1.3%)</td>
+    <td><span class="badge badge-up">⭐ 5</span></td>
+    <td>✅</td>
+    <td>76.0 超買</td>
+    <td>- </td>
+</tr><tr>
+    <td>#9</td>
+    <td>2303</td>
+    <td><strong>聯電</strong></td>
+    <td style="color: #F85149">79</td>
+    <td style="color: #F85149">+2.80 (+3.7%)</td>
+    <td><span class="badge badge-up">⭐ 5</span></td>
+    <td>✅</td>
+    <td>80.7 超買</td>
+    <td>- </td>
+</tr><tr>
+    <td>#10</td>
+    <td>2454</td>
+    <td><strong>聯發科</strong></td>
+    <td style="color: #F85149">2,190</td>
+    <td style="color: #F85149">+100.00 (+4.8%)</td>
+    <td><span class="badge badge-up">⭐ 5</span></td>
+    <td>✅</td>
+    <td>93.2 超買</td>
+    <td>- </td>
+</tr><tr>
+    <td>#11</td>
+    <td>3042</td>
+    <td><strong>創見</strong></td>
+    <td style="color: #3FB950">165</td>
+    <td style="color: #3FB950">-1.50 (-0.9%)</td>
+    <td><span class="badge badge-up">⭐ 5</span></td>
+    <td>✅</td>
+    <td>92.3 超買</td>
+    <td>- </td>
+</tr><tr>
+    <td>#12</td>
+    <td>2603</td>
+    <td><strong>長榮</strong></td>
+    <td style="color: #3FB950">202</td>
+    <td style="color: #3FB950">+0.00 (+0.0%)</td>
+    <td><span class="badge badge-up">⭐ 3</span></td>
+    <td>✅</td>
+    <td>53.8 正常</td>
+    <td>- </td>
+</tr><tr>
+    <td>#13</td>
+    <td>2201</td>
+    <td><strong>裕融</strong></td>
+    <td style="color: #3FB950">27</td>
+    <td style="color: #3FB950">-0.05 (-0.2%)</td>
+    <td><span class="badge badge-up">⭐ 3</span></td>
+    <td>✅</td>
+    <td>50.8 正常</td>
+    <td>- </td>
+</tr><tr>
+    <td>#14</td>
+    <td>2727</td>
+    <td><strong>王品</strong></td>
+    <td style="color: #F85149">226</td>
+    <td style="color: #F85149">+0.50 (+0.2%)</td>
+    <td><span class="badge badge-up">⭐ 3</span></td>
+    <td>✅</td>
+    <td>42.4 正常</td>
+    <td>- </td>
+</tr><tr>
+    <td>#15</td>
+    <td>1216</td>
+    <td><strong>統一</strong></td>
+    <td style="color: #F85149">72</td>
+    <td style="color: #F85149">+0.10 (+0.1%)</td>
+    <td><span class="badge badge-up">⭐ 2</span></td>
+    <td>⚠️</td>
+    <td>59.3 正常</td>
+    <td>- </td>
+</tr><tr>
+    <td>#16</td>
+    <td>2887</td>
+    <td><strong>台新金</strong></td>
+    <td style="color: #F85149">24</td>
+    <td style="color: #F85149">+0.10 (+0.4%)</td>
+    <td><span class="badge badge-up">⭐ 0</span></td>
+    <td>⚠️</td>
+    <td>61.2 正常</td>
+    <td>- </td>
+</tr><tr>
+    <td>#17</td>
+    <td>2313</td>
+    <td><strong>華通</strong></td>
+    <td style="color: #3FB950">249</td>
+    <td style="color: #3FB950">-5.50 (-2.2%)</td>
+    <td><span class="badge badge-up">⭐ 0</span></td>
+    <td>⚠️</td>
+    <td>50.5 正常</td>
+    <td>- </td>
+</tr><tr>
+    <td>#18</td>
+    <td>2002</td>
+    <td><strong>中鋼</strong></td>
+    <td style="color: #3FB950">20</td>
+    <td style="color: #3FB950">-0.15 (-0.8%)</td>
+    <td><span class="badge badge-up">⭐ 0</span></td>
+    <td>⚠️</td>
+    <td>61.3 正常</td>
+    <td>- </td>
+</tr><tr>
+    <td>#19</td>
+    <td>1702</td>
+    <td><strong>南僑</strong></td>
+    <td style="color: #3FB950">36</td>
+    <td style="color: #3FB950">-0.10 (-0.3%)</td>
+    <td><span class="badge badge-up">⭐ 0</span></td>
+    <td>⚠️</td>
+    <td>44.4 正常</td>
+    <td>- </td>
+</tr><tr>
+    <td>#20</td>
+    <td>2707</td>
+    <td><strong>晶華</strong></td>
+    <td style="color: #3FB950">176</td>
+    <td style="color: #3FB950">-2.00 (-1.1%)</td>
+    <td><span class="badge badge-up">⭐ 0</span></td>
+    <td>⚠️</td>
+    <td>58.2 正常</td>
+    <td>- </td>
+</tr></tbody></table>
+<h2 style="margin: 30px 0;">📊 評分說明</h2>
+<div style="background: #161B22; border-radius: 8px; padding: 20px; line-height: 1.8;">
+<p><strong>MA5 / MA20:</strong> 站上均線 +3/+2 分，低於 ⚠️</p>
+<p><strong>RSI:</strong> 低於 30 超賣 +3 分，高於 70 超買</p>
+<p><strong>KD:</strong> 低檔黃金交叉 +3 分，高檔死亡交叉 ⚠️</p>
+<p><strong>MACD:</strong> 柱狀正值 +2 分</p>
+<p><strong>成交量:</strong> 量增 1.5 倍 +2 分</p>
+</div>
+
+<footer>
+    <p>📈 台股每日推薦報告 | 資料來源: Yahoo Finance | 每小時更新</p>
+    <p>本報告僅供參考，不构成投資建議</p>
+</footer>
+</div>
+</body>
+</html>
