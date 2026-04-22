@@ -6,302 +6,283 @@
 <title>台股每日推薦報告</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0D1171; color: #E6EDF3; padding: 20px; }
-.container { max-width: 1200px; margin: 0 auto; }
-header { text-align: center; padding: 30px 0; }
-h1 { font-size: 2.5rem; margin-bottom: 10px; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #0D1171 0%, #1a237e 100%); color: #E6EDF3; padding: 20px; min-height: 100vh; }
+.container { max-width: 1400px; margin: 0 auto; }
+header { text-align: center; padding: 30px 0; background: rgba(22, 27, 34, 0.8); border-radius: 16px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+h1 { font-size: 2.5rem; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
 .subtitle { color: #8B949E; font-size: 1.1rem; }
-.market { display: flex; gap: 20px; justify-content: center; margin: 20px 0; }
-.market-card { background: #161B22; border: 1px solid #30363D; border-radius: 8px; padding: 20px; text-align: center; min-width: 200px; }
+.market { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }
+.market-card { background: rgba(22, 27, 34, 0.9); border: 1px solid #30363D; border-radius: 12px; padding: 20px; text-align: center; transition: transform 0.2s; }
+.market-card:hover { transform: translateY(-3px); box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
 .market-card h3 { color: #8B949E; font-size: 0.9rem; margin-bottom: 10px; }
-.market-card .price { font-size: 2rem; font-weight: bold; }
-.market-card .change { font-size: 1.1rem; margin-top: 5px; }
+.market-card .price { font-size: 1.8rem; font-weight: bold; }
+.market-card .change { font-size: 1rem; margin-top: 5px; }
+.market-card.vix-low { border-color: #3FB950; }
+.market-card.vix-high { border-color: #F85149; }
+.signal-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; margin: 2px; }
+.signal-up { background: rgba(63, 185, 80, 0.2); color: #3FB950; }
+.signal-down { background: rgba(248, 81, 73, 0.2); color: #F85149; }
+.signal-neutral { background: rgba(210, 153, 34, 0.2); color: #D29922; }
 .top5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin: 30px 0; }
-.top-card { background: #161B22; border: 1px solid #30363D; border-radius: 8px; padding: 20px; text-align: center; }
-.top-card .rank { background: #F85149; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-weight: bold; }
-.top-card .name { font-size: 1.2rem; font-weight: bold; margin-bottom: 5px; }
-.top-card .code { color: #8B949E; font-size: 0.9rem; }
-.top-card .price { font-size: 1.8rem; margin: 10px 0; }
-.top-card .score { background: #F85149; color: white; border-radius: 20px; padding: 5px 15px; display: inline-block; font-weight: bold; }
-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-th, td { padding: 12px; text-align: left; border-bottom: 1px solid #30363D; }
-th { background: #161B22; color: #8B949E; }
-tr:hover { background: #161B22; }
-.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; }
+@media (max-width: 1024px) { .top5 { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 600px) { .top5 { grid-template-columns: repeat(2, 1fr); } }
+.top-card { background: linear-gradient(145deg, #161B22, #1f2937); border: 1px solid #30363D; border-radius: 12px; padding: 20px; text-align: center; position: relative; overflow: hidden; }
+.top-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #F85149, #D29922, #3FB950); }
+.top-card .rank { background: linear-gradient(135deg, #F85149, #D29922); color: white; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-weight: bold; font-size: 0.9rem; }
+.top-card .name { font-size: 1.1rem; font-weight: bold; margin-bottom: 5px; }
+.top-card .code { color: #8B949E; font-size: 0.85rem; }
+.top-card .price { font-size: 1.6rem; margin: 10px 0; font-weight: bold; }
+.top-card .score { background: linear-gradient(135deg, #F85149, #D29922); color: white; border-radius: 20px; padding: 6px 16px; display: inline-block; font-weight: bold; font-size: 1rem; }
+table { width: 100%; border-collapse: collapse; margin: 20px 0; background: rgba(22, 27, 34, 0.9); border-radius: 12px; overflow: hidden; }
+th, td { padding: 12px 15px; text-align: left; }
+th { background: rgba(48, 54, 61, 0.8); color: #8B949E; font-weight: 600; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.5px; }
+tr { border-bottom: 1px solid #30363D; transition: background 0.2s; }
+tr:hover { background: rgba(48, 54, 61, 0.5); }
+tr:last-child { border-bottom: none; }
+.score-cell { font-weight: bold; padding: 6px 12px; border-radius: 8px; text-align: center; }
+.score-high { background: linear-gradient(135deg, #F85149, #D29922); color: white; }
+.score-mid { background: rgba(210, 153, 34, 0.3); color: #D29922; }
+.score-low { background: rgba(63, 185, 80, 0.2); color: #3FB950; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin: 1px; }
 .badge-up { background: rgba(248, 81, 73, 0.2); color: #F85149; }
 .badge-down { background: rgba(63, 185, 80, 0.2); color: #3FB950; }
 .badge-neutral { background: rgba(210, 153, 34, 0.2); color: #D29922; }
+.signals-cell { font-size: 0.8rem; line-height: 1.6; }
 footer { text-align: center; padding: 30px; color: #8B949E; font-size: 0.9rem; }
-@media (max-width: 768px) { 
-    .top5 { grid-template-columns: repeat(2, 1fr); }
-    .market { flex-direction: column; }
-}
+.legend { background: rgba(22, 27, 34, 0.9); border-radius: 12px; padding: 20px; margin: 20px 0; }
+.legend h3 { margin-bottom: 10px; color: #E6EDF3; }
+.legend-item { display: flex; align-items: center; gap: 10px; margin: 5px 0; font-size: 0.9rem; }
+.buy-signal { color: #3FB950; font-weight: bold; }
+.sell-signal { color: #F85149; font-weight: bold; }
 </style>
 </head>
 <body>
 <div class="container">
 <header>
     <h1>📈 台股每日推薦報告</h1>
-    <p class="subtitle">技術分析 | 每日推薦 | 更新時間: 2026-04-22 10:16:46</p>
+    <p class="subtitle">技術分析 | 綜合評分 | 更新時間: 2026-04-22 14:10:14</p>
 </header>
 <div class="market">
     <div class="market-card">
         <h3>加權指數</h3>
-        <div class="price">37,932</div>
-        <div class="change" style="color: #F85149">+327 (+0.9%)</div>
-    </div></div><h2 style="text-align:center; margin: 30px 0;">🏅 TOP 5 推薦</h2><div class="top5">
+        <div class="price">37,878.47</div>
+        <div class="change" style="color: #F85149">+273.36 (+0.73%)</div></div>
+    <div class="market-card vix-low">
+        <h3>VIX</h3>
+        <div class="price">19.50</div>
+        <div class="change" style="color: #3FB950">低風險</div></div></div>
+<div class="legend">
+<h3>📊 評分說明（分數越高 = 買進訊號越強）</h3>
+<div class="legend-item"><span class="buy-signal">✅</span> MA5/MA20 站上均線 (+3/+2)</div>
+<div class="legend-item"><span class="buy-signal">🔥</span> RSI < 30 超賣 (+3) / KD 低檔黃金交叉 (+3)</div>
+<div class="legend-item"><span class="buy-signal">✅</span> MACD 多頭 (+2) / 成交量放大 (+2)</div>
+<div class="legend-item"><span class="buy-signal">✅</span> VIX < 20 大盤低風險環境 (+2)</div>
+<div class="legend-item"><span class="sell-signal">⚠️</span> RSI > 70 超買 / KD 高檔死亡交叉</div>
+</div>
+<h2 style="text-align:center; margin: 30px 0;">🏅 TOP 5 推薦</h2><div class="top5">
     <div class="top-card">
         <div class="rank">1</div>
-        <div class="name">鴻海</div>
-        <div class="code">2317</div>
-        <div class="price" style="color: #F85149">220</div>
-        <div style="color: #F85149">+9.50 (+4.5%)</div>
-        <div class="score">⭐ 6 分</div>
+        <div class="name">聯米</div>
+        <div class="code">2377</div>
+        <div class="price" style="color: #F85149">98</div>
+        <div style="color: #F85149">+3.70 (+3.9%)</div>
+        <div class="score">9 分</div>
     </div>
     <div class="top-card">
         <div class="rank">2</div>
-        <div class="name">台積電</div>
-        <div class="code">2330</div>
-        <div class="price" style="color: #F85149">2,060</div>
-        <div style="color: #F85149">+10.00 (+0.5%)</div>
-        <div class="score">⭐ 5 分</div>
+        <div class="name">鴻海</div>
+        <div class="code">2317</div>
+        <div class="price" style="color: #F85149">221</div>
+        <div style="color: #F85149">+10.00 (+4.7%)</div>
+        <div class="score">9 分</div>
     </div>
     <div class="top-card">
         <div class="rank">3</div>
-        <div class="name">研華</div>
-        <div class="code">2451</div>
-        <div class="price" style="color: #3FB950">264</div>
-        <div style="color: #3FB950">-2.00 (-0.8%)</div>
-        <div class="score">⭐ 5 分</div>
+        <div class="name">元大金</div>
+        <div class="code">2881</div>
+        <div class="price" style="color: #F85149">88</div>
+        <div style="color: #F85149">+0.60 (+0.7%)</div>
+        <div class="score">8 分</div>
     </div>
     <div class="top-card">
         <div class="rank">4</div>
-        <div class="name">中信金</div>
-        <div class="code">2891</div>
-        <div class="price" style="color: #F85149">54</div>
-        <div style="color: #F85149">+0.60 (+1.1%)</div>
-        <div class="score">⭐ 5 分</div>
+        <div class="name">裕融</div>
+        <div class="code">2201</div>
+        <div class="price" style="color: #F85149">28</div>
+        <div style="color: #F85149">+0.50 (+1.8%)</div>
+        <div class="score">8 分</div>
     </div>
     <div class="top-card">
         <div class="rank">5</div>
-        <div class="name">國泰金</div>
-        <div class="code">2882</div>
-        <div class="price" style="color: #3FB950">75</div>
-        <div style="color: #3FB950">-0.10 (-0.1%)</div>
-        <div class="score">⭐ 5 分</div>
-    </div></div><h2 style="margin: 30px 0;">📋 完整排名</h2><table><thead><tr><th>排名</th><th>代碼</th><th>名稱</th><th>現價</th><th>漲跌</th><th>總分</th><th>MA5</th><th>RSI</th><th>KD</th></tr></thead><tbody><tr>
-    <td>#1</td>
-    <td>2317</td>
-    <td><strong>鴻海</strong></td>
-    <td style="color: #F85149">220</td>
-    <td style="color: #F85149">+9.50 (+4.5%)</td>
-    <td><span class="badge badge-up">⭐ 6</span></td>
-    <td>✅</td>
-    <td>83.0 超買</td>
-    <td>- </td>
-</tr><tr>
-    <td>#2</td>
-    <td>2330</td>
-    <td><strong>台積電</strong></td>
-    <td style="color: #F85149">2,060</td>
-    <td style="color: #F85149">+10.00 (+0.5%)</td>
-    <td><span class="badge badge-up">⭐ 5</span></td>
-    <td>✅</td>
-    <td>78.3 超買</td>
-    <td>- </td>
-</tr><tr>
-    <td>#3</td>
-    <td>2451</td>
-    <td><strong>研華</strong></td>
-    <td style="color: #3FB950">264</td>
-    <td style="color: #3FB950">-2.00 (-0.8%)</td>
-    <td><span class="badge badge-up">⭐ 5</span></td>
-    <td>✅</td>
-    <td>78.4 超買</td>
-    <td>- </td>
-</tr><tr>
-    <td>#4</td>
-    <td>2891</td>
-    <td><strong>中信金</strong></td>
-    <td style="color: #F85149">54</td>
-    <td style="color: #F85149">+0.60 (+1.1%)</td>
-    <td><span class="badge badge-up">⭐ 5</span></td>
-    <td>✅</td>
-    <td>61.0 正常</td>
-    <td>- </td>
-</tr><tr>
-    <td>#5</td>
-    <td>2882</td>
-    <td><strong>國泰金</strong></td>
-    <td style="color: #3FB950">75</td>
-    <td style="color: #3FB950">-0.10 (-0.1%)</td>
-    <td><span class="badge badge-up">⭐ 5</span></td>
-    <td>✅</td>
-    <td>75.8 超買</td>
-    <td>- </td>
-</tr><tr>
-    <td>#6</td>
-    <td>2474</td>
-    <td><strong>世紀</strong></td>
-    <td style="color: #3FB950">208</td>
-    <td style="color: #3FB950">-2.00 (-1.0%)</td>
-    <td><span class="badge badge-up">⭐ 5</span></td>
-    <td>✅</td>
-    <td>69.6 正常</td>
-    <td>- </td>
-</tr><tr>
-    <td>#7</td>
-    <td>2881</td>
-    <td><strong>元大金</strong></td>
-    <td style="color: #F85149">88</td>
-    <td style="color: #F85149">+0.10 (+0.1%)</td>
-    <td><span class="badge badge-up">⭐ 5</span></td>
-    <td>✅</td>
-    <td>60.2 正常</td>
-    <td>- </td>
-</tr><tr>
-    <td>#8</td>
+        <div class="name">聯發科</div>
+        <div class="code">2454</div>
+        <div class="price" style="color: #F85149">2,295</div>
+        <div style="color: #F85149">+205.00 (+9.8%)</div>
+        <div class="score">8 分</div>
+    </div></div><h2 style="margin: 30px 0;">📋 完整排名</h2><table><thead><tr><th>#</th><th>代碼</th><th>名稱</th><th>現價</th><th>漲跌</th><th>總分</th><th>關鍵信號</th></tr></thead><tbody><tr>
+    <td><strong>1</strong></td>
     <td>2377</td>
     <td><strong>聯米</strong></td>
-    <td style="color: #F85149">95</td>
-    <td style="color: #F85149">+1.20 (+1.3%)</td>
-    <td><span class="badge badge-up">⭐ 5</span></td>
-    <td>✅</td>
-    <td>76.0 超買</td>
-    <td>- </td>
+    <td style="color: #F85149; font-weight: bold;">98</td>
+    <td style="color: #F85149;">+3.70 (+3.9%)</td>
+    <td><span class="score-cell score-high">9</span></td>
+    <td class="signals-cell"><span class="badge badge-up">VIX:19.5</span> <span class="badge badge-up">MA5:93</span> <span class="badge badge-up">MA20:90</span> <span class="badge badge-neutral">RSI:78.8</span> </td>
 </tr><tr>
-    <td>#9</td>
-    <td>2303</td>
-    <td><strong>聯電</strong></td>
-    <td style="color: #F85149">79</td>
-    <td style="color: #F85149">+2.80 (+3.7%)</td>
-    <td><span class="badge badge-up">⭐ 5</span></td>
-    <td>✅</td>
-    <td>80.7 超買</td>
-    <td>- </td>
+    <td><strong>2</strong></td>
+    <td>2317</td>
+    <td><strong>鴻海</strong></td>
+    <td style="color: #F85149; font-weight: bold;">221</td>
+    <td style="color: #F85149;">+10.00 (+4.7%)</td>
+    <td><span class="score-cell score-high">9</span></td>
+    <td class="signals-cell"><span class="badge badge-up">VIX:19.5</span> <span class="badge badge-up">MA5:210</span> <span class="badge badge-up">MA20:201</span> <span class="badge badge-neutral">RSI:83.2</span> </td>
 </tr><tr>
-    <td>#10</td>
-    <td>2454</td>
-    <td><strong>聯發科</strong></td>
-    <td style="color: #F85149">2,190</td>
-    <td style="color: #F85149">+100.00 (+4.8%)</td>
-    <td><span class="badge badge-up">⭐ 5</span></td>
-    <td>✅</td>
-    <td>93.2 超買</td>
-    <td>- </td>
+    <td><strong>3</strong></td>
+    <td>2881</td>
+    <td><strong>元大金</strong></td>
+    <td style="color: #F85149; font-weight: bold;">88</td>
+    <td style="color: #F85149;">+0.60 (+0.7%)</td>
+    <td><span class="score-cell score-high">8</span></td>
+    <td class="signals-cell"><span class="badge badge-up">VIX:19.5</span> <span class="badge badge-up">MA5:88</span> <span class="badge badge-up">MA20:88</span> <span class="badge badge-down">RSI:62.4</span> </td>
 </tr><tr>
-    <td>#11</td>
-    <td>3042</td>
-    <td><strong>創見</strong></td>
-    <td style="color: #3FB950">165</td>
-    <td style="color: #3FB950">-1.50 (-0.9%)</td>
-    <td><span class="badge badge-up">⭐ 5</span></td>
-    <td>✅</td>
-    <td>92.3 超買</td>
-    <td>- </td>
-</tr><tr>
-    <td>#12</td>
-    <td>2603</td>
-    <td><strong>長榮</strong></td>
-    <td style="color: #3FB950">202</td>
-    <td style="color: #3FB950">+0.00 (+0.0%)</td>
-    <td><span class="badge badge-up">⭐ 3</span></td>
-    <td>✅</td>
-    <td>53.8 正常</td>
-    <td>- </td>
-</tr><tr>
-    <td>#13</td>
+    <td><strong>4</strong></td>
     <td>2201</td>
     <td><strong>裕融</strong></td>
-    <td style="color: #3FB950">27</td>
-    <td style="color: #3FB950">-0.05 (-0.2%)</td>
-    <td><span class="badge badge-up">⭐ 3</span></td>
-    <td>✅</td>
-    <td>50.8 正常</td>
-    <td>- </td>
+    <td style="color: #F85149; font-weight: bold;">28</td>
+    <td style="color: #F85149;">+0.50 (+1.8%)</td>
+    <td><span class="score-cell score-high">8</span></td>
+    <td class="signals-cell"><span class="badge badge-up">VIX:19.5</span> <span class="badge badge-up">MA5:27</span> <span class="badge badge-up">MA20:27</span> <span class="badge badge-down">RSI:54.7</span> </td>
 </tr><tr>
-    <td>#14</td>
-    <td>2727</td>
-    <td><strong>王品</strong></td>
-    <td style="color: #F85149">226</td>
-    <td style="color: #F85149">+0.50 (+0.2%)</td>
-    <td><span class="badge badge-up">⭐ 3</span></td>
-    <td>✅</td>
-    <td>42.4 正常</td>
-    <td>- </td>
+    <td><strong>5</strong></td>
+    <td>2454</td>
+    <td><strong>聯發科</strong></td>
+    <td style="color: #F85149; font-weight: bold;">2,295</td>
+    <td style="color: #F85149;">+205.00 (+9.8%)</td>
+    <td><span class="score-cell score-high">8</span></td>
+    <td class="signals-cell"><span class="badge badge-up">VIX:19.5</span> <span class="badge badge-up">MA5:2021</span> <span class="badge badge-up">MA20:1689</span> <span class="badge badge-neutral">RSI:94.0</span> </td>
 </tr><tr>
-    <td>#15</td>
+    <td><strong>6</strong></td>
+    <td>2882</td>
+    <td><strong>國泰金</strong></td>
+    <td style="color: #F85149; font-weight: bold;">76</td>
+    <td style="color: #F85149;">+0.40 (+0.5%)</td>
+    <td><span class="score-cell score-high">8</span></td>
+    <td class="signals-cell"><span class="badge badge-up">VIX:19.5</span> <span class="badge badge-up">MA5:75</span> <span class="badge badge-up">MA20:73</span> <span class="badge badge-neutral">RSI:77.5</span> </td>
+</tr><tr>
+    <td><strong>7</strong></td>
+    <td>2451</td>
+    <td><strong>研華</strong></td>
+    <td style="color: #F85149; font-weight: bold;">269</td>
+    <td style="color: #F85149;">+3.50 (+1.3%)</td>
+    <td><span class="score-cell score-high">8</span></td>
+    <td class="signals-cell"><span class="badge badge-up">VIX:19.5</span> <span class="badge badge-up">MA5:256</span> <span class="badge badge-up">MA20:243</span> <span class="badge badge-neutral">RSI:80.9</span> </td>
+</tr><tr>
+    <td><strong>8</strong></td>
+    <td>2603</td>
+    <td><strong>長榮</strong></td>
+    <td style="color: #F85149; font-weight: bold;">202</td>
+    <td style="color: #F85149;">+0.50 (+0.2%)</td>
+    <td><span class="score-cell score-mid">7</span></td>
+    <td class="signals-cell"><span class="badge badge-up">VIX:19.5</span> <span class="badge badge-up">MA5:200</span> <span class="badge badge-up">MA20:202</span> <span class="badge badge-down">RSI:54.7</span> </td>
+</tr><tr>
+    <td><strong>9</strong></td>
+    <td>2891</td>
+    <td><strong>中信金</strong></td>
+    <td style="color: #F85149; font-weight: bold;">54</td>
+    <td style="color: #F85149;">+0.50 (+0.9%)</td>
+    <td><span class="score-cell score-mid">7</span></td>
+    <td class="signals-cell"><span class="badge badge-up">VIX:19.5</span> <span class="badge badge-up">MA5:53</span> <span class="badge badge-up">MA20:53</span> <span class="badge badge-down">RSI:60.6</span> </td>
+</tr><tr>
+    <td><strong>10</strong></td>
+    <td>2330</td>
+    <td><strong>台積電</strong></td>
+    <td style="color: #3FB950; font-weight: bold;">2,050</td>
+    <td style="color: #3FB950;">+0.00 (+0.0%)</td>
+    <td><span class="score-cell score-mid">7</span></td>
+    <td class="signals-cell"><span class="badge badge-up">VIX:19.5</span> <span class="badge badge-up">MA5:2048</span> <span class="badge badge-up">MA20:1932</span> <span class="badge badge-neutral">RSI:77.9</span> </td>
+</tr><tr>
+    <td><strong>11</strong></td>
+    <td>2474</td>
+    <td><strong>世紀</strong></td>
+    <td style="color: #F85149; font-weight: bold;">210</td>
+    <td style="color: #F85149;">+0.50 (+0.2%)</td>
+    <td><span class="score-cell score-mid">7</span></td>
+    <td class="signals-cell"><span class="badge badge-up">VIX:19.5</span> <span class="badge badge-up">MA5:208</span> <span class="badge badge-up">MA20:196</span> <span class="badge badge-neutral">RSI:72.7</span> </td>
+</tr><tr>
+    <td><strong>12</strong></td>
+    <td>2303</td>
+    <td><strong>聯電</strong></td>
+    <td style="color: #F85149; font-weight: bold;">79</td>
+    <td style="color: #F85149;">+2.40 (+3.1%)</td>
+    <td><span class="score-cell score-mid">7</span></td>
+    <td class="signals-cell"><span class="badge badge-up">VIX:19.5</span> <span class="badge badge-up">MA5:75</span> <span class="badge badge-up">MA20:63</span> <span class="badge badge-neutral">RSI:80.4</span> </td>
+</tr><tr>
+    <td><strong>13</strong></td>
+    <td>3042</td>
+    <td><strong>創見</strong></td>
+    <td style="color: #F85149; font-weight: bold;">167</td>
+    <td style="color: #F85149;">+0.50 (+0.3%)</td>
+    <td><span class="score-cell score-mid">7</span></td>
+    <td class="signals-cell"><span class="badge badge-up">VIX:19.5</span> <span class="badge badge-up">MA5:158</span> <span class="badge badge-up">MA20:117</span> <span class="badge badge-neutral">RSI:94.0</span> </td>
+</tr><tr>
+    <td><strong>14</strong></td>
     <td>1216</td>
     <td><strong>統一</strong></td>
-    <td style="color: #F85149">72</td>
-    <td style="color: #F85149">+0.10 (+0.1%)</td>
-    <td><span class="badge badge-up">⭐ 2</span></td>
-    <td>⚠️</td>
-    <td>59.3 正常</td>
-    <td>- </td>
+    <td style="color: #F85149; font-weight: bold;">72</td>
+    <td style="color: #F85149;">+0.40 (+0.6%)</td>
+    <td><span class="score-cell score-mid">5</span></td>
+    <td class="signals-cell"><span class="badge badge-up">VIX:19.5</span> <span class="badge badge-neutral">MA5:73</span> <span class="badge badge-up">MA20:72</span> <span class="badge badge-down">RSI:61.3</span> </td>
 </tr><tr>
-    <td>#16</td>
+    <td><strong>15</strong></td>
+    <td>2727</td>
+    <td><strong>王品</strong></td>
+    <td style="color: #F85149; font-weight: bold;">226</td>
+    <td style="color: #F85149;">+0.50 (+0.2%)</td>
+    <td><span class="score-cell score-mid">5</span></td>
+    <td class="signals-cell"><span class="badge badge-up">VIX:19.5</span> <span class="badge badge-up">MA5:226</span> <span class="badge badge-neutral">MA20:228</span> <span class="badge badge-down">RSI:42.4</span> </td>
+</tr><tr>
+    <td><strong>16</strong></td>
     <td>2887</td>
     <td><strong>台新金</strong></td>
-    <td style="color: #F85149">24</td>
-    <td style="color: #F85149">+0.10 (+0.4%)</td>
-    <td><span class="badge badge-up">⭐ 0</span></td>
-    <td>⚠️</td>
-    <td>61.2 正常</td>
-    <td>- </td>
+    <td style="color: #3FB950; font-weight: bold;">24</td>
+    <td style="color: #3FB950;">+0.00 (+0.0%)</td>
+    <td><span class="score-cell score-low">3</span></td>
+    <td class="signals-cell"><span class="badge badge-up">VIX:19.5</span> <span class="badge badge-neutral">MA5:24</span> <span class="badge badge-neutral">MA20:24</span> <span class="badge badge-down">RSI:60.3</span> </td>
 </tr><tr>
-    <td>#17</td>
-    <td>2313</td>
-    <td><strong>華通</strong></td>
-    <td style="color: #3FB950">249</td>
-    <td style="color: #3FB950">-5.50 (-2.2%)</td>
-    <td><span class="badge badge-up">⭐ 0</span></td>
-    <td>⚠️</td>
-    <td>50.5 正常</td>
-    <td>- </td>
-</tr><tr>
-    <td>#18</td>
-    <td>2002</td>
-    <td><strong>中鋼</strong></td>
-    <td style="color: #3FB950">20</td>
-    <td style="color: #3FB950">-0.15 (-0.8%)</td>
-    <td><span class="badge badge-up">⭐ 0</span></td>
-    <td>⚠️</td>
-    <td>61.3 正常</td>
-    <td>- </td>
-</tr><tr>
-    <td>#19</td>
+    <td><strong>17</strong></td>
     <td>1702</td>
     <td><strong>南僑</strong></td>
-    <td style="color: #3FB950">36</td>
-    <td style="color: #3FB950">-0.10 (-0.3%)</td>
-    <td><span class="badge badge-up">⭐ 0</span></td>
-    <td>⚠️</td>
-    <td>44.4 正常</td>
-    <td>- </td>
+    <td style="color: #3FB950; font-weight: bold;">36</td>
+    <td style="color: #3FB950;">-0.10 (-0.3%)</td>
+    <td><span class="score-cell score-low">3</span></td>
+    <td class="signals-cell"><span class="badge badge-up">VIX:19.5</span> <span class="badge badge-neutral">MA5:36</span> <span class="badge badge-neutral">MA20:36</span> <span class="badge badge-down">RSI:44.4</span> </td>
 </tr><tr>
-    <td>#20</td>
+    <td><strong>18</strong></td>
+    <td>2002</td>
+    <td><strong>中鋼</strong></td>
+    <td style="color: #3FB950; font-weight: bold;">20</td>
+    <td style="color: #3FB950;">-0.20 (-1.0%)</td>
+    <td><span class="score-cell score-low">2</span></td>
+    <td class="signals-cell"><span class="badge badge-up">VIX:19.5</span> <span class="badge badge-neutral">MA5:20</span> <span class="badge badge-neutral">MA20:20</span> <span class="badge badge-down">RSI:60.3</span> </td>
+</tr><tr>
+    <td><strong>19</strong></td>
+    <td>2313</td>
+    <td><strong>華通</strong></td>
+    <td style="color: #3FB950; font-weight: bold;">247</td>
+    <td style="color: #3FB950;">-7.50 (-2.9%)</td>
+    <td><span class="score-cell score-low">2</span></td>
+    <td class="signals-cell"><span class="badge badge-up">VIX:19.5</span> <span class="badge badge-neutral">MA5:255</span> <span class="badge badge-neutral">MA20:259</span> <span class="badge badge-down">RSI:49.6</span> </td>
+</tr><tr>
+    <td><strong>20</strong></td>
     <td>2707</td>
     <td><strong>晶華</strong></td>
-    <td style="color: #3FB950">176</td>
-    <td style="color: #3FB950">-2.00 (-1.1%)</td>
-    <td><span class="badge badge-up">⭐ 0</span></td>
-    <td>⚠️</td>
-    <td>58.2 正常</td>
-    <td>- </td>
+    <td style="color: #3FB950; font-weight: bold;">177</td>
+    <td style="color: #3FB950;">-1.00 (-0.6%)</td>
+    <td><span class="score-cell score-low">2</span></td>
+    <td class="signals-cell"><span class="badge badge-up">VIX:19.5</span> <span class="badge badge-neutral">MA5:179</span> <span class="badge badge-neutral">MA20:178</span> <span class="badge badge-down">RSI:61.8</span> </td>
 </tr></tbody></table>
-<h2 style="margin: 30px 0;">📊 評分說明</h2>
-<div style="background: #161B22; border-radius: 8px; padding: 20px; line-height: 1.8;">
-<p><strong>MA5 / MA20:</strong> 站上均線 +3/+2 分，低於 ⚠️</p>
-<p><strong>RSI:</strong> 低於 30 超賣 +3 分，高於 70 超買</p>
-<p><strong>KD:</strong> 低檔黃金交叉 +3 分，高檔死亡交叉 ⚠️</p>
-<p><strong>MACD:</strong> 柱狀正值 +2 分</p>
-<p><strong>成交量:</strong> 量增 1.5 倍 +2 分</p>
-</div>
-
 <footer>
     <p>📈 台股每日推薦報告 | 資料來源: Yahoo Finance | 每小時更新</p>
-    <p>本報告僅供參考，不构成投資建議</p>
+    <p>本報告僅供參考，不构成投資建議。分數高不代表一定漲，請注意風險。</p>
 </footer>
 </div>
 </body>
