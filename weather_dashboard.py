@@ -356,7 +356,7 @@ def main():
             else:
                 return f'rgba(50,{int(150+(max_v-val)/(max_v-min_v+0.1)*105)},255,0.85)'
         color_func = get_temp_color
-        thresholds = {'high': 32, 'low': 20}
+        thresholds = {'high': 32, 'low': 10}
     elif metric_key == 'humidity':
         def get_humidity_color(val, max_v, min_v):
             ratio = (val - min_v) / (max_v - min_v + 0.1)
