@@ -237,6 +237,10 @@ def main():
         .current-metric {{ background: linear-gradient(135deg, {theme['accent']}44, {theme['accent']}22); border: 2px solid {theme['accent']}; border-radius: 12px; padding: 12px 24px; text-align: center; margin-bottom: 16px; }}
         .current-metric .label {{ color: rgba(255,255,255,0.7); font-size: 0.85rem; }}
         .current-metric .value {{ color: white; font-size: 1.5rem; font-weight: 700; }}
+        
+        /* 圖表時間軸 */
+        .chart-labels {{ display: flex; justify-content: space-between; padding: 8px 10px 0; color: rgba(255,255,255,0.5); font-size: 0.75rem; }}
+        .chart-labels span {{ flex: 1; text-align: center; }}
     </style>
     """, unsafe_allow_html=True)
     
@@ -326,18 +330,79 @@ def main():
     """, unsafe_allow_html=True)
     
     # 繪製簡單的柱狀圖（用 HTML/CSS）
-    chart_html = '<div class="chart-container"><div style="display:flex;align-items:flex-end;gap:8px;height:150px;padding:10px;">'
+    # 繪製柱狀圖 + X軸時間 + 變色提醒
+    chart_html = '<div class="chart-container">'
+    
+    # 根據指標設定顏色區間
+    metric_key = st.session_state.chart_metric
+    if metric_key == 'temperature':
+        def get_temp_color(val, max_v, min_v):
+            ratio = (val - min_v) / (max_v - min_v + 0.1)
+            if ratio > 0.7:
+                return f'rgba(255,{int(100+155*(ratio-0.7)/0.3)},50,0.85)'
+            elif ratio > 0.4:
+                return f'rgba(255,{int(200-50*(ratio-0.4)/0.3)},{int(200*(ratio-0.4)/0.3)},0.85)'
+            else:
+                return f'rgba(50,{int(150+(max_v-val)/(max_v-min_v+0.1)*105)},255,0.85)'
+        color_func = get_temp_color
+        thresholds = {'high': 32, 'low': 20}
+    elif metric_key == 'humidity':
+        def get_humidity_color(val, max_v, min_v):
+            ratio = (val - min_v) / (max_v - min_v + 0.1)
+            return f'rgba(50,{int(150-ratio*100)},255,{0.5+ratio*0.5})'
+        color_func = get_humidity_color
+        thresholds = {'high': 80, 'low': 40}
+    elif metric_key == 'wind':
+        def get_wind_color(val, max_v, min_v):
+            ratio = (val - min_v) / (max_v - min_v + 0.1)
+            if ratio > 0.6:
+                return f'rgba(180,50,255,{0.6+ratio*0.4})'
+            elif ratio > 0.3:
+                return f'rgba(100,{int(200-ratio*100)},180,0.8)'
+            else:
+                return f'rgba(50,200,180,0.8)'
+        color_func = get_wind_color
+        thresholds = {'high': 30, 'low': 10}
+    else:
+        def get_rain_color(val, max_v, min_v):
+            ratio = (val - min_v) / (max_v - min_v + 0.1)
+            return f'rgba(30,{int(120+135*(1-ratio))},255,{0.4+ratio*0.6})'
+        color_func = get_rain_color
+        thresholds = {'high': 70, 'low': 20}
+    
+    chart_html += '<div style="display:flex;align-items:flex-end;gap:6px;height:180px;padding:10px;">'
     max_val = max(current_metric_data) if max(current_metric_data) > 0 else 1
     min_val = min(current_metric_data)
+    
     for j, val in enumerate(current_metric_data):
-        height = max(10, int((val - min_val) / (max_val - min_val + 0.1) * 120))
-        hour_label = (now + timedelta(hours=j)).strftime('%H:00')
+        height = max(8, int((val - min_val) / (max_val - min_val + 0.1) * 140))
+        color = color_func(val, max(current_metric_data), min(current_metric_data))
+        
+        warn_marker = ""
+        if metric_key == 'temperature':
+            if val >= thresholds['high']:
+                warn_marker = "🔥"
+            elif val <= thresholds['low']:
+                warn_marker = "❄️"
+        elif metric_key == 'wind' and val >= thresholds['high']:
+            warn_marker = "⚠️"
+        elif metric_key == 'rain' and val >= thresholds['high']:
+            warn_marker = "🌧️"
+        
         chart_html += f'''
-        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
-            <div style="width:100%;height:{height}px;background:linear-gradient(to top, {theme['accent']}cc, {theme['accent']}66);border-radius:4px 4px 0 0;min-height:4px;" title="{val}{current_metric_unit}"></div>
-            <div style="color:rgba(255,255,255,0.5);font-size:0.65rem;">{hour_label[3:5] if j % 3 == 0 else ''}</div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;position:relative;">
+            <div style="position:absolute;top:-20px;color:{"#ff6b35" if warn_marker=="🔥" else "#60a5fa" if warn_marker=="❄️" else "#a855f7" if warn_marker=="⚠️" else "#3b82f6" if warn_marker=="🌧️" else "transparent"};font-size:0.7rem;font-weight:bold;">{warn_marker}</div>
+            <div style="width:100%;height:{height}px;background:{color};border-radius:4px 4px 0 0;min-height:8px;" title="{val}{current_metric_unit}"></div>
         </div>'''
-    chart_html += '</div></div>'
+    chart_html += '</div>'
+    
+    # X軸時間標籤
+    chart_html += '<div style="display:flex;justify-content:space-between;padding:8px 10px 0;color:rgba(255,255,255,0.5);font-size:0.75rem;">'
+    for j in range(0, 24, 3):
+        hour_label = (now + timedelta(hours=j)).strftime('%H:%M')
+        chart_html += f'<span style="flex:1;text-align:center;">{hour_label}</span>'
+    chart_html += '</div>'
+    chart_html += '</div>'
     st.markdown(chart_html, unsafe_allow_html=True)
     
     # ===== 每小時預報 =====
