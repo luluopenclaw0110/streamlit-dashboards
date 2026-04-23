@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-少爺專用 - Modern Weather Dashboard V2 ✨
-動態背景變色（根據天氣陰晴）
+少爺專用 - Modern Weather Dashboard V3 ✨
+收藏城市 + 城市照片 + 日出日落
+版本：V3.0 | 更新時間：2026-04-23
 """
 
 import streamlit as st
@@ -153,6 +154,8 @@ def main():
         st.markdown("---")
         st.caption("🌤️ 資料來源：Open-Meteo")
         st.caption(f"📅 {datetime.now(ZoneInfo('Asia/Taipei')).strftime('%Y-%m-%d %H:%M')}")
+        st.markdown("---")
+        st.caption("**🔖 V3.0** | 收藏城市 + 城市照片 + 日出日落")
     
     # 取得資料
     lat = CITIES[selected_city]['lat']
