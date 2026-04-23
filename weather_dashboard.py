@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-少爺專用 - Modern Weather Dashboard V4.5 ✨
-收藏城市連動 + 趨勢圖指標切換
-版本：V4.5 | 更新時間：2026-04-24
+少爺專用 - Modern Weather Dashboard V4.6 ✨
+收藏城市連動 + 趨勢圖指標切換 + 本週天氣卡片連動
+版本：V4.6 | 更新時間：2026-04-24
 """
 
 import streamlit as st
@@ -69,7 +69,6 @@ CITIES = {
 
 # ===== 天氣主題配色 =====
 def get_weather_theme(code):
-    """根據天氣代碼返回配色"""
     if code == 0:
         return {"bg_start": "#1e3a5f", "bg_mid": "#2d5a87", "bg_end": "#1a3a5c", "hero_start": "#FF6B35", "hero_end": "#F7931E", "accent": "#FFD93D", "name": "晴朗"}
     elif code in [1, 2]:
@@ -96,30 +95,30 @@ def main():
         st.session_state.selected_city = "台中南屯"
     if 'chart_metric' not in st.session_state:
         st.session_state.chart_metric = "temperature"
+    if 'selected_day' not in st.session_state:
+        st.session_state.selected_day = 0
     
     # 側邊欄
     with st.sidebar:
         st.markdown("### 🌍 選擇城市")
         
-        # 收藏快捷鍵 - 修復：加入 rerun
         if st.session_state.favorites:
             st.markdown("**⭐ 收藏城市**")
             for fav in st.session_state.favorites:
                 if st.button(f"📍 {fav}", key=f"fav_{fav}"):
                     st.session_state.selected_city = fav
+                    st.session_state.selected_day = 0  # 重置到今天
                     st.rerun()
         
-        # 城市下拉選單
         city_names = list(CITIES.keys())
         current_index = city_names.index(st.session_state.selected_city) if st.session_state.selected_city in city_names else 0
         selected_city = st.selectbox("城市", city_names, index=current_index, key="city_select")
         
-        # 更新當前城市
         if selected_city != st.session_state.selected_city:
             st.session_state.selected_city = selected_city
+            st.session_state.selected_day = 0
             st.rerun()
         
-        # 收藏/取消收藏
         col_fav1, col_fav2 = st.columns(2)
         with col_fav1:
             if st.session_state.selected_city not in st.session_state.favorites:
@@ -136,10 +135,10 @@ def main():
         st.caption("🌤️ 資料來源：Open-Meteo")
         st.caption(f"📅 {datetime.now(ZoneInfo('Asia/Taipei')).strftime('%Y-%m-%d %H:%M')}")
         st.markdown("---")
-        st.caption("**🔖 V4.5** | 收藏連動 + 趨勢圖")
+        st.caption("**🔖 V4.6** | 週卡片連動")
     
-    # 使用 session_state 的城市
     selected_city = st.session_state.selected_city
+    selected_day = st.session_state.selected_day
     
     # 取得資料
     lat = CITIES[selected_city]['lat']
@@ -154,11 +153,41 @@ def main():
     hourly = data['hourly']
     daily = data['daily']
     
-    code = current['weather_code']
-    theme = get_weather_theme(code)
-    
     now = datetime.now(ZoneInfo('Asia/Taipei'))
     days_tw = ['星期一','星期二','星期三','星期四','星期五','星期六','星期日']
+    
+    # 根據選擇的日期取得資料
+    # 取得該天的日期
+    target_date = now + timedelta(days=selected_day)
+    target_date_str = target_date.strftime('%Y-%m-%d')
+    
+    # 該天的天氣代碼
+    d_code = daily['weather_code'][selected_day] if selected_day < len(daily['weather_code']) else daily['weather_code'][0]
+    theme = get_weather_theme(d_code)
+    
+    # 該天的溫度
+    d_high = int(daily['temperature_2m_max'][selected_day]) if selected_day < len(daily['temperature_2m_max']) else 0
+    d_low = int(daily['temperature_2m_min'][selected_day]) if selected_day < len(daily['temperature_2m_min']) else 0
+    
+    # 日出日落
+    sunrise = daily['sunrise'][selected_day][11:16] if selected_day < len(daily.get('sunrise', [])) else "06:00"
+    sunset = daily['sunset'][selected_day][11:16] if selected_day < len(daily.get('sunset', [])) else "18:00"
+    
+    # 取得該天的每小時資料（24小時）
+    hour_start = selected_day * 24
+    hour_end = hour_start + 24
+    day_hourly_temps = [int(t) for t in hourly['temperature_2m'][hour_start:hour_end]] if hour_start < len(hourly['temperature_2m']) else hourly['temperature_2m'][:24]
+    day_hourly_humidity = hourly['relative_humidity_2m'][hour_start:hour_end] if hour_start < len(hourly['relative_humidity_2m']) else hourly['relative_humidity_2m'][:24]
+    day_hourly_wind = [int(w) for w in hourly['wind_speed_10m'][hour_start:hour_end]] if hour_start < len(hourly['wind_speed_10m']) else hourly['wind_speed_10m'][:24]
+    day_hourly_rain = hourly['precipitation_probability'][hour_start:hour_end] if hour_start < len(hourly['precipitation_probability']) else hourly['precipitation_probability'][:24]
+    day_hourly_codes = hourly['weather_code'][hour_start:hour_end] if hour_start < len(hourly['weather_code']) else hourly['weather_code'][:24]
+    
+    # 該天的平均/總計指標
+    avg_humidity = int(sum(day_hourly_humidity) / len(day_hourly_humidity)) if day_hourly_humidity else 0
+    max_wind = max(day_hourly_wind) if day_hourly_wind else 0
+    max_rain = max(day_hourly_rain) if day_hourly_rain else 0
+    uv_max = daily['uv_index_max'][selected_day] if selected_day < len(daily.get('uv_index_max', [])) else 0
+    avg_temp = int(sum(day_hourly_temps) / len(day_hourly_temps)) if day_hourly_temps else 0
     
     # ===== 動態 CSS =====
     st.markdown(f"""
@@ -191,6 +220,7 @@ def main():
         }}
         
         .hero-city {{ font-size: 1.8rem; font-weight: 700; color: white; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }}
+        .hero-date {{ color: rgba(255,255,255,0.6); font-size: 0.9rem; margin-bottom: 8px; }}
         .hero-temp {{ font-size: 6rem; font-weight: 900; color: white; line-height: 1; text-shadow: 0 4px 20px rgba(0,0,0,0.3); }}
         .hero-desc {{ font-size: 1.5rem; color: rgba(255,255,255,0.9); margin: 12px 0; }}
         .hero-meta {{ display: flex; gap: 24px; margin-top: 16px; color: rgba(255,255,255,0.8); font-size: 1rem; }}
@@ -224,8 +254,9 @@ def main():
         .hourly-card .icon {{ font-size: 2rem; margin: 8px 0; }}
         .hourly-card .temp {{ color: white; font-size: 1.2rem; font-weight: 600; }}
         
-        .daily-card {{ background: rgba(255,255,255,0.08); backdrop-filter: blur(10px); border-radius: 16px; padding: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s ease; }}
+        .daily-card {{ background: rgba(255,255,255,0.08); backdrop-filter: blur(10px); border-radius: 16px; padding: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s ease; cursor: pointer; }}
         .daily-card:hover {{ background: rgba(255,255,255,0.12); }}
+        .daily-card.selected {{ background: rgba(255,255,255,0.2) !important; border-color: {theme['accent']} !important; box-shadow: 0 0 20px {theme['accent']}44; }}
         .daily-card .day {{ color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 8px; }}
         .daily-card .icon {{ font-size: 2.5rem; margin: 8px 0; }}
         .daily-card .high {{ color: white; font-weight: 700; font-size: 1.1rem; }}
@@ -236,65 +267,47 @@ def main():
         
         [data-testid="stSidebar"] {{ background: rgba(15, 15, 35, 0.95) !important; backdrop-filter: blur(20px) !important; }}
         
-        /* 指標按鈕選中狀態 */
         .metric-btn {{ background: rgba(255,255,255,0.1) !important; border: 1px solid rgba(255,255,255,0.2) !important; border-radius: 12px !important; padding: 12px 20px !important; color: rgba(255,255,255,0.7) !important; transition: all 0.3s ease !important; }}
         .metric-btn:hover {{ background: rgba(255,255,255,0.15) !important; }}
         .metric-btn.active {{ background: {theme['accent']}33 !important; border-color: {theme['accent']} !important; color: white !important; box-shadow: 0 0 20px {theme['accent']}44 !important; }}
         
-        /* 圖表容器 */
         .chart-container {{ background: rgba(255,255,255,0.05); border-radius: 16px; padding: 20px; border: 1px solid rgba(255,255,255,0.1); }}
-        
-        /* 當前指標顯示 */
         .current-metric {{ background: linear-gradient(135deg, {theme['accent']}44, {theme['accent']}22); border: 2px solid {theme['accent']}; border-radius: 12px; padding: 12px 24px; text-align: center; margin-bottom: 16px; }}
         .current-metric .label {{ color: rgba(255,255,255,0.7); font-size: 0.85rem; }}
         .current-metric .value {{ color: white; font-size: 1.5rem; font-weight: 700; }}
-        
-        /* 圖表時間軸 */
-        .chart-labels {{ display: flex; justify-content: space-between; padding: 8px 10px 0; color: rgba(255,255,255,0.5); font-size: 0.75rem; }}
-        .chart-labels span {{ flex: 1; text-align: center; }}
+        .chart-labels {{ display: flex; justify-content: space-between; padding: 8px 10px 0; color: rgba(255,255,255,0.5); font-size: 0.6rem; }}
     </style>
     """, unsafe_allow_html=True)
     
-    # 取得資料
-    temp = int(current['temperature_2m'])
-    humidity = current['relative_humidity_2m']
-    feels = int(current['apparent_temperature'])
-    wind = current['wind_speed_10m']
-    uv_max = daily['uv_index_max'][0] if 'uv_index_max' in daily else 0
-    rain_prob = hourly['precipitation_probability'][0]
-    
-    # 日出日落
-    sunrise = daily['sunrise'][0][11:16] if 'sunrise' in daily else "06:00"
-    sunset = daily['sunset'][0][11:16] if 'sunset' in daily else "18:00"
-    
     # ===== Hero Section =====
+    hero_date_display = target_date.strftime("%Y年%m月%d日") + " " + days_tw[target_date.weekday()]
     st.markdown(f"""
     <div class="hero-section">
-        <div class="weather-icon-big">{weather_icon(code)}</div>
+        <div class="weather-icon-big">{weather_icon(d_code)}</div>
         <div class="hero-city">📍 {selected_city}</div>
-        <div style="color:rgba(255,255,255,0.6);font-size:0.9rem;margin-bottom:8px;">{now.strftime("%Y年%m月%d日 %A")}</div>
-        <div class="hero-temp">{temp}°</div>
-        <div class="hero-desc">{weather_icon(code)} {weather_desc(code)}</div>
+        <div class="hero-date">{hero_date_display}</div>
+        <div class="hero-temp">{avg_temp}°</div>
+        <div class="hero-desc">{weather_icon(d_code)} {weather_desc(d_code)} | 高{d_high}° 低{d_low}°</div>
         <div class="hero-meta">
             <span>🌅 日出 {sunrise}</span>
             <span>🌇 日落 {sunset}</span>
         </div>
         <div class="hero-meta" style="margin-top:8px;">
-            <span>💧 濕度 {humidity}%</span>
-            <span>🌡️ 體感 {feels}°</span>
-            <span>💨 風速 {wind} km/h</span>
+            <span>💧 平均濕度 {avg_humidity}%</span>
+            <span>💨 最大風速 {max_wind} km/h</span>
+            <span>🌧️ 最高降雨 {max_rain}%</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
     
     # ===== 6 欄資訊卡 =====
     info_items = [
-        ("💧", "濕度", f"{humidity}", "%"),
-        ("🌡️", "體感", f"{feels}", "°C"),
-        ("💨", "風速", f"{wind}", "km/h"),
+        ("💧", "平均濕度", f"{avg_humidity}", "%"),
+        ("🌡️", "平均體感", f"{avg_temp}", "°C"),
+        ("💨", "最大風速", f"{max_wind}", "km/h"),
         ("☀️", "UV指數", f"{uv_max:.1f}", ""),
-        ("🌧️", "降雨機率", f"{rain_prob}", "%"),
-        ("🌤️", "能見度", "10", "km"),
+        ("🌧️", "最高降雨", f"{max_rain}", "%"),
+        ("🌤️", "溫差", f"{d_high-d_low}", "°"),
     ]
     
     cols = st.columns(6)
@@ -308,44 +321,37 @@ def main():
             </div>
             """, unsafe_allow_html=True)
     
-    # ===== 趨勢圖區塊（新增） =====
+    # ===== 趨勢圖區塊 =====
     st.markdown(f'<div class="section-title">📈 趨勢圖</div>', unsafe_allow_html=True)
     
-    # 指標選擇按鈕
     metric_options = {
-        "temperature": ("🌡️ 溫度", "°C", [int(t) for t in hourly['temperature_2m'][:24]]),
-        "humidity": ("💧 濕度", "%", hourly['relative_humidity_2m'][:24]),
-        "wind": ("💨 風速", "km/h", [int(w) for w in hourly['wind_speed_10m'][:24]]),
-        "rain": ("🌧️ 降雨", "%", hourly['precipitation_probability'][:24]),
+        "temperature": ("🌡️ 溫度", "°C", day_hourly_temps),
+        "humidity": ("💧 濕度", "%", day_hourly_humidity),
+        "wind": ("💨 風速", "km/h", day_hourly_wind),
+        "rain": ("🌧️ 降雨", "%", day_hourly_rain),
     }
     
-    # 顯示當前選擇
     current_metric_label, current_metric_unit, current_metric_data = metric_options[st.session_state.chart_metric]
     
-    # 指標按鈕列
     btn_cols = st.columns(4)
     for i, (key, (label, unit, data)) in enumerate(metric_options.items()):
         with btn_cols[i]:
             is_active = key == st.session_state.chart_metric
-            btn_style = "metric-btn active" if is_active else "metric-btn"
             if st.button(label, key=f"metric_btn_{key}"):
                 st.session_state.chart_metric = key
                 st.rerun()
     
-    # 顯示當前指標和數值
-    current_val = current_metric_data[0]
+    current_val = current_metric_data[12] if len(current_metric_data) > 12 else (current_metric_data[0] if current_metric_data else 0)
     st.markdown(f"""
     <div class="current-metric">
-        <div class="label">當前 {current_metric_label.replace('💧','').replace('🌡️','').replace('💨','').replace('🌧️','')}</div>
+        <div class="label">當日 {current_metric_label.replace('💧','').replace('🌡️','').replace('💨','').replace('🌧️','')}（中午）</div>
         <div class="value">{current_val}{current_metric_unit}</div>
     </div>
     """, unsafe_allow_html=True)
     
-    # 繪製簡單的柱狀圖（用 HTML/CSS）
-    # 繪製柱狀圖 + X軸時間 + 變色提醒
+    # 繪製柱狀圖
     chart_html = '<div class="chart-container">'
     
-    # 根據指標設定顏色區間
     metric_key = st.session_state.chart_metric
     if metric_key == 'temperature':
         def get_temp_color(val, max_v, min_v):
@@ -383,7 +389,6 @@ def main():
         thresholds = {'high': 70, 'low': 20}
     
     chart_html += '<div style="display:flex;gap:0px;height:200px;padding:0 10px 0 50px;position:relative;">'
-    # Y軸標籤
     max_val = max(current_metric_data) if max(current_metric_data) > 0 else 1
     min_val = min(current_metric_data)
     mid_val = (max_val + min_val) / 2
@@ -392,7 +397,6 @@ def main():
     chart_html += f'<span>{int(mid_val)}</span>'
     chart_html += f'<span>{int(min_val)}</span>'
     chart_html += '</div>'
-    # 柱狀圖區塊
     chart_html += '<div style="flex:1;display:flex;align-items:flex-end;gap:4px;padding-bottom:20px;">'
     max_val = max(current_metric_data) if max(current_metric_data) > 0 else 1
     min_val = min(current_metric_data)
@@ -421,21 +425,24 @@ def main():
     
     # X軸時間標籤
     chart_html += '<div style="display:flex;justify-content:space-between;padding:8px 10px 0;color:rgba(255,255,255,0.5);font-size:0.6rem;">'
+    # 該天的時間（從0點開始）
+    day_start = target_date.replace(hour=0, minute=0, second=0, microsecond=0)
     for j in range(0, 24, 1):
-        hour_label = (now.replace(minute=0, second=0, microsecond=0) + timedelta(hours=j+1)).strftime('%H:00')
+        hour_label = (day_start + timedelta(hours=j)).strftime('%H:00')
         chart_html += f'<span style="flex:1;text-align:center;">{hour_label}</span>'
     chart_html += '</div>'
     chart_html += '</div>'
     st.markdown(chart_html, unsafe_allow_html=True)
     
     # ===== 每小時預報 =====
-    st.markdown(f'<div class="section-title">⏰ 每小時預報</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="section-title">⏰ {hero_date_display} 每小時預報</div>', unsafe_allow_html=True)
     
     hourly_html = '<div class="hourly-scroll">'
+    day_start = target_date.replace(hour=0, minute=0, second=0, microsecond=0)
     for i in range(24):
-        hour = (now + timedelta(hours=i)).strftime('%H:00')
-        h_temp = int(hourly['temperature_2m'][i])
-        h_code = hourly['weather_code'][i]
+        hour = (day_start + timedelta(hours=i)).strftime('%H:00')
+        h_temp = day_hourly_temps[i] if i < len(day_hourly_temps) else 0
+        h_code = day_hourly_codes[i] if i < len(day_hourly_codes) else 0
         hourly_html += f'''
         <div class="hourly-card">
             <div class="time">{hour}</div>
@@ -445,8 +452,8 @@ def main():
     hourly_html += '</div>'
     st.markdown(hourly_html, unsafe_allow_html=True)
     
-    # ===== 每週預報 =====
-    st.markdown(f'<div class="section-title">📅 本週天氣</div>', unsafe_allow_html=True)
+    # ===== 本週天氣（可點選連動） =====
+    st.markdown(f'<div class="section-title">📅 本週天氣（點選卡片連動全頁）</div>', unsafe_allow_html=True)
     
     daily_cols = st.columns(7)
     for i in range(7):
@@ -455,11 +462,18 @@ def main():
         d_low = int(daily['temperature_2m_min'][i])
         d_code = daily['weather_code'][i]
         d_rain = daily['precipitation_probability_max'][i] if 'precipitation_probability_max' in daily else 0
+        is_selected = i == selected_day
         
         with daily_cols[i]:
+            if st.button(f"{day_name}\n{d_high}°/{d_low}°\n{weather_icon(d_code)}\n🌧️{d_rain}%", key=f"day_btn_{i}", type="primary" if is_selected else "secondary"):
+                st.session_state.selected_day = i
+                st.rerun()
+            
+            # 用HTML顯示卡片樣式（同步 Streamlit 按鈕的 selected 狀態）
+            card_class = "daily-card selected" if is_selected else "daily-card"
             st.markdown(f"""
-            <div class="daily-card">
-                <div class="day">{day_name if i == 0 else day_name[2:]}</div>
+            <div class="{card_class}" style="margin-top:8px;">
+                <div class="day">{'今日' if i == 0 else day_name[2:]}</div>
                 <div class="icon">{weather_icon(d_code)}</div>
                 <div class="high">{d_high}°</div>
                 <div class="low">{d_low}°</div>
@@ -469,7 +483,7 @@ def main():
     
     # ===== Footer =====
     st.markdown("---")
-    st.markdown(f"<div style='text-align:center;color:rgba(255,255,255,0.4);font-size:0.85rem'>🌤️ 少爺的天氣 | {theme['name']}模式 | {now.strftime('%Y-%m-%d %H:%M')} | V4.5</div>", unsafe_allow_html=True)
+    st.markdown(f"<div style='text-align:center;color:rgba(255,255,255,0.4);font-size:0.85rem'>🌤️ 少爺的天氣 | {theme['name']}模式 | {now.strftime('%Y-%m-%d %H:%M')} | V4.6 | 檢視{hero_date_display}資料</div>", unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
