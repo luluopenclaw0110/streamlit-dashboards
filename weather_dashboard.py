@@ -370,7 +370,18 @@ def main():
         color_func = get_rain_color
         thresholds = {'high': 70, 'low': 20}
     
-    chart_html += '<div style="display:flex;align-items:flex-end;gap:6px;height:180px;padding:10px;">'
+    chart_html += '<div style="display:flex;gap:0px;height:200px;padding:0 10px 0 50px;position:relative;">'
+    # Y軸標籤
+    max_val = max(current_metric_data) if max(current_metric_data) > 0 else 1
+    min_val = min(current_metric_data)
+    mid_val = (max_val + min_val) / 2
+    chart_html += '<div style="position:absolute;left:0;top:0;height:100%;display:flex;flex-direction:column;justify-content:space-between;text-align:right;padding-right:8px;color:rgba(255,255,255,0.5);font-size:0.7rem;">'
+    chart_html += f'<span>{int(max_val)}</span>'
+    chart_html += f'<span>{int(mid_val)}</span>'
+    chart_html += f'<span>{int(min_val)}</span>'
+    chart_html += '</div>'
+    # 柱狀圖區塊
+    chart_html += '<div style="flex:1;display:flex;align-items:flex-end;gap:4px;padding-bottom:20px;">'
     max_val = max(current_metric_data) if max(current_metric_data) > 0 else 1
     min_val = min(current_metric_data)
     
@@ -394,7 +405,7 @@ def main():
             <div style="position:absolute;top:-20px;color:{"#ff6b35" if warn_marker=="🔥" else "#60a5fa" if warn_marker=="❄️" else "#a855f7" if warn_marker=="⚠️" else "#3b82f6" if warn_marker=="🌧️" else "transparent"};font-size:0.7rem;font-weight:bold;">{warn_marker}</div>
             <div style="width:100%;height:{height}px;background:{color};border-radius:4px 4px 0 0;min-height:8px;" title="{val}{current_metric_unit}"></div>
         </div>'''
-    chart_html += '</div>'
+    chart_html += '</div></div>'
     
     # X軸時間標籤
     chart_html += '<div style="display:flex;justify-content:space-between;padding:8px 10px 0;color:rgba(255,255,255,0.5);font-size:0.6rem;">'
