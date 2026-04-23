@@ -242,11 +242,6 @@
             z-index: 1;
         }
         
-        .screenshot-card img {
-            width: 100%;
-            display: block;
-        }
-        
         .screenshot-placeholder {
             background: linear-gradient(135deg, #f8f8f8 0%, #e8e8e8 100%);
             padding: 40px;
@@ -302,13 +297,13 @@
             opacity: 0.6;
         }
         
-        /* Features Section */
-        .features {
+        /* Based on Your Own Data */
+        .based-data {
             padding: 100px 48px;
             background: var(--bg-soft);
         }
         
-        .features h2 {
+        .based-data h2 {
             font-size: 40px;
             font-weight: 700;
             text-align: center;
@@ -316,14 +311,14 @@
             color: var(--text-primary);
         }
         
-        .features > p {
+        .based-data > p {
             text-align: center;
             font-size: 18px;
             color: var(--text-secondary);
             margin-bottom: 48px;
         }
         
-        .features-grid {
+        .data-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 24px;
@@ -331,33 +326,32 @@
             margin: 0 auto;
         }
         
-        .feature-card {
+        .data-card {
             background: #fff;
             border-radius: 20px;
             padding: 32px;
             border: 1px solid rgba(0, 0, 0, 0.04);
             transition: all 0.3s;
-            cursor: pointer;
         }
         
-        .feature-card:hover {
+        .data-card:hover {
             transform: translateY(-4px);
             box-shadow: var(--shadow-lg);
         }
         
-        .feature-card .icon {
+        .data-card .icon {
             font-size: 28px;
             margin-bottom: 20px;
         }
         
-        .feature-card h3 {
+        .data-card h3 {
             font-size: 20px;
             font-weight: 600;
             margin-bottom: 12px;
             color: var(--text-primary);
         }
         
-        .feature-card p {
+        .data-card p {
             font-size: 15px;
             color: var(--text-secondary);
             line-height: 1.6;
@@ -373,29 +367,176 @@
         .formats h2 {
             font-size: 36px;
             font-weight: 700;
+            margin-bottom: 16px;
+        }
+        
+        .formats > p {
+            font-size: 18px;
+            color: var(--text-secondary);
             margin-bottom: 48px;
         }
         
         .formats-grid {
-            display: flex;
-            justify-content: center;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 24px;
-            flex-wrap: wrap;
+            max-width: 1200px;
+            margin: 0 auto;
         }
         
         .format-item {
             background: #fff;
             border: 1px solid rgba(0, 0, 0, 0.06);
             border-radius: 16px;
-            padding: 24px 32px;
+            padding: 24px;
             font-size: 16px;
             font-weight: 500;
             transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
         }
         
         .format-item:hover {
             transform: translateY(-2px);
             box-shadow: var(--shadow-md);
+        }
+        
+        .format-item .icon {
+            font-size: 32px;
+        }
+        
+        /* Collaborative Workspace */
+        .collaborative {
+            padding: 100px 48px;
+            background: var(--bg-soft);
+        }
+        
+        .collaborative h2 {
+            font-size: 40px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 48px;
+        }
+        
+        .collab-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .collab-card {
+            text-align: center;
+            padding: 32px;
+        }
+        
+        .collab-card .icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        
+        .collab-card h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+        
+        .collab-card p {
+            font-size: 15px;
+            color: var(--text-secondary);
+        }
+        
+        /* Use Cases */
+        .usecases {
+            padding: 100px 48px;
+            background: linear-gradient(180deg, #FAF9F5 0%, #F0EFE8 100%);
+        }
+        
+        .usecases h2 {
+            font-size: 40px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 48px;
+        }
+        
+        .usecase-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        
+        .usecase-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 28px;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            transition: all 0.2s;
+        }
+        
+        .usecase-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .usecase-card h3 {
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--accent-purple);
+            margin-bottom: 10px;
+        }
+        
+        .usecase-card p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        
+        /* Works Together */
+        .works {
+            padding: 100px 48px;
+            background: var(--bg-soft);
+        }
+        
+        .works h2 {
+            font-size: 36px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 48px;
+        }
+        
+        .works-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .works-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            text-align: center;
+            transition: all 0.2s;
+        }
+        
+        .works-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .works-card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 16px;
+            color: var(--text-primary);
         }
         
         /* CTA Section */
@@ -472,38 +613,22 @@
             opacity: 1;
         }
         
-        .footer-logo {
-            font-size: 24px;
-            font-weight: 700;
-        }
-        
-        /* Animations */
+        /* Animation */
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        
-        .hero h1, .hero p, .chat-box, .tools-pills {
-            animation: fadeInUp 0.6s ease-out forwards;
-        }
-        
-        .hero p { animation-delay: 0.1s; }
-        .chat-box { animation-delay: 0.2s; }
-        .tools-pills { animation-delay: 0.3s; }
         
         /* Responsive */
         @media (max-width: 768px) {
             nav { padding: 16px 24px; }
             .hero { padding: 100px 24px 60px; }
-            .features, .formats, .cta { padding: 60px 24px; }
             .hero h1 { font-size: 36px; }
+            .based-data, .formats, .collaborative, .usecases, .works, .cta { padding: 60px 24px; }
+            .collab-grid, .usecase-grid, .works-grid { grid-template-columns: 1fr; }
             .logos { gap: 24px; }
+            .hero-showcase { flex-direction: column; align-items: center; gap: 20px; }
+            .screenshot-card.main, .screenshot-card.left, .screenshot-card.right { width: 100%; margin: 0; max-width: 400px; }
         }
     </style>
 </head>
@@ -518,6 +643,7 @@
         </div>
     </nav>
     
+    <!-- Hero -->
     <section class="hero">
         <h1>Your AI coworker for docs, sheets, websites & slides</h1>
         <p>Transform scattered sources, files and ideas to clear insights, ready-to-use deliverables in seconds. You define the goal. Kuse completes the work.</p>
@@ -563,84 +689,186 @@
         </div>
     </section>
     
+    <!-- Trusted By -->
     <section class="trusted">
-        <h2>Trusted by People from</h2>
+        <h2>Trusted by people from</h2>
         <div class="logos">
             <span class="logo-item">Google</span>
             <span class="logo-item">Microsoft</span>
-            <span class="logo-item">Apple</span>
-            <span class="logo-item">Meta</span>
             <span class="logo-item">Amazon</span>
+            <span class="logo-item">Meta</span>
+            <span class="logo-item">Apple</span>
         </div>
     </section>
     
-    <section class="features">
+    <!-- Based on Your Own Data -->
+    <section class="based-data">
         <h2>Based on Your Own Data</h2>
-        <p>Work with your files, your tools, and your knowledge.</p>
-        
-        <div class="features-grid">
-            <div class="feature-card">
+        <p>Your data, your rules. AI that truly understands your world.</p>
+        <div class="data-grid">
+            <div class="data-card">
                 <div class="icon">📁</div>
                 <h3>Massive File Uploads</h3>
                 <p>Bring all your documents, slides, spreadsheets, and images into one place.</p>
             </div>
-            <div class="feature-card">
+            <div class="data-card">
                 <div class="icon">🔗</div>
                 <h3>Smart Integrations</h3>
-                <p>Connect with your favorite tools and databases to stay synced.</p>
+                <p>Connect with your favorite tools and databases to stay synced and always current.</p>
             </div>
-            <div class="feature-card">
+            <div class="data-card">
                 <div class="icon">🧠</div>
                 <h3>Intelligent Knowledge Base</h3>
-                <p>Kuse understands your data and turns it into a searchable knowledge base.</p>
+                <p>Kuse understands your data and turns it into a living, searchable knowledge base.</p>
             </div>
-            <div class="feature-card">
-                <div class="icon">📖</div>
+            <div class="data-card">
+                <div class="icon">🎯</div>
                 <h3>Source Only Mode</h3>
-                <p>Work purely from your own materials when accuracy matters most.</p>
+                <p>Think freely while AI helps organize and connect your ideas.</p>
             </div>
         </div>
     </section>
     
+    <!-- Create & Edit in Every Format -->
     <section class="formats">
         <h2>Create & Edit in Every Format</h2>
+        <p>From notes to presentations, AI handles it all.</p>
         <div class="formats-grid">
-            <div class="format-item">📝 AI Note</div>
-            <div class="format-item">📊 Layout Reference</div>
-            <div class="format-item">📊 Online Spreadsheet</div>
-            <div class="format-item">📊 Interactive Quiz</div>
-            <div class="format-item">🖼️ AI Image</div>
-            <div class="format-item">🌐 Interactive Webpage</div>
+            <div class="format-item">
+                <span class="icon">📝</span>
+                <span>AI Note</span>
+            </div>
+            <div class="format-item">
+                <span class="icon">📊</span>
+                <span>AI Spreadsheet</span>
+            </div>
+            <div class="format-item">
+                <span class="icon">🖥️</span>
+                <span>AI Slides</span>
+            </div>
+            <div class="format-item">
+                <span class="icon">🌐</span>
+                <span>AI Page</span>
+            </div>
+            <div class="format-item">
+                <span class="icon">🖼️</span>
+                <span>AI Image</span>
+            </div>
+            <div class="format-item">
+                <span class="icon">📋</span>
+                <span>Layout Reference</span>
+            </div>
+            <div class="format-item">
+                <span class="icon">🧩</span>
+                <span>Interactive Quiz</span>
+            </div>
         </div>
     </section>
     
-    <section class="cta">
-        <h2>Ready to work smarter?</h2>
-        <p>Join thousands of professionals who use Kuse every day.</p>
-        <button class="btn-large">Get Started Free</button>
+    <!-- Collaborative Workspace -->
+    <section class="collaborative">
+        <h2>Collaborative Workspace that Evolves</h2>
+        <div class="collab-grid">
+            <div class="collab-card">
+                <div class="icon">👥</div>
+                <h3>Human + AI + Human</h3>
+                <p>Collaborate effortlessly. Share and co-create in one intelligent workspace.</p>
+            </div>
+            <div class="collab-card">
+                <div class="icon">🧬</div>
+                <h3>Evolving Memory</h3>
+                <p>Your AI memory grows and updates with every change from you or your team.</p>
+            </div>
+            <div class="collab-card">
+                <div class="icon">🏠</div>
+                <h3>Living Workspace</h3>
+                <p>Every creation feeds the next, making your workspace smarter over time.</p>
+            </div>
+        </div>
     </section>
     
+    <!-- See What Kuse Can Do -->
+    <section class="usecases">
+        <h2>See What Kuse Can Do</h2>
+        <div class="usecase-grid">
+            <div class="usecase-card">
+                <h3>Marketing & Sales</h3>
+                <p>Generate campaign assets, branded decks, social content, and client proposals automatically.</p>
+            </div>
+            <div class="usecase-card">
+                <h3>Finance & Operations</h3>
+                <p>Create automated reports, KPI dashboards, expense summaries, and monthly reports.</p>
+            </div>
+            <div class="usecase-card">
+                <h3>Engineering & Data</h3>
+                <p>Analyze datasets, create technical documentation, and schedule automated pipeline summaries.</p>
+            </div>
+            <div class="usecase-card">
+                <h3>Design & Product</h3>
+                <p>Transform PRDs into user-facing specs, release notes, and competitive analysis decks.</p>
+            </div>
+            <div class="usecase-card">
+                <h3>Legal & Compliance</h3>
+                <p>Extract key terms from contracts, generate compliance checklists and audit-ready materials.</p>
+            </div>
+            <div class="usecase-card">
+                <h3>Education & Healthcare</h3>
+                <p>Generate lesson plans, quizzes, study guides, and patient education documents.</p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Everything Works Together -->
+    <section class="works">
+        <h2>Everything Works Together</h2>
+        <div class="works-grid">
+            <div class="works-card">
+                <span style="font-size: 40px;">🔌</span>
+                <h3>Connectors</h3>
+                <p style="color: var(--text-secondary); font-size: 14px;">Pull data from Gmail, Slack, Salesforce, Google Drive, and 60+ integrations.</p>
+            </div>
+            <div class="works-card">
+                <span style="font-size: 40px;">⚡</span>
+                <h3>Skills</h3>
+                <p style="color: var(--text-secondary); font-size: 14px;">Custom AI behaviors like brand voice, grading rubrics, and report templates.</p>
+            </div>
+            <div class="works-card">
+                <span style="font-size: 40px;">🕐</span>
+                <h3>Scheduled Tasks</h3>
+                <p style="color: var(--text-secondary); font-size: 14px;">Set it once. Daily briefings, weekly reports, and monthly dashboards run automatically.</p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- CTA -->
+    <section class="cta">
+        <h2>Kuse Works the Way You Do</h2>
+        <p>Any deliverable you need. Describe it, Kuse builds the complete file.</p>
+        <button class="btn-large">Start Free Trial</button>
+    </section>
+    
+    <!-- Footer -->
     <footer>
         <div class="footer-content">
             <div class="footer-col">
-                <div class="footer-logo">Kuse</div>
+                <h4>Kuse</h4>
+                <a href="#">About</a>
+                <a href="#">Blog</a>
+                <a href="#">Careers</a>
+                <a href="#">Contact</a>
             </div>
             <div class="footer-col">
                 <h4>Product</h4>
                 <a href="#">Features</a>
                 <a href="#">Pricing</a>
                 <a href="#">Integrations</a>
-            </div>
-            <div class="footer-col">
-                <h4>Company</h4>
-                <a href="#">About</a>
-                <a href="#">Blog</a>
-                <a href="#">Careers</a>
+                <a href="#">API</a>
             </div>
             <div class="footer-col">
                 <h4>Legal</h4>
                 <a href="#">Privacy</a>
                 <a href="#">Terms</a>
+                <a href="#">Security</a>
             </div>
         </div>
     </footer>
