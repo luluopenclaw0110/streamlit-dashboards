@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuse | Agentic AI Coworker for Documents, Spreadsheets, Websites & Slides</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            line-height: 1.6;
+        }
+        
+        /* Navigation */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 60px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(20px);
+            z-index: 100;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            align-items: center;
+        }
+        
+        .nav-links a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        
+        .nav-links a:hover {
+            color: #fff;
+        }
+        
+        .nav-links .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: #fff;
+        }
+        
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 120px 60px 60px;
+            background: radial-gradient(ellipse at top, rgba(102, 126, 234, 0.15) 0%, transparent 50%);
+        }
+        
+        .hero h1 {
+            font-size: 64px;
+            font-weight: 800;
+            max-width: 800px;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .hero p {
+            font-size: 20px;
+            color: rgba(255, 255, 255, 0.6);
+            max-width: 600px;
+            margin-bottom: 40px;
+        }
+        
+        .hero-input {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 40px;
+        }
+        
+        .hero-input input {
+            flex: 1;
+            padding: 16px 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+        }
+        
+        .hero-input input:focus {
+            border-color: rgba(102, 126, 234, 0.5);
+        }
+        
+        .hero-input button {
+            padding: 16px 32px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .hero-input button:hover {
+            transform: scale(1.02);
+        }
+        
+        /* Features Section */
+        .features {
+            padding: 80px 60px;
+            background: #0a0a0a;
+        }
+        
+        .features h2 {
+            font-size: 48px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .feature-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 32px;
+            transition: all 0.3s;
+        }
+        
+        .feature-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateY(-4px);
+        }
+        
+        .feature-card .icon {
+            font-size: 32px;
+            margin-bottom: 16px;
+        }
+        
+        .feature-card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .feature-card p {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        /* Trusted Section */
+        .trusted {
+            padding: 80px 60px;
+            text-align: center;
+        }
+        
+        .trusted h2 {
+            font-size: 32px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 40px;
+        }
+        
+        .trusted-logos {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            flex-wrap: wrap;
+        }
+        
+        .trusted-logos .logo-item {
+            font-size: 24px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Footer */
+        footer {
+            padding: 60px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        footer .footer-links {
+            display: flex;
+            gap: 40px;
+        }
+        
+        footer a {
+            color: rgba(255, 255, 255, 0.5);
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        footer a:hover {
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="logo">Kuse</div>
+        <div class="nav-links">
+            <a href="#">Product</a>
+            <a href="#">Pricing</a>
+            <a href="#">Company</a>
+            <a href="#" class="btn">Try Now</a>
+        </div>
+    </nav>
+    
+    <section class="hero">
+        <h1>Your AI coworker for docs, sheets, websites & slides</h1>
+        <p>Transform scattered sources, files and ideas to clear insights, ready-to-use deliverables in seconds. You define the goal. Kuse completes the work.</p>
+        
+        <div class="hero-input">
+            <input type="text" placeholder="What do you want to create today?">
+            <button>Generate</button>
+        </div>
+        
+        <div style="display: flex; gap: 24px; color: rgba(255,255,255,0.5);">
+            <span>📄 AI Note</span>
+            <span>📊 AI Spreadsheet</span>
+            <span>🖥️ AI Slides</span>
+            <span>🖼️ AI Image</span>
+        </div>
+    </section>
+    
+    <section class="features">
+        <h2>Based on Your Own Data</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="icon">📁</div>
+                <h3>Massive File Uploads</h3>
+                <p>Bring all your documents, slides, spreadsheets, and images into one place.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">🔗</div>
+                <h3>Smart Integrations</h3>
+                <p>Connect with your favorite tools and databases to stay synced.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">🧠</div>
+                <h3>Intelligent Knowledge Base</h3>
+                <p>Kuse understands your data and turns it into a searchable knowledge base.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">📖</div>
+                <h3>Source Only Mode</h3>
+                <p>Work purely from your own materials when accuracy matters most.</p>
+            </div>
+        </div>
+    </section>
+    
+    <section class="trusted">
+        <h2>Trusted by People from</h2>
+        <div class="trusted-logos">
+            <div class="logo-item">Google</div>
+            <div class="logo-item">Microsoft</div>
+            <div class="logo-item">Apple</div>
+            <div class="logo-item">Meta</div>
+            <div class="logo-item">Amazon</div>
+        </div>
+    </section>
+    
+    <footer>
+        <div class="logo">Kuse</div>
+        <div class="footer-links">
+            <a href="#">About</a>
+            <a href="#">Contact</a>
+            <a href="#">Privacy</a>
+            <a href="#">Terms</a>
+        </div>
+    </footer>
+</body>
+</html>
