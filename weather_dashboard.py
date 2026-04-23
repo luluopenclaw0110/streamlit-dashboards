@@ -272,6 +272,7 @@ def main():
     <div class="hero-section">
         <div class="weather-icon-big">{weather_icon(code)}</div>
         <div class="hero-city">📍 {selected_city}</div>
+        <div style="color:rgba(255,255,255,0.6);font-size:0.9rem;margin-bottom:8px;">{now.strftime("%Y年%m月%d日 %A")}</div>
         <div class="hero-temp">{temp}°</div>
         <div class="hero-desc">{weather_icon(code)} {weather_desc(code)}</div>
         <div class="hero-meta">
