@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-少爺專用 - 專業天氣儀表板 V3 ✨
+少爺專用 - 專業天氣儀表板 V5 Modern Grid ✨
 使用方式: streamlit run weather_dashboard.py
 """
 
@@ -20,59 +20,168 @@ st.set_page_config(
     layout="wide"
 )
 
-# ===== 自訂 CSS：深色金屬質感 V4 =====
+# ===== 自訂 CSS：Modern Grid V5 =====
 st.markdown("""
 <style>
-    /* ── 深色金屬質感字型與背景 ── */
+    /* ── Modern 字型與背景 ── */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
 
     :root {
-        --bg-start: #0a0a12;
+        --bg-start: #0f0f1a;
         --bg-mid:   #1a1a2e;
-        --bg-end:   #0f0f1a;
-        --glass-bg: rgba(30, 30, 50, 0.7);
-        --glass-border: rgba(180, 160, 120, 0.3);
-        --accent: #c9a227;  /* 金屬金色 */
-        --accent2: #8b7355; /* 青銅色 */
-        --text-primary: #e8e8e8;
-        --text-muted: rgba(200, 200, 210, 0.7);
-        --gold-gradient: linear-gradient(135deg, #c9a227, #f4d03f, #c9a227, #b8860b);
-        --silver-gradient: linear-gradient(135deg, #8b8b8b, #c0c0c0, #8b8b8b, #a9a9a9);
+        --bg-end:   #16213e;
+        --glass-bg: rgba(30, 30, 50, 0.75);
+        --glass-border: rgba(255, 255, 255, 0.1);
+        --accent: #38bdf8;  /* 亮藍色 */
+        --accent-warm: #f97316; /* 橙色 */
+        --text-primary: #ffffff;
+        --text-muted: rgba(255,255,255,0.65);
+        --card-gradient: linear-gradient(145deg, rgba(30,30,50,0.9), rgba(15,15,30,0.95));
     }
 
     html, body, .stApp {
-        background: radial-gradient(ellipse at top, var(--bg-mid) 0%, var(--bg-start) 50%, var(--bg-end) 100%) !important;
+        background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-mid) 50%, var(--bg-end) 100%) !important;
         font-family: 'Inter', 'Noto Sans TC', 'PingFang TC', sans-serif !important;
         color: var(--text-primary) !important;
         min-height: 100vh;
     }
 
-    /* ── 金屬質感頂部抬頭 ── */
+    /* ── Modern 頂部 Hero ── */
     .hero-title {
         text-align: center;
-        padding: 1.5rem 0 0.5rem;
+        padding: 1rem 0 0.5rem;
     }
     .hero-title h1 {
-        font-size: 2.6rem;
-        font-weight: 900;
-        background: var(--gold-gradient);
+        font-size: 1.8rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #38bdf8, #7dd3fc);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        text-shadow: 0 0 30px rgba(201, 162, 39, 0.5), 0 0 60px rgba(201, 162, 39, 0.3);
         margin: 0;
-        letter-spacing: 2px;
-        animation: metal-shine 4s ease-in-out infinite;
+        letter-spacing: 1px;
     }
     .hero-title .subtitle {
         color: var(--text-muted);
-        font-size: 0.95rem;
-        margin-top: 8px;
-        letter-spacing: 1px;
+        font-size: 0.85rem;
+        margin-top: 4px;
     }
     
-    @keyframes metal-shine {
-        0%, 100% { filter: brightness(1); }
-        50% { filter: brightness(1.2); }
+    /* ── 資訊卡片網格 (6欄) ── */
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 12px;
+        margin-bottom: 1rem;
+    }
+    @media (max-width: 1200px) {
+        .info-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 768px) {
+        .info-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    
+    /* ── 横向滾動每小時預報 ── */
+    .hourly-scroll {
+        display: flex;
+        gap: 12px;
+        overflow-x: auto;
+        padding: 12px 0;
+        margin-bottom: 1rem;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(56, 189, 248, 0.3) transparent;
+    }
+    .hourly-scroll::-webkit-scrollbar {
+        height: 6px;
+    }
+    .hourly-scroll::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .hourly-scroll::-webkit-scrollbar-thumb {
+        background: rgba(56, 189, 248, 0.3);
+        border-radius: 3px;
+    }
+    .hourly-card {
+        flex: 0 0 auto;
+        min-width: 80px;
+        background: var(--card-gradient);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        padding: 1rem 0.8rem;
+        text-align: center;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        transition: all 0.3s ease;
+    }
+    .hourly-card:hover {
+        border-color: var(--accent);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(56, 189, 248, 0.2);
+    }
+    .hourly-card .hour-time {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        font-weight: 600;
+        margin-bottom: 0.4rem;
+    }
+    .hourly-card .hour-icon {
+        font-size: 1.8rem;
+        margin-bottom: 0.4rem;
+    }
+    .hourly-card .hour-temp {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #fff;
+    }
+    
+    /* ── 每週預報卡片網格 ── */
+    .weekly-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 10px;
+        margin-bottom: 1rem;
+    }
+    @media (max-width: 900px) {
+        .weekly-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    @media (max-width: 600px) {
+        .weekly-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .weekly-card {
+        background: var(--card-gradient);
+        border: 1px solid var(--glass-border);
+        border-radius: 14px;
+        padding: 1rem 0.6rem;
+        text-align: center;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        transition: all 0.3s ease;
+    }
+    .weekly-card:hover {
+        border-color: var(--accent-warm);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(249, 115, 22, 0.15);
+    }
+    .weekly-card .day-name {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.5rem;
+    }
+    .weekly-card .day-icon {
+        font-size: 2rem;
+        margin-bottom: 0.4rem;
+    }
+    .weekly-card .day-temp {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #fff;
+    }
+    .weekly-card .day-rain {
+        font-size: 0.7rem;
+        color: #38bdf8;
+        margin-top: 0.2rem;
     }
 
     /* ── 金屬質感膠囊導航列 (Pill Tabs) ── */
@@ -187,112 +296,134 @@ st.markdown("""
         50% { transform: translateY(-10px); }
     }
 
-    /* ── 天氣預報小卡片 ── */
-    .forecast-row {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 12px;
-        margin-bottom: 1.5rem;
-    }
-    .fc-card {
-        background: linear-gradient(145deg, rgba(30,30,50,0.85), rgba(20,20,35,0.95));
-        border: 1px solid rgba(180, 160, 120, 0.35);
-        border-radius: 16px;
-        padding: 1.2rem 1rem;
+    /* ── Hero 天氣卡片 ── */
+    .weather-hero {
         text-align: center;
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        transition: all 0.3s ease;
-        box-shadow: 0 6px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08);
+        padding: 2rem 1.5rem;
+        background: var(--card-gradient);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+        margin-bottom: 1.5rem;
+        position: relative;
+        overflow: hidden;
     }
-    .fc-card:hover {
-        transform: translateY(-4px) scale(1.02);
-        border-color: rgba(201, 162, 39, 0.5);
-        box-shadow: 0 10px 35px rgba(0,0,0,0.45), 0 0 25px rgba(201, 162, 39, 0.15);
+    .weather-hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--accent), transparent);
     }
-    .fc-card .fc-emoji {
-        font-size: 2.5rem;
-        display: block;
-        margin-bottom: 0.5rem;
-        filter: drop-shadow(0 0 10px rgba(201, 162, 39, 0.3));
+    .weather-hero .big-emoji {
+        font-size: 5rem;
+        line-height: 1;
+        animation: float 3s ease-in-out infinite;
     }
-    .fc-card .fc-day {
-        font-size: 0.8rem;
-        color: var(--text-muted);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-    .fc-card .fc-temp {
-        font-size: 1.3rem;
-        font-weight: 700;
-        background: var(--gold-gradient);
+    .weather-hero .temp-display {
+        font-size: 4.5rem;
+        font-weight: 900;
+        background: linear-gradient(135deg, #38bdf8, #7dd3fc);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        line-height: 1;
         margin: 0.3rem 0;
+        letter-spacing: 2px;
     }
-    .fc-card .fc-rain {
-        font-size: 0.8rem;
-        color: #7dd3fc;
+    .weather-hero .desc-text {
+        font-size: 1.4rem;
+        font-weight: 500;
+        color: rgba(255,255,255,0.9);
     }
-
-    /* ── 數據指標卡 (Info Cards) ── */
-    .info-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 12px;
-        margin-bottom: 1.5rem;
+    .weather-hero .temp-range {
+        font-size: 1rem;
+        color: var(--text-muted);
+        margin-top: 0.4rem;
     }
-    @media (max-width: 900px) {
-        .info-grid { grid-template-columns: repeat(2, 1fr); }
-        .forecast-row { grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    }
-    /* tablet 響應式斷點 */
-    @media (max-width: 768px) {
-        .hero-title h1 { font-size: 1.8rem; }
-        .weather-hero { padding: 1rem; }
-        .weather-hero .big-emoji { font-size: 3rem; }
-        .weather-hero .temp-display { font-size: 2.5rem; }
-        .info-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-    }
-    @media (max-width: 600px) {
-        .info-grid { grid-template-columns: repeat(2, 1fr); }
-        .forecast-row { grid-template-columns: 1fr; gap: 8px; }
-    }
+    
+    /* ── 數據指標卡 (6欄) ── */
     .info-card {
-        background: linear-gradient(145deg, rgba(30,30,50,0.8), rgba(20,20,35,0.9));
-        border: 1px solid rgba(180, 160, 120, 0.3);
-        border-radius: 14px;
-        padding: 1rem;
+        background: var(--card-gradient);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        padding: 1.2rem 0.8rem;
         text-align: center;
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
-        box-shadow: 0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
         transition: all 0.3s ease;
     }
     .info-card:hover {
-        border-color: rgba(201, 162, 39, 0.5);
-        box-shadow: 0 8px 30px rgba(0,0,0,0.4), 0 0 20px rgba(201, 162, 39, 0.15);
+        border-color: var(--accent);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(56, 189, 248, 0.2);
     }
-    .info-card .info-emoji { font-size: 1.8rem; margin-bottom: 0.3rem; }
+    .info-card .info-emoji { font-size: 1.6rem; margin-bottom: 0.3rem; }
     .info-card .info-label {
-        font-size: 0.7rem;
+        font-size: 0.65rem;
         color: var(--text-muted);
         text-transform: uppercase;
-        letter-spacing: 1px;
+        letter-spacing: 0.8px;
         font-weight: 600;
+        margin-bottom: 0.3rem;
     }
     .info-card .info-value {
         font-size: 1.3rem;
-        font-weight: 700;
-        background: var(--gold-gradient);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin: 0.2rem 0;
+        font-weight: 800;
+        color: #fff;
     }
     .info-card .info-sub {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         color: var(--text-muted);
+        margin-top: 0.2rem;
+    }
+    
+    /* ── 響應式斷點 ── */
+    @media (max-width: 768px) {
+        .hero-title h1 { font-size: 1.5rem; }
+        .weather-hero { padding: 1.2rem; }
+        .weather-hero .big-emoji { font-size: 3rem; }
+        .weather-hero .temp-display { font-size: 2.8rem; }
+        .info-grid { grid-template-columns: repeat(3, 1fr) !important; }
+        .weekly-grid { grid-template-columns: repeat(4, 1fr) !important; }
+    }
+    @media (max-width: 480px) {
+        .info-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        .weekly-grid { grid-template-columns: repeat(2, 1fr) !important; }
+    }
+    
+    /* ── 浮動動畫 ── */
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-8px); }
+    }
+    @keyframes float-slow {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-5px); }
+    }
+    
+    /* ── 區塊標題 ── */
+    .section-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: rgba(255,255,255,0.9);
+        margin-bottom: 0.8rem;
+        letter-spacing: 0.5px;
+    }
+    .section-title span {
+        color: var(--accent);
+    }
+    
+    /* ── 側邊欄 Modern 風格 ── */
+    .css-1d391kg {
+        background: rgba(20, 20, 35, 0.95) !important;
+    }
+    .st-emotion-cache-1wbqy4d {
+        background: var(--card-gradient) !important;
     }
 
     /* ── AQI 彩虹進度條 ── */
@@ -759,7 +890,7 @@ def render_aqi_bar(aqi_val, aqi_max=300):
 
 # ===== 主程式 =====
 def main():
-    VERSION = "3.0"
+    VERSION = "5.0"
 
     # ── 初始化 session_state ──
     if 'current_tab' not in st.session_state:
@@ -979,34 +1110,36 @@ def main():
         </div>
         """, unsafe_allow_html=True)
 
-        # ── 三日預報卡片 ──
-        day_labels = ['今天', '明天', '後天']
-        day_icons  = [today_icon, tomorrow_icon, day3_icon]
-        day_descs   = [today_desc, tomorrow_desc, day3_desc]
-        day_maxs    = [today_max, tomorrow_max, day3_max]
-        day_mins    = [today_min, tomorrow_min, day3_min]
-        day_rains   = [today_rain, tomorrow_rain, day3_rain]
+        # ── 每小時橫向滾動預報 ──
+        st.markdown('<p class="section-title">⏰ <span>逐時預報</span></p>', unsafe_allow_html=True)
+        hourly_html = '<div class="hourly-scroll">'
+        current_hour = datetime.now(ZoneInfo('Asia/Taipei')).hour
+        for i in range(24):
+            idx = i
+            if idx >= len(hourly['time']):
+                idx = i % len(hourly['time'])
+            h_time = hourly['time'][idx]
+            h_code = hourly['weather_code'][idx]
+            h_temp = hourly['temperature_2m'][idx]
+            h_icon = get_weather_icon(h_code)
+            hour_label = datetime.fromisoformat(h_time).strftime('%H:00') if isinstance(h_time, str) else h_time.strftime('%H:00')
+            hourly_html += f"""
+            <div class="hourly-card">
+                <div class="hour-time">{hour_label}</div>
+                <div class="hour-icon">{h_icon}</div>
+                <div class="hour-temp">{h_temp:.0f}°</div>
+            </div>"""
+        hourly_html += '</div>'
+        st.markdown(hourly_html, unsafe_allow_html=True)
 
-        fc_html = '<div class="forecast-row">'
-        for i in range(3):
-            if day_maxs[i] is not None:
-                rain_emoji = "☂️" if day_rains[i] and day_rains[i] > 50 else ("🌂" if day_rains[i] else "☀️")
-                fc_html += f"""
-                <div class="fc-card fade-in-delay-{i+1}">
-                    <span class="fc-emoji">{day_icons[i]}</span>
-                    <div class="fc-day">{day_labels[i]}</div>
-                    <div class="fc-temp">{day_mins[i]:.0f}° ~ {day_maxs[i]:.0f}°</div>
-                    <div class="fc-rain">{rain_emoji} {day_rains[i] if day_rains[i] else 0}%</div>
-                </div>"""
-        fc_html += '</div>'
-        st.markdown(fc_html, unsafe_allow_html=True)
-
-        # ── 四宮格資訊卡 ──
+        # ── 六宮格資訊卡 ──
         info_items = [
             ('💧', '濕度', f'{today_humid:.0f}%', '相對濕度'),
             ('🌡️', '體感', f'{today_feels:.0f}°C', today_desc),
-            ('💨', '風速', f'{today_wind:.0f} km/h', get_wind_level(today_wind)),
-            ('☂️', '降雨機率', f'{today_rain}%', '今日降雨'),
+            ('💨', '風速', f'{today_wind:.0f}', get_wind_level(today_wind)),
+            ('☂️', '降雨機率', f'{today_rain}%', '今日'),
+            ('🌅', '紫外線', '中等', 'UV Index'),
+            ('⏱️', '氣壓', '正常', 'hPa'),
         ]
         ig = '<div class="info-grid">'
         for emoji, label, value, sub in info_items:
@@ -1019,6 +1152,30 @@ def main():
             </div>"""
         ig += '</div>'
         st.markdown(ig, unsafe_allow_html=True)
+
+        # ── 每週預報卡片 (7天) ──
+        st.markdown('<p class="section-title">📅 <span>一週天氣</span></p>', unsafe_allow_html=True)
+        weekly_html = '<div class="weekly-grid">'
+        day_names = ['週日', '週一', '週二', '週三', '週四', '週五', '週六']
+        today_weekday = datetime.now(ZoneInfo('Asia/Taipei')).weekday()
+        for i in range(7):
+            if i < len(daily['temperature_2m_max']):
+                w_max = daily['temperature_2m_max'][i]
+                w_min = daily['temperature_2m_min'][i]
+                w_rain = daily['precipitation_probability_max'][i] if i < len(daily['precipitation_probability_max']) else 0
+                w_code = hourly['weather_code'][i*24] if i*24 < len(hourly['weather_code']) else 0
+                w_icon = get_weather_icon(w_code)
+                w_day = day_names[(today_weekday + i) % 7]
+                rain_emoji = "☂️" if w_rain and w_rain > 50 else ("🌂" if w_rain else "☀️")
+                weekly_html += f"""
+                <div class="weekly-card">
+                    <div class="day-name">{w_day}</div>
+                    <div class="day-icon">{w_icon}</div>
+                    <div class="day-temp">{w_min:.0f}° / {w_max:.0f}°</div>
+                    <div class="day-rain">{rain_emoji} {w_rain if w_rain else 0}%</div>
+                </div>"""
+        weekly_html += '</div>'
+        st.markdown(weekly_html, unsafe_allow_html=True)
 
         # ── AQI 彩虹進度條 ──
         if show_aqi and aqi_data:
