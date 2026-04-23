@@ -397,8 +397,8 @@ def main():
     chart_html += '</div>'
     
     # X軸時間標籤
-    chart_html += '<div style="display:flex;justify-content:space-between;padding:8px 10px 0;color:rgba(255,255,255,0.5);font-size:0.75rem;">'
-    for j in range(0, 24, 3):
+    chart_html += '<div style="display:flex;justify-content:space-between;padding:8px 10px 0;color:rgba(255,255,255,0.5);font-size:0.6rem;">'
+    for j in range(0, 24, 1):
         hour_label = (now + timedelta(hours=j)).strftime('%H:%M')
         chart_html += f'<span style="flex:1;text-align:center;">{hour_label}</span>'
     chart_html += '</div>'
