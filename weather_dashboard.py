@@ -20,52 +20,62 @@ st.set_page_config(
     layout="wide"
 )
 
-# ===== 自訂 CSS：Glassmorphism + Pill Tabs + 動畫 =====
+# ===== 自訂 CSS：深色金屬質感 V4 =====
 st.markdown("""
 <style>
-    /* ── 全域字型與背景 ── */
+    /* ── 深色金屬質感字型與背景 ── */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
 
     :root {
-        --bg-start: #0f0c29;
-        --bg-mid:   #302b63;
-        --bg-end:   #24243e;
-        --glass-bg: rgba(255, 255, 255, 0.08);
-        --glass-border: rgba(255, 255, 255, 0.18);
-        --accent: #6C63FF;
-        --text-primary: #ffffff;
-        --text-muted: rgba(255,255,255,0.6);
+        --bg-start: #0a0a12;
+        --bg-mid:   #1a1a2e;
+        --bg-end:   #0f0f1a;
+        --glass-bg: rgba(30, 30, 50, 0.7);
+        --glass-border: rgba(180, 160, 120, 0.3);
+        --accent: #c9a227;  /* 金屬金色 */
+        --accent2: #8b7355; /* 青銅色 */
+        --text-primary: #e8e8e8;
+        --text-muted: rgba(200, 200, 210, 0.7);
+        --gold-gradient: linear-gradient(135deg, #c9a227, #f4d03f, #c9a227, #b8860b);
+        --silver-gradient: linear-gradient(135deg, #8b8b8b, #c0c0c0, #8b8b8b, #a9a9a9);
     }
 
     html, body, .stApp {
-        background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-mid) 50%, var(--bg-end) 100%) !important;
+        background: radial-gradient(ellipse at top, var(--bg-mid) 0%, var(--bg-start) 50%, var(--bg-end) 100%) !important;
         font-family: 'Inter', 'Noto Sans TC', 'PingFang TC', sans-serif !important;
         color: var(--text-primary) !important;
         min-height: 100vh;
     }
 
-    /* ── 頂部抬頭 ── */
+    /* ── 金屬質感頂部抬頭 ── */
     .hero-title {
         text-align: center;
         padding: 1.5rem 0 0.5rem;
     }
     .hero-title h1 {
-        font-size: 2.4rem;
+        font-size: 2.6rem;
         font-weight: 900;
-        background: linear-gradient(135deg, #a78bfa, #38bdf8, #f472b6);
+        background: var(--gold-gradient);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        text-shadow: 0 2px 10px rgba(167, 139, 250, 0.3); /* fallback */
+        text-shadow: 0 0 30px rgba(201, 162, 39, 0.5), 0 0 60px rgba(201, 162, 39, 0.3);
         margin: 0;
-        letter-spacing: -0.5px;
+        letter-spacing: 2px;
+        animation: metal-shine 4s ease-in-out infinite;
     }
     .hero-title .subtitle {
         color: var(--text-muted);
-        font-size: 0.9rem;
-        margin-top: 4px;
+        font-size: 0.95rem;
+        margin-top: 8px;
+        letter-spacing: 1px;
+    }
+    
+    @keyframes metal-shine {
+        0%, 100% { filter: brightness(1); }
+        50% { filter: brightness(1.2); }
     }
 
-    /* ── 膠囊導航列 (Pill Tabs) ── */
+    /* ── 金屬質感膠囊導航列 (Pill Tabs) ── */
     .pill-tabs {
         display: flex;
         justify-content: center;
@@ -73,10 +83,10 @@ st.markdown("""
         margin: 1.2rem 0;
     }
     .pill-tab {
-        padding: 8px 28px;
+        padding: 10px 32px;
         border-radius: 50px;
-        border: 1.5px solid var(--glass-border);
-        background: var(--glass-bg);
+        border: 1px solid rgba(180, 160, 120, 0.4);
+        background: linear-gradient(145deg, rgba(30,30,50,0.9), rgba(20,20,35,0.95));
         color: var(--text-muted);
         font-weight: 600;
         font-size: 0.9rem;
@@ -86,73 +96,89 @@ st.markdown("""
         -webkit-backdrop-filter: blur(12px);
         text-decoration: none;
         user-select: none;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
     }
     .pill-tab:hover {
-        background: rgba(255,255,255,0.15);
-        color: #fff;
+        border-color: rgba(201, 162, 39, 0.6);
+        color: #e8e8e8;
         transform: translateY(-2px);
-        box-shadow: 0 4px 20px rgba(108,99,255,0.3);
+        box-shadow: 0 6px 25px rgba(0,0,0,0.4), 0 0 20px rgba(201, 162, 39, 0.2);
     }
     .pill-tab.active {
-        background: linear-gradient(135deg, #6C63FF, #a78bfa);
+        background: var(--gold-gradient);
         border-color: transparent;
-        color: #fff;
-        box-shadow: 0 4px 24px rgba(108,99,255,0.5);
+        color: #1a1a2e;
+        font-weight: 700;
+        box-shadow: 0 6px 30px rgba(201, 162, 39, 0.5), 0 0 40px rgba(201, 162, 39, 0.3);
         transform: translateY(-2px);
     }
 
-    /* ── Glass Card ── */
+    /* ── 金屬質感卡片 ── */
     .glass-card {
-        background: var(--glass-bg);
-        border: 1px solid var(--glass-border);
-        border-radius: 20px;
+        background: linear-gradient(145deg, rgba(30,30,50,0.8), rgba(20,20,35,0.9));
+        border: 1px solid rgba(180, 160, 120, 0.4);
+        border-radius: 16px;
         padding: 1.5rem;
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .glass-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        transform: translateY(-4px) scale(1.01);
+        border-color: rgba(201, 162, 39, 0.6);
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), 0 0 30px rgba(201, 162, 39, 0.2), inset 0 1px 0 rgba(255,255,255,0.15);
     }
 
-    /* ── 主天氣 Hero 卡片 ── */
+    /* ── 金屬質感主天氣 Hero 卡片 ── */
     .weather-hero {
         text-align: center;
-        padding: 2rem;
-        background: var(--glass-bg);
-        border: 1px solid var(--glass-border);
-        border-radius: 28px;
+        padding: 2.5rem 2rem;
+        background: linear-gradient(145deg, rgba(25,25,45,0.9), rgba(15,15,30,0.95));
+        border: 2px solid transparent;
+        border-radius: 24px;
         backdrop-filter: blur(24px);
         -webkit-backdrop-filter: blur(24px);
-        box-shadow: 0 12px 48px rgba(0,0,0,0.35);
-        margin-bottom: 1.5rem;
+        box-shadow: 0 16px 64px rgba(0,0,0,0.5), 0 0 50px rgba(201, 162, 39, 0.1), inset 0 2px 0 rgba(255,255,255,0.1);
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .weather-hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(201, 162, 39, 0.8), transparent);
     }
     .weather-hero .big-emoji {
-        font-size: 6rem;
+        font-size: 5rem;
         line-height: 1;
-        animation: float 3s ease-in-out infinite;
-        filter: drop-shadow(0 8px 20px rgba(0,0,0,0.3));
+        filter: drop-shadow(0 0 20px rgba(201, 162, 39, 0.4));
     }
     .weather-hero .temp-display {
-        font-size: 4rem;
+        font-size: 5rem;
         font-weight: 900;
-        background: linear-gradient(135deg, #fde68a, #fb923c);
+        background: var(--gold-gradient);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        text-shadow: 0 0 40px rgba(201, 162, 39, 0.6);
         line-height: 1;
         margin: 0.5rem 0;
+        letter-spacing: 4px;
     }
     .weather-hero .desc-text {
-        font-size: 1.4rem;
+        font-size: 1.5rem;
         font-weight: 600;
-        color: rgba(255,255,255,0.85);
+        color: #e8e8e8;
+        letter-spacing: 2px;
     }
     .weather-hero .temp-range {
         font-size: 1.1rem;
         color: var(--text-muted);
-        margin-top: 0.3rem;
+        margin-top: 0.5rem;
     }
 
     /* ── 浮動動畫 ── */
@@ -169,39 +195,44 @@ st.markdown("""
         margin-bottom: 1.5rem;
     }
     .fc-card {
-        background: var(--glass-bg);
-        border: 1px solid var(--glass-border);
-        border-radius: 18px;
+        background: linear-gradient(145deg, rgba(30,30,50,0.85), rgba(20,20,35,0.95));
+        border: 1px solid rgba(180, 160, 120, 0.35);
+        border-radius: 16px;
         padding: 1.2rem 1rem;
         text-align: center;
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
-        transition: transform 0.3s ease;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08);
     }
     .fc-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 28px rgba(0,0,0,0.3);
+        transform: translateY(-4px) scale(1.02);
+        border-color: rgba(201, 162, 39, 0.5);
+        box-shadow: 0 10px 35px rgba(0,0,0,0.45), 0 0 25px rgba(201, 162, 39, 0.15);
     }
     .fc-card .fc-emoji {
-        font-size: 2.8rem;
+        font-size: 2.5rem;
         display: block;
         margin-bottom: 0.5rem;
+        filter: drop-shadow(0 0 10px rgba(201, 162, 39, 0.3));
     }
     .fc-card .fc-day {
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         color: var(--text-muted);
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 1px;
     }
     .fc-card .fc-temp {
         font-size: 1.3rem;
         font-weight: 700;
-        color: #fde68a;
+        background: var(--gold-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
         margin: 0.3rem 0;
     }
     .fc-card .fc-rain {
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         color: #7dd3fc;
     }
 
@@ -229,30 +260,38 @@ st.markdown("""
         .forecast-row { grid-template-columns: 1fr; gap: 8px; }
     }
     .info-card {
-        background: var(--glass-bg);
-        border: 1px solid var(--glass-border);
-        border-radius: 16px;
+        background: linear-gradient(145deg, rgba(30,30,50,0.8), rgba(20,20,35,0.9));
+        border: 1px solid rgba(180, 160, 120, 0.3);
+        border-radius: 14px;
         padding: 1rem;
         text-align: center;
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08);
+        transition: all 0.3s ease;
+    }
+    .info-card:hover {
+        border-color: rgba(201, 162, 39, 0.5);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.4), 0 0 20px rgba(201, 162, 39, 0.15);
     }
     .info-card .info-emoji { font-size: 1.8rem; margin-bottom: 0.3rem; }
     .info-card .info-label {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         color: var(--text-muted);
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 1px;
         font-weight: 600;
     }
     .info-card .info-value {
-        font-size: 1.25rem;
+        font-size: 1.3rem;
         font-weight: 700;
-        color: #fff;
+        background: var(--gold-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
         margin: 0.2rem 0;
     }
     .info-card .info-sub {
-        font-size: 0.78rem;
+        font-size: 0.75rem;
         color: var(--text-muted);
     }
 
