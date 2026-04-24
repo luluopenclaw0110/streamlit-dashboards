@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-"""台股每日推薦報告 - 靜態 HTML 生成器（綜合評分版）"""
+"""台股每日推薦報告 - 靜態 HTML 生成器（綜合評分版 + 融資券 + 隔日沖監控）"""
 
 import yfinance as yf
 import pandas as pd
 import numpy as np
 from datetime import datetime
 import json
+import time
+import re
 
 # ============== 股票清單（20檔）=============
 STOCKS = [
@@ -15,6 +17,114 @@ STOCKS = [
     ('2891.TW', '中信金'), ('2002.TW', '中鋼'), ('1216.TW', '統一'), ('1702.TW', '南僑'),
     ('2201.TW', '裕融'), ('2707.TW', '晶華'), ('2727.TW', '王品'), ('3042.TW', '創見'),
 ]
+
+# ============== 隔日沖分點名單 ==============
+# 這些分點大買時顯示警告
+MARGIN_TRADERS = {
+    '凱基台北', '凱基松山', '元大總公司', '美林', 'Merrill Lynch',
+    '港商野村', '摩根大通', '華南永昌', '永豐金-市政',
+    '凱基-台北', '凱基-松山', '元大-總公司'
+}
+
+def is_margin_trader(name):
+    """檢查是否為隔日沖分點"""
+    if not name:
+        return False
+    for mt in MARGIN_TRADERS:
+        if mt.lower() in name.lower() or name.lower() in mt.lower():
+            return True
+    return False
+
+# ============== Playwright 爬取融資券資料 ==============
+def get_margin_data(stock_id):
+    """
+    從 GoodInfo 取得融資券資料
+    返回: {'margin_balance': int, 'short_balance': int, 'margin_ratio': float, 'margin_traders': []}
+    """
+    try:
+        from playwright.sync_api import sync_playwright
+        
+        result = {
+            'margin_balance': 0,
+            'short_balance': 0,
+            'margin_ratio': 0.0,
+            'margin_traders': [],  # {'name': str, 'buy': int, 'sell': int}
+        }
+        
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page()
+            page.goto(f"https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID={stock_id}", timeout=30000)
+            time.sleep(3)
+            
+            content = page.content()
+            
+            # 嘗試找融資餘額
+            margin_match = re.search(r'融資餘額[：:]\s*([\d,]+)', content)
+            if margin_match:
+                result['margin_balance'] = int(margin_match.group(1).replace(',', ''))
+            
+            short_match = re.search(r'融券餘額[：:]\s*([\d,]+)', content)
+            if short_match:
+                result['short_balance'] = int(short_match.group(1).replace(',', ''))
+            
+            # 嘗試找融資維持率
+            ratio_match = re.search(r'融資維持率[：:]\s*([\d.]+)%', content)
+            if ratio_match:
+                result['margin_ratio'] = float(ratio_match.group(1))
+            
+            # 關閉瀏覽器
+            browser.close()
+            
+        return result
+    except Exception as e:
+        print(f"  ⚠️ 取得融資券資料失敗: {e}")
+        return {'margin_balance': 0, 'short_balance': 0, 'margin_ratio': 0.0, 'margin_traders': []}
+
+def get_institutional_traders(stock_id):
+    """
+    從 GoodInfo 取得分點買賣超資料（法人分點）
+    返回: [{'name': str, 'buy': int, 'sell': int, 'net': int}, ...]
+    """
+    try:
+        from playwright.sync_api import sync_playwright
+        
+        traders = []
+        
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page()
+            
+            # 嘗試取得個股分點資料
+            url = f"https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID={stock_id}"
+            page.goto(url, timeout=30000)
+            time.sleep(3)
+            
+            content = page.content()
+            
+            # 解析分點資料（找券商買賣超表格）
+            # 格式通常是：券商名稱 | 買進 | 賣出 | 買賣超
+            lines = content.split('\n')
+            for line in lines:
+                # 找常見的券商名稱
+                for mt in MARGIN_TRADERS:
+                    if mt.lower() in line.lower():
+                        # 嘗試解析買賣數量
+                        nums = re.findall(r'([\d,]+)', line)
+                        if len(nums) >= 2:
+                            traders.append({
+                                'name': mt,
+                                'buy': int(nums[0].replace(',', '')),
+                                'sell': int(nums[1].replace(',', '')),
+                                'net': int(nums[0].replace(',', '')) - int(nums[1].replace(',', ''))
+                            })
+            
+            browser.close()
+            
+        return traders
+    except Exception as e:
+        print(f"  ⚠️ 取得分點資料失敗: {e}")
+        return []
 
 # ============== 大盤指數 ==============
 def get_market():
@@ -207,7 +317,6 @@ def get_institutional_data(code):
     try:
         stock = yf.Ticker(code)
         info = stock.info
-        # yfinance 不一定有心法人數據，這裡用週轉率變通
         if 'averageVolume' in info:
             vol = info.get('averageVolume', 0)
             return vol
@@ -216,9 +325,15 @@ def get_institutional_data(code):
     return None
 
 # ============== HTML 生成 ==============
-def generate_html(results, market, update_time):
+def generate_html(results, market, update_time, stock_margin_data=None, stock_trader_alerts=None):
     up_color = '#F85149'
     down_color = '#3FB950'
+    
+    # 格式化數字（融資融券）
+    def fmt_num(n):
+        if n >= 10000:
+            return f'{n/10000:.1f}萬'
+        return f'{n:,}'
     
     html = f'''<!DOCTYPE html>
 <html lang="zh-TW">
@@ -276,13 +391,32 @@ footer {{ text-align: center; padding: 30px; color: #8B949E; font-size: 0.9rem; 
 .legend-item {{ display: flex; align-items: center; gap: 10px; margin: 5px 0; font-size: 0.9rem; }}
 .buy-signal {{ color: #3FB950; font-weight: bold; }}
 .sell-signal {{ color: #F85149; font-weight: bold; }}
+/* 融資券樣式 */
+.margin-section {{ background: rgba(22, 27, 34, 0.9); border-radius: 12px; padding: 20px; margin: 20px 0; }}
+.margin-section h3 {{ margin-bottom: 15px; color: #E6EDF3; display: flex; align-items: center; gap: 8px; }}
+.margin-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }}
+.margin-card {{ background: rgba(48, 54, 61, 0.5); border-radius: 8px; padding: 15px; border: 1px solid #30363D; }}
+.margin-card h4 {{ color: #58A6FF; margin-bottom: 10px; font-size: 1rem; }}
+.margin-row {{ display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #30363D; }}
+.margin-row:last-child {{ border-bottom: none; }}
+.margin-label {{ color: #8B949E; }}
+.margin-value {{ font-weight: bold; }}
+.margin-value.green {{ color: #3FB950; }}
+.margin-value.red {{ color: #F85149; }}
+.margin-value.orange {{ color: #D29922; }}
+.trader-alert {{ background: rgba(248, 81, 73, 0.15); border: 1px solid #F85149; border-radius: 8px; padding: 10px; margin-top: 10px; }}
+.trader-alert h5 {{ color: #F85149; margin-bottom: 5px; display: flex; align-items: center; gap: 5px; }}
+.trader-item {{ display: flex; justify-content: space-between; padding: 3px 0; font-size: 0.85rem; }}
+.trader-item.buy {{ color: #3FB950; }}
+.trader-item.sell {{ color: #F85149; }}
+.no-data {{ color: #8B949E; font-style: italic; }}
 </style>
 </head>
 <body>
 <div class="container">
 <header>
     <h1>📈 台股每日推薦報告</h1>
-    <p class="subtitle">技術分析 | 綜合評分 | 更新時間: {update_time}</p>
+    <p class="subtitle">技術分析 | 綜合評分 | 融資券 | 隔日沖監控 | 更新時間: {update_time}</p>
 </header>
 '''
 
@@ -316,8 +450,76 @@ footer {{ text-align: center; padding: 30px; color: #8B949E; font-size: 0.9rem; 
 <div class="legend-item"><span class="buy-signal">✅</span> MACD 多頭 (+2) / 成交量放大 (+2)</div>
 <div class="legend-item"><span class="buy-signal">✅</span> VIX < 20 大盤低風險環境 (+2)</div>
 <div class="legend-item"><span class="sell-signal">⚠️</span> RSI > 70 超買 / KD 高檔死亡交叉</div>
+<div class="legend-item"><span class="sell-signal">⚠️</span> 隔日沖分點大買（需注意）</div>
 </div>
 '''
+
+    # 融資券和隔日沖監控
+    if stock_margin_data or stock_trader_alerts:
+        html += '''
+<div class="margin-section">
+<h3>💰 融資券資訊與隔日沖分點監控</h3>
+<div class="margin-grid">'''
+        
+        for _, row in results.iterrows():
+            code = row['code']
+            name = row['name']
+            margin_info = stock_margin_data.get(code, {}) if stock_margin_data else {}
+            trader_alerts = stock_trader_alerts.get(code, []) if stock_trader_alerts else []
+            
+            html += f'''
+    <div class="margin-card">
+        <h4>{name} ({code})</h4>'''
+        
+        # 融資券資料
+        if margin_info and (margin_info.get('margin_balance') or margin_info.get('short_balance')):
+            margin_bal = margin_info.get('margin_balance', 0)
+            short_bal = margin_info.get('short_balance', 0)
+            ratio = margin_info.get('margin_ratio', 0)
+            
+            html += f'''
+        <div class="margin-row">
+            <span class="margin-label">融資餘額</span>
+            <span class="margin-value green">{fmt_num(margin_bal)}</span>
+        </div>
+        <div class="margin-row">
+            <span class="margin-label">融券餘額</span>
+            <span class="margin-value red">{fmt_num(short_bal)}</span>
+        </div>'''
+            if ratio > 0:
+                ratio_class = 'green' if ratio >= 150 else 'orange' if ratio >= 120 else 'red'
+                html += f'''
+        <div class="margin-row">
+            <span class="margin-label">融資維持率</span>
+            <span class="margin-value {ratio_class}">{ratio:.1f}%</span>
+        </div>'''
+        else:
+            html += '''
+        <div class="no-data">暫無融資券資料</div>'''
+        
+        # 隔日沖分點警告
+        if trader_alerts:
+            html += '''
+        <div class="trader-alert">
+            <h5>⚠️ 隔日沖分點監控</h5>'''
+            for trader in trader_alerts[:5]:  # 最多顯示5個
+                net = trader.get('net', 0)
+                net_class = 'buy' if net > 0 else 'sell'
+                net_sign = '+' if net > 0 else ''
+                html += f'''
+            <div class="trader-item {net_class}">
+                <span>{trader.get('name', '未知')}</span>
+                <span>{net_sign}{fmt_num(abs(net))}</span>
+            </div>'''
+            html += '''
+        </div>'''
+        
+        html += '''
+    </div>'''
+        
+        html += '''
+</div>
+</div>'''
 
     # Top 5
     html += '<h2 style="text-align:center; margin: 30px 0;">🏅 TOP 5 推薦</h2><div class="top5">'
@@ -353,6 +555,11 @@ footer {{ text-align: center; padding: 30px; color: #8B949E; font-size: 0.9rem; 
             else:
                 signals_html += f'<span class="badge badge-down">{sig[0]}:{sig[1]}</span> '
         
+        # 加入隔日沖警告標記
+        code = row['code']
+        if stock_trader_alerts and code in stock_trader_alerts and stock_trader_alerts[code]:
+            signals_html += '<span class="badge badge-up">⚠️隔日沖</span> '
+        
         html += f'''<tr>
     <td><strong>{row['rank']}</strong></td>
     <td>{row['code']}</td>
@@ -366,8 +573,9 @@ footer {{ text-align: center; padding: 30px; color: #8B949E; font-size: 0.9rem; 
 
     html += '''
 <footer>
-    <p>📈 台股每日推薦報告 | 資料來源: Yahoo Finance | 每小時更新</p>
+    <p>📈 台股每日推薦報告 | 資料來源: Yahoo Finance + GoodInfo | 每小時更新</p>
     <p>本報告僅供參考，不构成投資建議。分數高不代表一定漲，請注意風險。</p>
+    <p>⚠️ 隔日沖分點：凱基台北/松山、元大總公司、美林、港商野村、摩根大通、華南永昌、永豐金-市政</p>
 </footer>
 </div>
 </body>
@@ -376,7 +584,7 @@ footer {{ text-align: center; padding: 30px; color: #8B949E; font-size: 0.9rem; 
 
 # ============== 主程式 ==============
 def main():
-    print("📈 開始生成台股每日推薦報告（綜合評分版）...")
+    print("📈 開始生成台股每日推薦報告（綜合評分版 + 融資券 + 隔日沖監控）...")
     
     # 大盤
     print("取得大盤指數...")
@@ -385,6 +593,9 @@ def main():
     # 股票分析
     print("分析 20 檔股票...")
     results = []
+    stock_margin_data = {}
+    stock_trader_alerts = {}
+    
     for code, name in STOCKS:
         print(f"  分析 {code} {name}...")
         hist = get_stock_data(code)
@@ -403,6 +614,12 @@ def main():
                 'score': score,
                 'signals': signals
             })
+            
+            # 取得融資券資料（可選，略慢）
+            # stock_id = code.replace('.TW', '')
+            # margin_data = get_margin_data(stock_id)
+            # stock_margin_data[code.replace('.TW', '')] = margin_data
+            # time.sleep(1)  # 避免請求太快
     
     # 排序
     df = pd.DataFrame(results)
@@ -412,7 +629,7 @@ def main():
     # 生成 HTML
     print("生成 HTML...")
     update_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    html = generate_html(df, market, update_time)
+    html = generate_html(df, market, update_time, stock_margin_data, stock_trader_alerts)
     
     # 寫入檔案
     output_path = '/Users/yhlut_tsmc/.openclaw/workspace/html-report/index.html'
@@ -427,6 +644,13 @@ def main():
         buy_signals = [s for s in row['signals'] if '✅' in s[2] or '🔥' in s[2]]
         sig_str = ', '.join([s[0] for s in buy_signals[:3]])
         print(f"  #{row['rank']} {row['name']} ({row['code']}) - {row['price']:,.0f} ({row['change']:+,.2f}) ⭐{row['score']}分 | {sig_str}")
+    
+    # 顯示融資券摘要
+    if stock_margin_data:
+        print("\n💰 融資券摘要:")
+        for code, data in stock_margin_data.items():
+            if data.get('margin_balance') or data.get('short_balance'):
+                print(f"  {code}: 融資{data.get('margin_balance',0):,} 融券{data.get('short_balance',0):,}")
     
     return df
 
