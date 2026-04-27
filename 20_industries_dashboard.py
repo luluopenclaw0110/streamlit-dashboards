@@ -220,6 +220,66 @@ stocks_data = [
         "rating": "🟡觀望",
         "suggestion": "造紙景氣溫和，ESG加分需時間驗證，等待需求回溫"
     },
+    {
+        "代碼": "3054", "名稱": "安國", "產業": "IC設計/安全監控",
+        "industry_analysis": "IC設計/安全監控，AI監控需求成長，安全監控晶片出貨放量",
+        "news": "AI監控需求成長、安全監控晶片需求增溫",
+        "legal_person": "三大法人買超",
+        "risks": "PE偏高、營收集中度高",
+        "strengths": "營收成長強勁+38%、AI監控題材加持",
+        "rating": "🔵成長潛力",
+        "suggestion": "營收成長強勁，AI監控需求帶動，逢低佈局"
+    },
+    {
+        "代碼": "2495", "名稱": "普安", "產業": "存儲系統/伺服器",
+        "industry_analysis": "存儲系統/伺服器，企業存儲需求持平，資料中心建設溫和",
+        "news": "伺服器需求持平、資料中心建設溫和",
+        "legal_person": "法人中性",
+        "risks": "營收微幅下滑-0.4%、需求成長有限",
+        "strengths": "PE適中36倍、存儲系統技術穩定",
+        "rating": "🟡觀望",
+        "suggestion": "營收持平，PE合理，區間操作為主"
+    },
+    {
+        "代碼": "2408", "名稱": "南亞科", "產業": "DRAM記憶體",
+        "industry_analysis": "DRAM記憶體，記憶體景氣回升，報價反彈中",
+        "news": "記憶體景氣回升、DRAM報價反彈",
+        "legal_person": "三大法人買超",
+        "risks": "PE極高107倍、景氣循環波動大",
+        "strengths": "DRAM報價反彈、記憶體需求回升",
+        "rating": "🔴風險",
+        "suggestion": "PE極高，記憶體景氣回升但風險大，謹慎操作"
+    },
+    {
+        "代碼": "2344", "名稱": "華邦電", "產業": "Flash/DRAM記憶體",
+        "industry_analysis": "Flash/DRAM記憶體，AI需求帶動，記憶體報價反彈",
+        "news": "AI需求帶動Flash/DRAM、記憶體景氣回升",
+        "legal_person": "三大法人買超",
+        "risks": "PE極高106倍、營收基期低",
+        "strengths": "營收大幅成長+42%、AI記憶體需求旺",
+        "rating": "🔴風險",
+        "suggestion": "營收成長驚人但PE極高，高風險注意"
+    },
+    {
+        "代碼": "8299", "名稱": "群聯", "產業": "NAND Flash控制晶片",
+        "industry_analysis": "NAND Flash控制晶片，AI應用帶動NAND需求，控制晶片出貨旺",
+        "news": "AI應用帶動NAND需求、群聯控制晶片出貨放量",
+        "legal_person": "三大法人買超",
+        "risks": "PE偏高46倍、NAND價格波動",
+        "strengths": "營收成長+81%驚人、NAND控制晶片領導、AI應用受惠",
+        "rating": "🔵成長潛力",
+        "suggestion": "成長型標的，AI應用帶動NAND需求，適合成長型投資"
+    },
+    {
+        "代碼": "3532", "名稱": "台勝科", "產業": "矽晶圓/半導體",
+        "industry_analysis": "矽晶圓/半導體，半導體景氣回溫，矽晶圓需求緩步復甦",
+        "news": "半導體景氣回溫、矽晶圓需求復甦",
+        "legal_person": "法人中性",
+        "risks": "PE極高114倍、景氣復甦緩慢",
+        "strengths": "產業復產業復甦中、矽晶圓供需改善",
+        "rating": "🔴風險",
+        "suggestion": "PE極高，半導體復甦需時間，高風險留意"
+    },
 ]
 
 # 自訂 CSS - 深色金屬風格
