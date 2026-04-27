@@ -529,30 +529,46 @@ for idx, stock in enumerate(filtered_stocks):
 st.markdown("## 📊 投資建議總結")
 
 # 分類顯示
-col1, col2, col3, col4 = st.columns(4)
+col1, col2, col3, col4, col5 = st.columns(5)
 
 with col1:
-    st.markdown("### 🟢 建議持有 (6檔)")
+    st.markdown("### 🟢 建議持有")
+    count_green = sum(1 for s in stocks_data if "🟢" in s["rating"])
+    st.markdown(f"**({count_green}檔)**")
     for s in stocks_data:
         if "🟢" in s["rating"]:
             st.write(f"- **{s['代碼']} {s['名稱']}**")
 
 with col2:
-    st.markdown("### 🔵 成長潛力 (5檔)")
+    st.markdown("### 🔵 成長潛力")
+    count_blue = sum(1 for s in stocks_data if "🔵" in s["rating"])
+    st.markdown(f"**({count_blue}檔)**")
     for s in stocks_data:
         if "🔵" in s["rating"]:
             st.write(f"- **{s['代碼']} {s['名稱']}**")
 
 with col3:
-    st.markdown("### 🟡 觀望 (8檔)")
+    st.markdown("### 🟡 觀望")
+    count_yellow = sum(1 for s in stocks_data if "🟡" in s["rating"])
+    st.markdown(f"**({count_yellow}檔)**")
     for s in stocks_data:
         if "🟡" in s["rating"]:
             st.write(f"- **{s['代碼']} {s['名稱']}**")
 
 with col4:
-    st.markdown("### 🟠 留意 (1檔)")
+    st.markdown("### 🟠 留意")
+    count_orange = sum(1 for s in stocks_data if "🟠" in s["rating"])
+    st.markdown(f"**({count_orange}檔)**")
     for s in stocks_data:
         if "🟠" in s["rating"]:
+            st.write(f"- **{s['代碼']} {s['名稱']}**")
+
+with col5:
+    st.markdown("### 🔴 風險")
+    count_red = sum(1 for s in stocks_data if "🔴" in s["rating"])
+    st.markdown(f"**({count_red}檔)**")
+    for s in stocks_data:
+        if "🔴" in s["rating"]:
             st.write(f"- **{s['代碼']} {s['名稱']}**")
 
 # 頁腳
