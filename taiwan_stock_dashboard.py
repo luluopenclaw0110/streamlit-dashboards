@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""台股投資策略分析行情儀錶板 - 每天推薦 20 檔分數最高的個股"""
+"""台股投資策略分析行情儀錶板 - 26檔精選個股"""
 
 import streamlit as st
 import yfinance as yf
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
-import requests
+import json
 
 # ============== 設定 ==============
 COLORS = {
@@ -20,6 +20,12 @@ COLORS = {
     'text': '#E6EDF3',
     'text_secondary': '#8B949E',
     'border': '#30363D',
+    # 評等顏色
+    'rating_hold': '#3FB950',       # 🟢 建議持有
+    'rating_growth': '#58A6FF',     # 🔵 成長潛力
+    'rating_watch': '#D29922',       # 🟡 觀望
+    'rating_caution': '#F0883E',     # 🟠 留意
+    'rating_risk': '#F85149',        # 🔴 風險
 }
 
 st.set_page_config(
@@ -47,14 +53,38 @@ if 'selected_stock' not in st.session_state:
 if 'period' not in st.session_state:
     st.session_state.period = '1mo'
 
-# ============== 股票清單（20檔）=============
+# ============== 26檔股票清單 ==============
 STOCKS = [
-    ('2330.TW', '台積電'), ('2317.TW', '鴻海'), ('2313.TW', '華通'), ('2887.TW', '台新金'),
-    ('2454.TW', '聯發科'), ('2303.TW', '聯電'), ('2377.TW', '聯米'), ('2451.TW', '研華'),
-    ('2474.TW', '世紀'), ('2603.TW', '長榮'), ('2881.TW', '元大金'), ('2882.TW', '國泰金'),
-    ('2891.TW', '中信金'), ('2002.TW', '中鋼'), ('1216.TW', '統一'), ('1702.TW', '南僑'),
-    ('2201.TW', '裕融'), ('2707.TW', '晶華'), ('2727.TW', '王品'), ('3042.TW', '創見'),
+    ('2330.TW', '台積電'), ('2317.TW', '鴻海'), ('2313.TW', '華通'), ('3008.TW', '大立光'),
+    ('9921.TW', '巨大'), ('2886.TW', '兆豐金'), ('1216.TW', '統一'), ('2207.TW', '和泰車'),
+    ('2618.TW', '長榮航'), ('2412.TW', '中華電'), ('2002.TW', '中鋼'), ('1102.TW', '亞泥'),
+    ('1301.TW', '台塑'), ('1476.TW', '儒鴻'), ('4743.TW', '合一'), ('2347.TW', '智邦'),
+    ('5880.TW', '街口'), ('2734.TW', '晶華'), ('1229.TW', '聯華'), ('1909.TW', '永豐餘'),
+    ('3054.TW', '安國'), ('2495.TW', '普安'), ('2408.TW', '南亞科'), ('2344.TW', '華邦電'),
+    ('8299.TW', '群聯'), ('3532.TW', '台勝科'),
 ]
+
+# ============== 載入分析評等 ==============
+def load_ratings():
+    """載入分析評等結果"""
+    try:
+        with open('/tmp/subagent-results/stock-analyst-26-v4.json', 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        ratings = {}
+        for stock in data.get('stocks', []):
+            code = stock['code']
+            ratings[code] = {
+                'rating': stock.get('rating', ''),
+                'rating_color': stock.get('rating_color', '#8B949E'),
+                'suggestion': stock.get('suggestion', ''),
+                'strengths': stock.get('strengths', ''),
+                'risks': stock.get('risks', ''),
+            }
+        return ratings
+    except Exception as e:
+        return {}
+
+RATINGS = load_ratings()
 
 # ============== 大盤指數 ==============
 @st.cache_data(ttl=300)
@@ -213,8 +243,26 @@ def get_stock_news(code):
         pass
     return []
 
+def get_rating_display(code):
+    """取得評等顯示資訊"""
+    code_num = code.replace('.TW', '')
+    if code_num in RATINGS:
+        return RATINGS[code_num]
+    return {'rating': '無評等', 'rating_color': '#8B949E', 'suggestion': '', 'strengths': '', 'risks': ''}
+
 def show_stock_detail(code, name):
     st.markdown(f"## 📊 {name} ({code}) 詳細分析")
+    
+    rating_info = get_rating_display(code)
+    
+    # 顯示評等
+    if rating_info['rating'] and rating_info['rating'] != '無評等':
+        st.markdown(f"""
+        <div style="background: {COLORS['card']}; border: 2px solid {rating_info['rating_color']}; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+            <h3 style="color: {rating_info['rating_color']}; margin: 0;">{rating_info['rating']}</h3>
+            <p style="color: {COLORS['text']}; margin: 0.5rem 0 0;">{rating_info['suggestion']}</p>
+        </div>
+        """, unsafe_allow_html=True)
     
     hist = get_stock_data(code, '3mo')
     if hist is None or hist.empty:
@@ -250,6 +298,14 @@ def show_stock_detail(code, name):
     macd, histogram = calc_macd(close)
     st.markdown(f"**MACD:** {macd:.2f} (柱狀: {histogram:+.2f})" if macd else "**MACD:** 無資料")
     
+    # 基本面資訊
+    if rating_info['strengths']:
+        st.markdown("### 💪 優勢")
+        st.markdown(rating_info['strengths'])
+    if rating_info['risks']:
+        st.markdown("### ⚠️ 風險")
+        st.markdown(rating_info['risks'])
+    
     st.markdown("### 價格與技術指標")
     chart_data = pd.DataFrame({
         'Close': close,
@@ -268,7 +324,7 @@ def show_stock_detail(code, name):
 
 # ============== 主程式 ==============
 st.markdown("# 📈 台股投資策略分析行情儀錶板")
-st.markdown("### 台股投資策略 | 技術分析 | 每日推薦")
+st.markdown("### 台股投資策略 | 技術分析 | 26檔精選")
 st.markdown(f"**更新時間：** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
 st.markdown("## 📊 大盤概況")
@@ -291,8 +347,8 @@ else:
 tab1, tab2 = st.tabs(["📈 推薦選股", "📊 個股查詢"])
 
 with tab1:
-    st.markdown("## 🏆 每日推薦 TOP 20")
-    st.markdown("基於 MA5、RSI、KD、MACD、成交量綜合評分")
+    st.markdown("## 🏆 26檔精選個股")
+    st.markdown("基於 MA5、RSI、KD、MACD、成交量綜合評分 + 分析師評等")
     
     col_update, col_period = st.columns([1, 3])
     with col_update:
@@ -310,6 +366,8 @@ with tab1:
         progress_bar.progress((i + 1) / len(STOCKS))
         
         hist = get_stock_data(code)
+        rating_info = get_rating_display(code)
+        
         if hist is not None and not hist.empty:
             score, details = calc_score_enhanced(hist)
             price = hist['Close'].iloc[-1]
@@ -323,12 +381,15 @@ with tab1:
                 '漲跌': round(change, 2),
                 '漲跌%': round(change_pct, 2),
                 '總分': score,
+                '評等': rating_info['rating'],
+                '評等顏色': rating_info['rating_color'],
                 'MA5': details.get('MA5', '-'),
                 'MA20': details.get('MA20', '-'),
                 'RSI': details.get('RSI', '-'),
                 'KD': details.get('KD', '-'),
                 'MACD': details.get('MACD', '-'),
                 'Volume': details.get('Volume', '-'),
+                '建議': rating_info['suggestion'],
             })
     
     status_text.text("分析完成！")
@@ -339,14 +400,31 @@ with tab1:
         df = df.sort_values('總分', ascending=False).reset_index(drop=True)
         df['排名'] = range(1, len(df) + 1)
         
-        st.markdown("### 🏅 TOP 5 推薦")
+        # 評等分類顯示
+        st.markdown("### 🎯 評等一覽")
+        rating_cols = st.columns(5)
+        rating_labels = ['🟢建議持有', '🔵成長潛力', '🟡觀望', '🟠留意', '🔴風險']
+        rating_colors_list = ['#3FB950', '#58A6FF', '#D29922', '#F0883E', '#F85149']
+        rating_keys = ['🟢', '🔵', '🟡', '🟠', '🔴']
+        
+        for r_idx, (label, color) in enumerate(zip(rating_labels, rating_colors_list)):
+            rating_stocks = df[df['評等'].str.contains(rating_keys[r_idx], na=False)]
+            if not rating_stocks.empty:
+                with rating_cols[r_idx]:
+                    st.markdown(f"**{label}** ({len(rating_stocks)}檔)")
+                    for _, row in rating_stocks.iterrows():
+                        st.markdown(f"- {row['名稱']} ({row['代碼']})")
+        
+        st.markdown("### 🏅 TOP 5 技術面推薦")
         cols = st.columns(5)
         for idx, row in df.head(5).iterrows():
             with cols[idx]:
                 color = COLORS['up'] if row['漲跌'] > 0 else COLORS['down']
+                rating_color = row['評等顏色'] if row['評等顏色'] else COLORS['text_secondary']
                 st.markdown(f"""
                 <div style="background: {COLORS['card']}; border: 1px solid {COLORS['border']}; border-radius: 8px; padding: 1rem; text-align: center;">
                     <h4 style="color: {COLORS['text']}; margin: 0;">{row['名稱']}</h4>
+                    <p style="color: {rating_color}; font-size: 0.9rem; margin: 0.2rem 0;">{row['評等']}</p>
                     <p style="color: {color}; font-size: 1.5rem; margin: 0.5rem 0;">{row['現價']}</p>
                     <p style="color: {color}; margin: 0;">{row['漲跌']:+g} ({row['漲跌%']:+.1f}%)</p>
                     <p style="color: {COLORS['text_secondary']}; margin: 0.5rem 0 0;">{row['代碼']}</p>
@@ -355,15 +433,22 @@ with tab1:
                 """, unsafe_allow_html=True)
         
         st.markdown("### 📋 完整排名")
-        display_cols = ['排名', '代碼', '名稱', '現價', '漲跌', '漲跌%', '總分', 'MA5', 'RSI']
+        display_cols = ['排名', '代碼', '名稱', '現價', '漲跌', '漲跌%', '總分', '評等', 'MA5', 'RSI']
         df_display = df[display_cols].copy()
+        
+        # 格式化評等顯示
+        def style_rating(row):
+            return ['background-color: {}'.format(row['評等顏色'] if row['評等顏色'] else '#8B949E')] * len(row)
+        
         st.dataframe(df_display, use_container_width=True)
         
         st.markdown("### 📊 技術面詳細分析")
         for idx, row in df.iterrows():
-            with st.expander(f"#{row['排名']} {row['名稱']} ({row['代碼']}) - 總分: {row['總分']}"):
+            rating_info_html = f"<span style='color: {row['評等顏色'] if row['評等顏色'] else '#8B949E'};'>{row['評等']}</span>" if row['評等'] else ""
+            with st.expander(f"#{row['排名']} {row['名稱']} ({row['代碼']}) - 總分: {row['總分']} {rating_info_html}"):
                 col1, col2 = st.columns(2)
                 with col1:
+                    st.markdown(f"**評等:** {row['評等']}")
                     st.markdown(f"**MA5:** {row['MA5']}")
                     st.markdown(f"**MA20:** {row['MA20']}")
                     st.markdown(f"**RSI:** {row['RSI']}")
@@ -371,6 +456,10 @@ with tab1:
                     st.markdown(f"**KD:** {row['KD']}")
                     st.markdown(f"**MACD:** {row['MACD']}")
                     st.markdown(f"**成交量:** {row['Volume']}")
+                
+                if row['建議']:
+                    st.markdown("---")
+                    st.markdown(f"**分析師建議:** {row['建議']}")
     else:
         st.error("無法取得股票資料，請稍後再試")
 
@@ -382,7 +471,7 @@ with tab2:
     name = selected.split(" - ")[1]
     
     if st.button("查詢", type="primary"):
-        show_stock_detail(code + ".TW", name)
+        show_stock_detail(code, name)
 
 st.markdown("---")
 st.markdown("📈 台股投資策略分析行情儀錶板 | 資料來源: Yahoo Finance | 每小時更新")
