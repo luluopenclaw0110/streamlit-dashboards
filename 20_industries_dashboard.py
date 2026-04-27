@@ -409,11 +409,11 @@ with st.sidebar:
     st.header("🎛️ 篩選功能")
     
     # 評等篩選
-    rating_options = ["🟢建議持有", "🔵成長潛力", "🟡觀望", "🟠留意"]
+    rating_options = ["🟢建議持有", "🔵成長潛力", "🟡觀望", "🟠留意", "🔴風險"]
     rating_filter = st.multiselect(
         "評等篩選",
         rating_options,
-        default=rating_options
+        default=rating_options  # 預設全選，包含風險股票
     )
     
     # 產業篩選
@@ -442,6 +442,7 @@ with st.sidebar:
     st.write("🔵 [成長潛力](#成長潛力) (5檔)")
     st.write("🟡 [觀望](#觀望) (8檔)")
     st.write("🟠 [留意](#留意) (1檔)")
+    st.write("🔴 [風險](#風險) (3檔)")
 
 # 篩選數據
 filtered_stocks = [s for s in stocks_data if s["rating"] in rating_filter and s["產業"] in industry_filter]
