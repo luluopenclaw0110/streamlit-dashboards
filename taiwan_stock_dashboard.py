@@ -79,6 +79,8 @@ def load_ratings():
                 'suggestion': stock.get('suggestion', ''),
                 'strengths': stock.get('strengths', ''),
                 'risks': stock.get('risks', ''),
+                'analysis': stock.get('analysis', ''),
+                'news': stock.get('news', ''),
             }
         return ratings
     except Exception as e:
@@ -248,25 +250,75 @@ def get_rating_display(code):
     code_num = code.replace('.TW', '')
     if code_num in RATINGS:
         return RATINGS[code_num]
-    return {'rating': '無評等', 'rating_color': '#8B949E', 'suggestion': '', 'strengths': '', 'risks': ''}
+    return {'rating': '無評等', 'rating_color': '#8B949E', 'suggestion': '', 'strengths': '', 'risks': '', 'analysis': '', 'news': ''}
 
 def show_stock_detail(code, name):
-    st.markdown(f"## 📊 {name} ({code}) 詳細分析")
+    st.markdown(f"## 📊 {name} ({code}) 持股分析深度報告")
     
     rating_info = get_rating_display(code)
     
-    # 顯示評等
+    # 評等卡片
     if rating_info['rating'] and rating_info['rating'] != '無評等':
         st.markdown(f"""
         <div style="background: {COLORS['card']}; border: 2px solid {rating_info['rating_color']}; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
             <h3 style="color: {rating_info['rating_color']}; margin: 0;">{rating_info['rating']}</h3>
-            <p style="color: {COLORS['text']}; margin: 0.5rem 0 0;">{rating_info['suggestion']}</p>
         </div>
         """, unsafe_allow_html=True)
     
+    # === 4個必備區塊 ===
+    st.markdown("---")
+    
+    # 1. 📊 產業分析
+    st.markdown("### 📊 產業分析")
+    if rating_info['analysis']:
+        st.markdown(rating_info['analysis'])
+    else:
+        st.info("暂无产业分析资料")
+    
+    st.markdown("---")
+    
+    # 2. 📰 消息面
+    st.markdown("### 📰 消息面")
+    if rating_info['news']:
+        st.markdown(rating_info['news'])
+    elif rating_info['suggestion']:
+        st.markdown(rating_info['suggestion'])
+    else:
+        st.info("暂无消息面资料")
+    
+    st.markdown("---")
+    
+    # 3. 💡 投資建議
+    st.markdown("### 💡 投資建議")
+    if rating_info['suggestion']:
+        st.markdown(rating_info['suggestion'])
+    else:
+        st.info("暂无投资建议")
+    
+    st.markdown("---")
+    
+    # 4. 🔍 評估依據（Strengths & Risks）
+    st.markdown("### 🔍 評估依據")
+    col_sr1, col_sr2 = st.columns(2)
+    with col_sr1:
+        st.markdown("**優勢：**")
+        if rating_info['strengths']:
+            st.markdown(rating_info['strengths'])
+        else:
+            st.info("暂无优势资料")
+    with col_sr2:
+        st.markdown("**風險：**")
+        if rating_info['risks']:
+            st.markdown(rating_info['risks'])
+        else:
+            st.info("暂无风险资料")
+    
+    st.markdown("---")
+    
+    # 技術面資料
     hist = get_stock_data(code, '3mo')
     if hist is None or hist.empty:
-        st.error("無法取得資料")
+        st.error("無法取得技術資料")
         return
     
     close = hist['Close'].dropna()
@@ -279,6 +331,7 @@ def show_stock_detail(code, name):
     change = price - prev_price
     pct = (change / prev_price) * 100 if prev_price != 0 else 0
     
+    st.markdown("### 📈 技術面概覽")
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.metric("現價", f"{price:.0f}", f"{change:+.0f} ({pct:+.1f}%)")
@@ -298,15 +351,8 @@ def show_stock_detail(code, name):
     macd, histogram = calc_macd(close)
     st.markdown(f"**MACD:** {macd:.2f} (柱狀: {histogram:+.2f})" if macd else "**MACD:** 無資料")
     
-    # 基本面資訊
-    if rating_info['strengths']:
-        st.markdown("### 💪 優勢")
-        st.markdown(rating_info['strengths'])
-    if rating_info['risks']:
-        st.markdown("### ⚠️ 風險")
-        st.markdown(rating_info['risks'])
-    
-    st.markdown("### 價格與技術指標")
+    # 技術線圖
+    st.markdown("### 📉 價格與技術指標")
     chart_data = pd.DataFrame({
         'Close': close,
         'MA5': close.rolling(5).mean(),
@@ -314,7 +360,8 @@ def show_stock_detail(code, name):
     })
     st.line_chart(chart_data)
     
-    st.markdown("### 最新新聞")
+    # 新聞
+    st.markdown("### 📰 最新新聞")
     news = get_stock_news(code)
     if news:
         for item in news:
