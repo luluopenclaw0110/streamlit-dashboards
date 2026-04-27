@@ -68,7 +68,7 @@ STOCKS = [
 def load_ratings():
     """載入分析評等結果"""
     try:
-        with open('/tmp/subagent-results/stock-analyst-26-v4.json', 'r', encoding='utf-8') as f:
+        with open('/Users/yhlut_tsmc/.openclaw/workspace/stock_data.json', 'r', encoding='utf-8') as f:
             data = json.load(f)
         ratings = {}
         for stock in data.get('stocks', []):
