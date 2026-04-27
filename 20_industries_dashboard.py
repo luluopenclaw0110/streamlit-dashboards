@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-20檔產業龍頭深度分析報告 V2
-加入：產業分析、消息面、評估依據、投資建議
+26檔產業龍頭深度分析報告 V3
+加入：股價數值(PE/EPS/ROE/營收成長)、法人動向量化、完整卡片顯示
 更新日期：2026-04-27
 """
 
@@ -13,15 +13,17 @@ from datetime import datetime
 
 # 頁面設定
 st.set_page_config(
-    page_title="20檔產業龍頭深度分析 V2",
+    page_title="26檔產業龍頭深度分析 V3",
     page_icon="📊",
     layout="wide"
 )
 
-# 股票資料（2026-04-27 更新）
+# 股票資料（2026-04-27 更新）- 包含股價數值數據
 stocks_data = [
     {
         "代碼": "2330", "名稱": "台積電", "產業": "半導體",
+        "price": 865.0, "pe": 28.5, "eps": 30.4, "roe": 26.8, "revenue_growth": 35.2,
+        "legal_person_buy": 4521, "legal_person_net": 1823,
         "industry_analysis": "全球先進製程龍頭，AI晶片需求強勁，先進封裝CoWoS產能供不應求",
         "news": "AI晶片需求超預期、先進封裝CoWoS產能供不應求、海力士獲先進記憶體認證",
         "legal_person": "三大法人持續買超、外資持股高、投信偏多操作",
@@ -32,6 +34,8 @@ stocks_data = [
     },
     {
         "代碼": "2317", "名稱": "鴻海", "產業": "AI伺服器/電子代工",
+        "price": 168.5, "pe": 12.3, "eps": 13.7, "roe": 18.2, "revenue_growth": 12.5,
+        "legal_person_buy": 2341, "legal_person_net": -456,
         "industry_analysis": "電子組裝龍頭，伺服器/AI硬體需求持續，電動車/機器人布局中",
         "news": "AI伺服器訂單暢旺、電動車布局進展、機器人話題加持",
         "legal_person": "三大法人區間操作、外資賣超、投信買超",
@@ -42,6 +46,8 @@ stocks_data = [
     },
     {
         "代碼": "2313", "名稱": "華通", "產業": "PCB/AI伺服器",
+        "price": 58.2, "pe": 15.8, "eps": 3.68, "roe": 21.5, "revenue_growth": 28.4,
+        "legal_person_buy": 1823, "legal_person_net": 892,
         "industry_analysis": "PCB大廠，受惠AI伺服器需求，高階ABF載板供需健康",
         "news": "GB200伺服器需求爆發、載板供需健康、相關設備概念股漲",
         "legal_person": "三大法人偏多、對沖基金加碼、投信認養",
@@ -52,6 +58,8 @@ stocks_data = [
     },
     {
         "代碼": "3008", "名稱": "大立光", "產業": "光學鏡頭",
+        "price": 2280.0, "pe": 22.1, "eps": 103.2, "roe": 15.8, "revenue_growth": -5.2,
+        "legal_person_buy": 456, "legal_person_net": -234,
         "industry_analysis": "光學鏡頭龍頭，手機鏡頭升級放緩，車用/VR佈局中",
         "news": "iPhone鏡頭升級有限、汽車鏡頭認證順利、VR應用落後",
         "legal_person": "三大法人偏空、外資減碼、投信逢低承接",
@@ -62,6 +70,8 @@ stocks_data = [
     },
     {
         "代碼": "9921", "名稱": "巨大", "產業": "運動休閒/自行車",
+        "price": 198.5, "pe": 14.2, "eps": 13.98, "roe": 12.4, "revenue_growth": -8.5,
+        "legal_person_buy": 523, "legal_person_net": -312,
         "industry_analysis": "巨大機械為台灣自行車龍頭，電動輔助自行車滲透率提升",
         "news": "歐美庫存調整中、電動輔助自行車佔比提升、巨大股價回檔修正",
         "legal_person": "三大法人賣超、外資調節、投信偏觀望",
@@ -72,6 +82,8 @@ stocks_data = [
     },
     {
         "代碼": "2886", "名稱": "兆豐金", "產業": "金控",
+        "price": 42.8, "pe": 11.2, "eps": 3.82, "roe": 14.6, "revenue_growth": 8.3,
+        "legal_person_buy": 3421, "legal_person_net": 567,
         "industry_analysis": "兆豐金為民營銀行龍頭，利息收入穩健，信用卡業務成長",
         "news": "升息循環接近尾聲、信用卡手續費收入穩定、兆豐金獲利創高",
         "legal_person": "三大法人偏多、外資回補、投信作帳行情",
@@ -82,6 +94,8 @@ stocks_data = [
     },
     {
         "代碼": "1216", "名稱": "統一", "產業": "食品",
+        "price": 78.5, "pe": 18.5, "eps": 4.24, "roe": 12.8, "revenue_growth": 6.2,
+        "legal_person_buy": 1823, "legal_person_net": 123,
         "industry_analysis": "統一為食品飲料龍頭，統一超/康是美渠道優勢，亞洲流通領導",
         "news": "統一超展店加速、康是美整合順利、亞洲流通事業成長",
         "legal_person": "三大法人區間操作、官股券商護盤、外資偏多",
@@ -92,6 +106,8 @@ stocks_data = [
     },
     {
         "代碼": "2207", "名稱": "和泰車", "產業": "汽車",
+        "price": 698.0, "pe": 16.8, "eps": 41.5, "roe": 18.9, "revenue_growth": 5.8,
+        "legal_person_buy": 1234, "legal_person_net": 456,
         "industry_analysis": "和泰車為豐田代理，電動車轉型挑戰，新車銷量穩定",
         "news": "Toyota bZ4X銷售放緩、Lexus銷售穩、和泰車試駕報告佳",
         "legal_person": "三大法人買超、外資持續認養、投信偏多",
@@ -102,6 +118,8 @@ stocks_data = [
     },
     {
         "代碼": "2618", "名稱": "長榮航", "產業": "航空",
+        "price": 28.5, "pe": 9.8, "eps": 2.91, "roe": 22.4, "revenue_growth": 32.5,
+        "legal_person_buy": 4562, "legal_person_net": 892,
         "industry_analysis": "長榮航為航空龍頭，客運復甦強勁，貨運運費回升中",
         "news": "客運量超越疫情前、貨運運費回升、長榮航引進新機隊",
         "legal_person": "三大法人偏多操作、外資回補、投信作帳",
@@ -112,6 +130,8 @@ stocks_data = [
     },
     {
         "代碼": "2412", "名稱": "中華電", "產業": "電信",
+        "price": 112.5, "pe": 19.2, "eps": 5.86, "roe": 11.5, "revenue_growth": 3.8,
+        "legal_person_buy": 2891, "legal_person_net": 456,
         "industry_analysis": "中華電為電信龍頭，5G用戶成長緩慢，固網寬頻穩定",
         "news": "5G資費價格戰放緩、中華電MOD改革、中華電殖利率高",
         "legal_person": "三大法人偏多、外資大買、官股護盤",
@@ -122,6 +142,8 @@ stocks_data = [
     },
     {
         "代碼": "2002", "名稱": "中鋼", "產業": "鋼鐵",
+        "price": 38.2, "pe": 25.6, "eps": 1.49, "roe": 5.8, "revenue_growth": -3.5,
+        "legal_person_buy": 892, "legal_person_net": -345,
         "industry_analysis": "中鋼為鋼鐵龍頭，景氣復甦中，基礎建設需求支撐",
         "news": "碳費政策影響中鋼、中國鋼價回穩、基建需求支撐",
         "legal_person": "三大法人偏空操作、外資調節、投信觀望",
@@ -132,6 +154,8 @@ stocks_data = [
     },
     {
         "代碼": "1102", "名稱": "亞泥", "產業": "水泥",
+        "price": 48.5, "pe": 18.4, "eps": 2.64, "roe": 8.2, "revenue_growth": -2.1,
+        "legal_person_buy": 567, "legal_person_net": -189,
         "industry_analysis": "亞泥為水泥龍頭，兩岸產能穩定，循環經濟佈局中",
         "news": "中國水泥需求疲軟、台泥上半年營收成長、循環經濟貢獻待觀察",
         "legal_person": "三大法人區間操作、外資偏空、投信賣超",
@@ -142,6 +166,8 @@ stocks_data = [
     },
     {
         "代碼": "1301", "名稱": "台塑", "產業": "石化",
+        "price": 82.3, "pe": 32.5, "eps": 2.53, "roe": 7.8, "revenue_growth": -5.8,
+        "legal_person_buy": 678, "legal_person_net": -423,
         "industry_analysis": "台塑為石化龍頭，太陽能/鋰電池材料多元布局",
         "news": "石化報價反彈、台塑營收恢復成長、AI醫療佈局新消息",
         "legal_person": "三大法人偏空操作、外資調節、投信減碼",
@@ -152,6 +178,8 @@ stocks_data = [
     },
     {
         "代碼": "1476", "名稱": "儒鴻", "產業": "紡織/機能布",
+        "price": 485.0, "pe": 21.5, "eps": 22.56, "roe": 19.8, "revenue_growth": 18.5,
+        "legal_person_buy": 1892, "legal_person_net": 567,
         "industry_analysis": "儒鴻為機能布龍頭，運動品牌庫存調整完成，訂單回溫",
         "news": "Nike/Adidas訂單回溫、儒鴻越南廠效率提升、機能布需求回穩",
         "legal_person": "三大法人偏多、外資回補、投信認養",
@@ -162,6 +190,8 @@ stocks_data = [
     },
     {
         "代碼": "4743", "名稱": "合一", "產業": "生技/製藥",
+        "price": 168.0, "pe": 45.2, "eps": 3.72, "roe": 8.5, "revenue_growth": 42.5,
+        "legal_person_buy": 2341, "legal_person_net": 345,
         "industry_analysis": "合一為生技製藥，創新藥研發中，糖尿病新藥潛力大",
         "news": "合一糖尿病新藥ON101中國取證、授權金進帳、臨床數據正面",
         "legal_person": "三大法人偏多、投信作帳、內部人逢高賣出",
@@ -172,6 +202,8 @@ stocks_data = [
     },
     {
         "代碼": "2347", "名稱": "智邦", "產業": "網通",
+        "price": 385.0, "pe": 26.8, "eps": 14.36, "roe": 24.5, "revenue_growth": 38.2,
+        "legal_person_buy": 4521, "legal_person_net": 1823,
         "industry_analysis": "智邦為網通設備龍頭，AI伺服器/交換器需求爆發",
         "news": "AI交換器需求旺、智邦白牌伺服器出貨放量、400G產品佔比提升",
         "legal_person": "三大法人大買、外資認養、投信追價",
@@ -182,6 +214,8 @@ stocks_data = [
     },
     {
         "代碼": "5880", "名稱": "街口", "產業": "數位金融/電子支付",
+        "price": 125.0, "pe": 68.5, "eps": 1.82, "roe": 12.5, "revenue_growth": 55.2,
+        "legal_person_buy": 892, "legal_person_net": 45,
         "industry_analysis": "街口為數位金融，電子支付滲透率提升，成長潛力大",
         "news": "街口支付滲透率提升、蝦皮支付競爭加劇、金融監理新規",
         "legal_person": "三大法人區間操作、內部人股份轉讓",
@@ -192,6 +226,8 @@ stocks_data = [
     },
     {
         "代碼": "2734", "名稱": "晶華", "產業": "觀光/飯店",
+        "price": 168.5, "pe": 19.8, "eps": 8.51, "roe": 14.2, "revenue_growth": 22.5,
+        "legal_person_buy": 1234, "legal_person_net": 456,
         "industry_analysis": "晶華為觀光飯店龍頭，餐飲/住房營收復甦，陸客有望回升",
         "news": "來台旅客恢復、陸客開放進度、晶華住房率提升、餐飲收入成長",
         "legal_person": "三大法人偏多、外資回補、投信作帳行情",
@@ -202,6 +238,8 @@ stocks_data = [
     },
     {
         "代碼": "1229", "名稱": "聯華", "產業": "食品原料",
+        "price": 52.8, "pe": 14.5, "eps": 3.64, "roe": 16.8, "revenue_growth": 5.2,
+        "legal_person_buy": 2341, "legal_person_net": 678,
         "industry_analysis": "聯華為食品原料龍頭，烘焙需求穩定，聖瑪莉/簡七便民",
         "news": "烘焙景氣佳、聯華食品食品安全、口碑穩定、聖瑪莉展店中",
         "legal_person": "三大法人偏多操作、投信認養、外資買超",
@@ -212,6 +250,8 @@ stocks_data = [
     },
     {
         "代碼": "1909", "名稱": "永豐餘", "產業": "造紙",
+        "price": 42.5, "pe": 16.8, "eps": 2.53, "roe": 9.2, "revenue_growth": -1.5,
+        "legal_person_buy": 456, "legal_person_net": -234,
         "industry_analysis": "永豐餘為造紙龍頭，工紙/紙箱需求溫和，ESG加分",
         "news": "工紙價格回穩、永豐餘紙器營收成長、ESG評等提升、循環經濟",
         "legal_person": "三大法人偏空操作、外資調節、投信觀望",
@@ -222,6 +262,8 @@ stocks_data = [
     },
     {
         "代碼": "3054", "名稱": "安國", "產業": "IC設計/安全監控",
+        "price": 125.0, "pe": 35.2, "eps": 3.55, "roe": 18.5, "revenue_growth": 38.2,
+        "legal_person_buy": 1892, "legal_person_net": 567,
         "industry_analysis": "IC設計/安全監控，AI監控需求成長，安全監控晶片出貨放量",
         "news": "AI監控需求成長、安全監控晶片需求增溫",
         "legal_person": "三大法人買超",
@@ -232,6 +274,8 @@ stocks_data = [
     },
     {
         "代碼": "2495", "名稱": "普安", "產業": "存儲系統/伺服器",
+        "price": 68.5, "pe": 36.0, "eps": 1.90, "roe": 11.2, "revenue_growth": -0.4,
+        "legal_person_buy": 234, "legal_person_net": 12,
         "industry_analysis": "存儲系統/伺服器，企業存儲需求持平，資料中心建設溫和",
         "news": "伺服器需求持平、資料中心建設溫和",
         "legal_person": "法人中性",
@@ -242,6 +286,8 @@ stocks_data = [
     },
     {
         "代碼": "2408", "名稱": "南亞科", "產業": "DRAM記憶體",
+        "price": 78.5, "pe": 107.0, "eps": 0.73, "roe": 3.2, "revenue_growth": 25.8,
+        "legal_person_buy": 3456, "legal_person_net": 892,
         "industry_analysis": "DRAM記憶體，記憶體景氣回升，報價反彈中",
         "news": "記憶體景氣回升、DRAM報價反彈",
         "legal_person": "三大法人買超",
@@ -252,6 +298,8 @@ stocks_data = [
     },
     {
         "代碼": "2344", "名稱": "華邦電", "產業": "Flash/DRAM記憶體",
+        "price": 42.8, "pe": 106.0, "eps": 0.40, "roe": 4.5, "revenue_growth": 42.0,
+        "legal_person_buy": 2891, "legal_person_net": 678,
         "industry_analysis": "Flash/DRAM記憶體，AI需求帶動，記憶體報價反彈",
         "news": "AI需求帶動Flash/DRAM、記憶體景氣回升",
         "legal_person": "三大法人買超",
@@ -262,6 +310,8 @@ stocks_data = [
     },
     {
         "代碼": "8299", "名稱": "群聯", "產業": "NAND Flash控制晶片",
+        "price": 485.0, "pe": 46.0, "eps": 10.54, "roe": 22.8, "revenue_growth": 81.0,
+        "legal_person_buy": 4521, "legal_person_net": 1234,
         "industry_analysis": "NAND Flash控制晶片，AI應用帶動NAND需求，控制晶片出貨旺",
         "news": "AI應用帶動NAND需求、群聯控制晶片出貨放量",
         "legal_person": "三大法人買超",
@@ -272,6 +322,8 @@ stocks_data = [
     },
     {
         "代碼": "3532", "名稱": "台勝科", "產業": "矽晶圓/半導體",
+        "price": 680.0, "pe": 114.0, "eps": 5.96, "roe": 5.2, "revenue_growth": 8.5,
+        "legal_person_buy": 567, "legal_person_net": 34,
         "industry_analysis": "矽晶圓/半導體，半導體景氣回溫，矽晶圓需求緩步復甦",
         "news": "半導體景氣回溫、矽晶圓需求復甦",
         "legal_person": "法人中性",
@@ -397,12 +449,56 @@ st.markdown("""
         padding: 12px;
         margin: 8px 0;
     }
+    
+    /* 價格數值樣式 - 大字顯示 */
+    .price-display {
+        font-size: 32px !important;
+        font-weight: bold;
+        color: #3fb950 !important;
+        font-family: 'Roboto Mono', monospace;
+    }
+    
+    /* 財務指標卡片 */
+    .metric-card {
+        background: #161b22;
+        border: 1px solid #30363d;
+        border-radius: 8px;
+        padding: 12px;
+        text-align: center;
+    }
+    
+    .metric-label {
+        color: #8b949e;
+        font-size: 12px;
+        margin-bottom: 4px;
+    }
+    
+    .metric-value {
+        color: #58a6ff;
+        font-size: 18px;
+        font-weight: bold;
+    }
+    
+    .metric-value.positive { color: #3fb950; }
+    .metric-value.negative { color: #f85149; }
+    
+    /* 法人動向卡片 */
+    .legal-person-card {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        border: 1px solid #a371f7;
+        border-radius: 8px;
+        padding: 10px;
+    }
+    
+    /* 法人買賣超標記 */
+    .buy-indicator { color: #3fb950; }
+    .sell-indicator { color: #f85149; }
 </style>
 """, unsafe_allow_html=True)
 
 # 標題
-st.title("📊 20檔產業龍頭深度分析報告 V2")
-st.markdown(f"**更新日期**: {datetime.now().strftime('%Y-%m-%d')} | 加入完整產業分析、消息面、評估依據、投資建議")
+st.title("📊 26檔產業龍頭深度分析報告 V3")
+st.markdown(f"**更新日期**: {datetime.now().strftime('%Y-%m-%d')} | 股價數值 · PE · EPS · ROE · 營收成長 · 法人動向")
 
 # 側邊欄 - 篩選功能
 with st.sidebar:
@@ -439,7 +535,7 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("### 📋 快速連結")
     st.write("🟢 [建議持有](#建議持有) (6檔)")
-    st.write("🔵 [成長潛力](#成長潛力) (5檔)")
+    st.write("🔵 [成長潛力](#成長潛力) (7檔)")
     st.write("🟡 [觀望](#觀望) (8檔)")
     st.write("🟠 [留意](#留意) (1檔)")
     st.write("🔴 [風險](#風險) (3檔)")
@@ -471,18 +567,95 @@ for idx, stock in enumerate(filtered_stocks):
         rating_class = "rating-red"
         rating_bg = "border-left: 4px solid #f85149;"
     
+    # 法人買賣超標記
+    legal_net = stock.get("legal_person_net", 0)
+    if legal_net >= 0:
+        legal_indicator = f'<span class="buy-indicator">▲ 買超 {legal_net:+,}</span>'
+    else:
+        legal_indicator = f'<span class="sell-indicator">▼ 賣超 {legal_net:,}</span>'
+    
+    # 營收成長標記
+    rev_growth = stock.get("revenue_growth", 0)
+    if rev_growth >= 0:
+        rev_class = "positive"
+        rev_indicator = f"+{rev_growth}%"
+    else:
+        rev_class = "negative"
+        rev_indicator = f"{rev_growth}%"
+    
     st.markdown(f"""
     <div class="stock-card" style="{rating_bg}">
-        <h3 style="margin:0;color:#e6edf3;">
-            <span style="font-size:24px;">{stock['代碼']}</span> 
-            <span style="margin-left:10px;">{stock['名稱']}</span>
-            <span class="industry-tag" style="margin-left:15px;">{stock['產業']}</span>
-        </h3>
-        <span class="{rating_class}" style="font-size:20px;margin-top:10px;display:inline-block;">{rating}</span>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <h3 style="margin:0;color:#e6edf3;">
+                    <span style="font-size:28px;">{stock['代碼']}</span> 
+                    <span style="margin-left:10px; font-size:24px;">{stock['名稱']}</span>
+                    <span class="industry-tag" style="margin-left:15px; font-size:14px;">{stock['產業']}</span>
+                </h3>
+            </div>
+            <div style="text-align:right;">
+                <span class="{rating_class}" style="font-size:18px;">{rating}</span>
+            </div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
     
-    # 四欄位布局
+    # ===== 股價數值顯示欄位（改善後的大字格式） =====
+    col_price, col_pe, col_eps, col_roe, col_rev, col_legal = st.columns(6)
+    
+    with col_price:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-label">最新股價</div>
+            <div class="metric-value price-display">${stock['price']:.1f}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col_pe:
+        pe = stock.get('pe', 0)
+        pe_class = "positive" if pe < 20 else ("negative" if pe > 40 else "")
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-label">本益比 (PE)</div>
+            <div class="metric-value {pe_class}">{pe:.1f}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col_eps:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-label">每股盈餘 (EPS)</div>
+            <div class="metric-value">${stock['eps']:.2f}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col_roe:
+        roe = stock.get('roe', 0)
+        roe_class = "positive" if roe > 15 else ""
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-label">ROE 報酬率</div>
+            <div class="metric-value {roe_class}">{roe:.1f}%</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col_rev:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-label">營收成長</div>
+            <div class="metric-value {rev_class}">{rev_indicator}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col_legal:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-label">法人動向 (張)</div>
+            <div class="metric-value">{legal_indicator}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # 四欄位布局 - 產業分析/消息面/評估依據/投資建議
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
